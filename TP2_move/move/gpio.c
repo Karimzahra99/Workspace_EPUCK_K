@@ -77,7 +77,7 @@ bool gpio_read(GPIO_TypeDef *port, unsigned int pin)
 }
 
 void gpio_config_output_af_pushpull(GPIO_TypeDef *port, unsigned int pin, unsigned int afr_number){ //10: Alternate function mode
-	port->MODER = (port->MODER & ~(3 << (pin * 2))) | (2 << (pin * 2));
+
 
 	if (pin >= 8){
 		port->AFR[1] |=(afr_number << (pin-8)*4); //high
@@ -93,5 +93,6 @@ void gpio_config_output_af_pushpull(GPIO_TypeDef *port, unsigned int pin, unsign
  // Floating, no pull-up/down : PUPDRy = 00
  port->PUPDR &= ~(3 << (pin * 2));
  // Output speed highest : OSPEEDRy = 11
- port->OSPEEDR |= (3 << (pin * 2));
+ //port->OSPEEDR |= (3 << (pin * 2));
+ port->MODER = (port->MODER & ~(3 << (pin * 2))) | (2 << (pin * 2));//10
 }

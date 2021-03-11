@@ -29,7 +29,8 @@ int main(void)
 
     // Enable GPIOD and GPIOE peripheral clock
     RCC->AHB1ENR    |= RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIODEN;
-
+    timer4_start();
+    gpio_config_output_af_pushpull(FRONT_LED, 2);
     while (1) {
         
     }

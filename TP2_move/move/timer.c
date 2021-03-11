@@ -5,8 +5,8 @@
 #define TIMER_CLOCK         84000000    // APB1 clock
 #define PRESCALER_TIM7      8400        // timer frequency: 10kHz
 #define COUNTER_MAX_TIM7    10000       // timer max counter -> 1Hz
-#define PRESCALER_TIM4      8400        // timer frequency: 10kHz
-#define COUNTER_MAX_TIM4    100       // timer max counter -> 100Hz
+#define PRESCALER_TIM4      2100        // timer frequency: 10kHz
+#define COUNTER_MAX_TIM4    500       // timer max counter -> 100Hz
 void timer7_start(void)
 {
     // Enable TIM7 clock
@@ -30,10 +30,13 @@ void timer4_start(void)
 	TIM4->PSC = PRESCALER_TIM4 - 1; // Note: final timer clock = timer clock / (prescaler + 1)
 	TIM4->ARR = COUNTER_MAX_TIM4 - 1; // Note: timer reload takes 1 cycle, thus -1
 	// enable TIM4
+	TIM4->CCMR2 |= ((0x6U) << TIM_CCMR2_OC3M_Pos);
+	TIM4->CCMR2 |= TIM_CCMR2_OC3PE ;
+	TIM4->CCR3 = 20;
+
+			//0b1101000;
+	TIM4->CCER |= TIM_CCER_CC3E;
 	TIM4->CR1 |= TIM_CR1_CEN;
-	TIM4->CCR3 = 100;
-	TIM4->CCMR2 = 0b11010000;
-	TIM4->CCER = 0b100000000;
 }
 
 /*
