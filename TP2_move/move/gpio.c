@@ -76,23 +76,27 @@ bool gpio_read(GPIO_TypeDef *port, unsigned int pin)
     return (port->IDR & (1<<pin));
 }
 
-void gpio_config_output_af_pushpull(GPIO_TypeDef *port, unsigned int pin, unsigned int afr_number){ //10: Alternate function mode
+void gpio_config_output_af_pushpull(GPIO_TypeDef *port, unsigned int pin, uint8_t af_number)
+{
+	//uint8 == unsigned int sur 8 bits
 
-
-	if (pin >= 8){
-		port->AFR[1] |=(afr_number << (pin-8)*4); //high
-
+	// Alternate function number
+	if(pin < 8){
+		//set on the AFRL register (pin 0 to 7)
+		port->AFR[0] |= (af_number << (pin * 4));
+	}else{
+		//set on the AFRH register (pin 8 to 15)
+		port->AFR[1] |= (af_number << ((pin - 8) * 4));
 	}
-	else {
-		port->AFR[0] |=(afr_number << pin*4); //high
-	}
-// Output type pushpull : OTy = 0
- port->OTYPER &= ~(1 << pin);
- // Output data low : ODRy = 0
- port->ODR &= ~(1 << pin);
- // Floating, no pull-up/down : PUPDRy = 00
- port->PUPDR &= ~(3 << (pin * 2));
- // Output speed highest : OSPEEDRy = 11
- //port->OSPEEDR |= (3 << (pin * 2));
- port->MODER = (port->MODER & ~(3 << (pin * 2))) | (2 << (pin * 2));//10
+
+	// Output type pushpull : OTy = 0
+	port->OTYPER &= ~(1 << pin);
+	// Output data low : ODRy = 0
+	port->ODR &= ~(1 << pin);
+	// Floating, no pull-up/down : PUPDRy = 00
+	port->PUPDR &= ~(3 << (pin * 2));
+	// Alternate function mode : MODERy = 10
+	//port->MODER = (port->MODER & ~(2 << (pin * 2))) | (2 << (pin * 2));//clear que le bit de poids faible et set le bit de poids fort
+	port->MODER = (port->MODER & ~(3 << (pin * 2))) | (2 << (pin * 2));//clear les deux bits puis set le bit de poids fort <- plus propre
+
 }
