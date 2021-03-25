@@ -1096,7 +1096,7 @@ Disassembly of section .text:
  8000e86:	bf00      	nop
 
 08000e88 <__gesf2>:
- 8000e88:	f04f 3cff 	mov.w	ip, #4294967295
+ 8000e88:	f04f 3cff 	mov.w	ip, #4294967295	; 0xffffffff
  8000e8c:	e006      	b.n	8000e9c <__cmpsf2+0x4>
  8000e8e:	bf00      	nop
 
@@ -1243,7 +1243,7 @@ Disassembly of section .text:
  8000fec:	d101      	bne.n	8000ff2 <__aeabi_f2uiz+0x32>
  8000fee:	0242      	lsls	r2, r0, #9
  8000ff0:	d102      	bne.n	8000ff8 <__aeabi_f2uiz+0x38>
- 8000ff2:	f04f 30ff 	mov.w	r0, #4294967295
+ 8000ff2:	f04f 30ff 	mov.w	r0, #4294967295	; 0xffffffff
  8000ff6:	4770      	bx	lr
  8000ff8:	f04f 0000 	mov.w	r0, #0
  8000ffc:	4770      	bx	lr
