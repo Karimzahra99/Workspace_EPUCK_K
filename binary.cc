@@ -1,21 +1,55 @@
 #include <iostream>
 #include <string>
 #include <bits/stdc++.h>
+#include <limits>
 
 using namespace std;
 void showbits( unsigned int x ); //dec to bin
-void decToHexa(int n);
-void decToBinary(int n);
+void decToHex(int n);
+void DecToBin(int n);
 void HexToBin(string hexdec);
-void convertBinToHex(string bin);
+void BinToHex(string bin);
 void createMap(unordered_map<string, char> *um);
+void BinToDec(int n); 
+void HexToDec(string num);
+
+template<typename T>
+void showMinMax() {
+   cout << "min: " << numeric_limits<T>::min() << endl;
+   cout << "max: " << numeric_limits<T>::max() << endl;
+   cout << endl;
+}
 
 int main( void )
 {
 
-    //showbits(~(3 << (14 * 2)))   ;
+    //showbits(~(3 << (1 * 2)));
+    //DecToHex(10);
+    //decToBin(40000);
     //HexToBin("100");
-    decToBinary(40000);
+    //BinToHex("00011111");
+    //BinToDec(1001);
+    //HexToDec("3F456A");
+
+   cout << "short:" << endl;
+   showMinMax<short>();
+   cout << "int:" << endl;
+   showMinMax<int>();
+   cout << "long:" << endl;
+   showMinMax<long>();
+   cout << "float:" << endl;
+   showMinMax<float>();
+   cout << "double:" << endl;
+   showMinMax<double>();
+   cout << "long double:" << endl;
+   showMinMax<long double>();
+   cout << "unsigned short:" << endl;
+   showMinMax<unsigned short>();
+   cout << "unsigned int:" << endl;
+   showMinMax<unsigned int>();
+   cout << "unsigned long:" << endl;
+   showMinMax<unsigned long>();
+    
     return 0; 
     
 }
@@ -30,7 +64,7 @@ void showbits( unsigned int x )
     printf("\n");
 }
 
-void decToHexa(int n)
+void DecToHex(int n)
 {
     // char array to store hexadecimal number
     char hexaDeciNum[100];
@@ -62,7 +96,7 @@ void decToHexa(int n)
         cout << hexaDeciNum[j];
 }
 
-void decToBinary(int n) 
+void DecToBin(int n) 
 { 
     // array to store binary number 
     int binaryNum[32]; 
@@ -173,7 +207,7 @@ void createMap(unordered_map<string, char> *um)
  
 // function to find hexadecimal 
 // equivalent of binary
-void convertBinToHex(string bin)
+void BinToHex(string bin)
 {
     int l = bin.size();
     int t = bin.find_first_of('.');
@@ -226,4 +260,45 @@ void convertBinToHex(string bin)
     cout << hex << endl;
     // required hexadecimal number
     
+}
+
+void BinToDec(int n) //int num = 10101001;
+{
+    int num = n;
+    int dec_value = 0;
+ 
+    // Initializing base value to 1, i.e 2^0
+    int base = 1;
+ 
+    int temp = num;
+    while (temp) {
+        int last_digit = temp % 10;
+        temp = temp / 10;
+ 
+        dec_value += last_digit * base;
+ 
+        base = base * 2;
+    }
+ 
+    //return dec_value;
+    cout << dec_value << endl;
+}
+
+void HexToDec(string num) { //char num[] = "3F456A";
+   //int len = strlen(num);
+   int len = num.length();
+   int base = 1;
+   int temp = 0;
+   for (int i=len-1; i>=0; i--) {
+      if (num[i]>='0' && num[i]<='9') {
+         temp += (num[i] - 48)*base;
+         base = base * 16;
+      }
+      else if (num[i]>='A' && num[i]<='F') {
+         temp += (num[i] - 55)*base;
+         base = base*16;
+      }
+   }
+   //return temp;
+   cout << temp << endl;
 }
