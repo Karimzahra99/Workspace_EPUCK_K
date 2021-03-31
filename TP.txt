@@ -1,4 +1,13 @@
 Github branching : https://idratherbewriting.com/learnapidoc/pubapis_github_desktop_client.html
+https://git-scm.com/book/en/v2
+https://the-turing-way.netlify.app/reproducible-research/vcs/vcs-workflow.html
+https://education.github.com/git-cheat-sheet-education.pdf
+
+To Merge User to master (user->master) : selectionner comme current branch "master" puis dans branch choisir branch to current branch et choisir la branch voulu
+To Merge master to user (master->user) : selectionner comme current branch la branch voulu puis dans branch choisir branch to current branch et choisir la branch master 
+
+https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
+https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#Warning-Options
 ---------------------
 https://mcuoneclipse.com/2013/04/14/text-data-and-bss-code-and-data-size-explained/
 https://www.gctronic.com/doc/index.php?title=e-puck2#Firmware_update
@@ -86,15 +95,15 @@ Operateur ternaire (if compact)
 condition ? value_if_true : value_if_false
 
 Bitwise 
-a&b
-a|b
-a^b
-~a
+a&b bitwise and
+a|b bitwise or
+a^b bitwise xor
+~a  bitwise not
 Logical
-a && b
-a || b
-a != b
-!a
+a && b logical and
+a || b logical or
+a != b logical xor
+!a     logical not
 
 Rappel pointeur
 int* a = nullptr; //initialisation
@@ -136,6 +145,7 @@ Sans FPU : arm-none-eabi-gcc -save-temps=obj -mcpu=cortex-m4 -c essai.c -o essai
 Avec FPU : arm-none-eabi-gcc -save-temps=obj -mcpu=cortex-m4 -c essai.c -o essai.o -mfloat-abi=hard
 -mfpu=vfpv2 
 
+volatile uint16_t -> empeche le compilateur d'optimiser
 
 half-words (16 bits) or words (32 bits)
 
@@ -186,7 +196,7 @@ PUPDR (32bits): pull type (pull-up, pull-down or floating) //on rajoute une resi
 11: Reserved
 
 
-OSPEEDR (32bits): output speed (4 levels)
+OSPEEDR (32bits): output speed (4 levels) Pas utile quand le port est config en entree
 00: Low speed			port->OSPEEDR &= ~(3 << (pin * 2));
 01: Medium speed		port->OSPEEDR = (port->OSPEEDR & ~(3 << (pin * 2))) | (1 << (pin * 2));
 10: High speed			port->OSPEEDR = (port->OSPEEDR & ~(3 << (pin * 2))) | (2 << (pin * 2)); 
@@ -217,7 +227,7 @@ Sel2 GPIOC, 15
 Sel3 GPIOD, 4
 Selecteur a 0 quand le tic est a droite
 
-Internal PD of F407 ???????????????????????????????????????????????????????????????????????????? + En entree on configure le pin avec une pulldown resistor par securite ?
+Internal PD of F407  + En entree on configure le pin avec une pulldown resistor par securite => comment pour dire de connecte avec push down interne du stm32
 bool does not name a type ? _Bool
 Wimplicit ?
 
@@ -409,7 +419,7 @@ Motors (moteur a 2 phases, pont en H pour l'alimenter)
 4 signaux par moteur => a,b,c d
 Diametre roue 4.15cm => distance parcouru par 1 tour de roue = 13cm
 1 tour de roue = rotation de 360deg de la roue = 1000steps
-20 steps per revolution of the motor combined with a gear reduction of 50:1 ???????????????????????????????????????????????????????????????????????????????????????????
+20 steps per revolution of the motor combined with a gear reduction of 50:1 = un tour de roue == 50 tour de moteur
 1 timer par roue => timer 6 et 7
 Step motors sequence : https://www.youtube.com/watch?v=oueGS8MVvLQ
 0000 = Sleep Mode 
@@ -438,11 +448,26 @@ PE11 	Motor1 C
 PE12 	Motor2 B
 PE13 	Motor2 A
 PE14 	Motor2 C
-PE15 	Motor2 D
+PE15 	Motor2 D //inversion
+
+https://fr.wikipedia.org/wiki/Odométrie
+
+Pour une trajectoire circulaire : 
+e : ecart entre les roues
+vd : vitesse roue droite
+vg : vitesse roue gauche 
+v : vitesse du robot
+R : rayon du cercle
+
+vg = (R-e/2)*v/R
+vd = (R+e/2)*v/R
+
+v = (vg+vd)/2
+R = e/2*(vg+vd)/(vd-vg)
 
 On active la clock du port E : RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;
 On config les GPIOs des moteurs en sortie & pushpull : gpio_config_output_pushpull(MOTOR_RIGHT_A);
-Pk une inversion dans positon et speed pour left et right ???????????????????????????????????????????????????????????????????????????????????????
+Pk une inversion dans positon et speed pour left et right = inversion a l'interieur du moteur
 ---------------------
 Only .o and .h
 The idea is that the user will only use the .h file to look at the definitions and not at the implementation. He will also not have to compile this library every time. The disadvantage is that this new
@@ -475,7 +500,7 @@ HAL : hardware abstraction layer : est un logiciel intermédiaire entre le syst�
 Chibi/OS a besoin de trois fichiers de pour etre config : chconf.h (kernel config) & halconf.h (HAL config) & mcuconf.h (Config de la STM32 => activer les peripheriques et les clocks)
 
 -----------------------------------
-Dans board.chcfg on set LED1 (PD5) Level a LOW, on click sur le fichier puis generate files from config data et dans board.h on doit voir : PIN_ODR_LOW(GPIOD_LED1) ensuite on compile et upload
+Dans board.chcfg (epuck2_board->cfg) on set LED1 (PD5) Level a LOW, on click sur le fichier puis generate files from config data et dans board.h on doit voir : PIN_ODR_LOW(GPIOD_LED1) ensuite on compile et upload
 -----------------------------------
 Au demarrage il y'a 2 Threads : Main a prio normal et Idle avec la prio la plus faible
 -----------------------------------
@@ -484,7 +509,7 @@ Pour definir une thread, on doit definir sa taille sur la pille : static THD_WOR
 chThdCreateStatic(waMyThread, sizeof(waMyThread), NORMALPRIO, MyThread, NULL); //NULL est un argument a donner a la thread
 http://www.chibios.org/dokuwiki/doku.php?id=chibios:articles:howtos:createthread
 
-// target extended-remote\\.\COM4 Epuck monitor???????????????????? DTR SIGNAL ???????????
+// target extended-remote\\.\COM4 Epuck monitor => Baud rate 11500 / DTR SIGNAL ???????????
 If you look at the electrical documentation of the e-puck2, you will see that the UART3 is connected
 to the programmer. So in order to see what the e-puck2 is writing to the serial port, you need to
 connect to the good USB com port of the programmer. There are only two, the first is the GDB
@@ -502,19 +527,117 @@ chThdSleepMilliseconds(500); // sleep apres l'execution
 
 ----------------------------------
 chThdSleepUntilWindowed(time, time + MS2ST(200)); //sinon on obtient une frequence trop grande et FRONT_LED sera tjr allume
+MS2ST() is a macro which converts milliseconds to system ticks
 ----------------------------------
-Commutation and periode are correct
+Commutation and period are correct
 ----------------------------------
 La body LED blink seulement pour une duree du quanta de base (temps alloue par processus), car le temps d'execution de la thread depasse le temps alloue et la thread perd la main
 Dans chconf.h on voit : CH_CFG_TIME_QUANTUM                 20
+BodyLed ne sleep pas et utilise 100% de son temps alloué, les autres threads (de meme prio ou prio plus basse) ne peuvent donc pas etre execute
+Quand BodyLed atteint le temps max, le systeme met en pause la thread BodyLed et change le contexte pour que FrontLed puisse s'executer
+Une fois FrontLed executer, BodyLed termine son execution. Ainsi la periode de FrontLed est augmentée de CH_CFG_TIME_QUANTUM
 ----------------------------------
 Dans la config pour front led : 200ms et les boucles nop pour body led : seul body led clignote (si on augmente la prio de body led) car etant de prio superieur et de periode plus longue avec des nop la thread ne perd jamais la main
-Meme config mais si on augmente la prio de front led : la periode de front led est respecte mais mais la periode de body led est change car body led depasse le quanta de temps et est de prio plus faible
+Meme config mais si on augmente la prio de front led : la periode de front led est respecte car elle a la priorite superieur elle va interrompte BodyLed pour respecter son timing. 
 ----------------------------------
 La front led ne clignote pas (meme avec plus grande prio) car body led desactive les interruptions durant son execution = un moyen brute force de garder la main
+On peut se permettre de desactiver les interruptions seulement pendant un cours moment, dans BodyLed les interruptions sont desactives pendant tres longtemps, meme les stystemes ticks (le timer des interruptions) ne comptent plus normalement.
 ----------------------------------
-IMU
+IMU (Inertial measurement unit) IMU MPU 9250
 
-----
+Accelerometres 3 axes	Range : +- 2g, +- 4g, +-8g, +-16g
+Gyroscope 3 axes	Range : +- 250dps, +- 500dps, +- 1000dps, +- 2000dps
+Magnetometre 3 axes (present mais non utilisable) Range : +-4800microTesla
+dps : degree per second
 
-BLU
+Utilise un interface I2C (deux lignes pour la communication : SDA pour les donnes et SCL pour la clock)
+
+IMU INIT sur PD15
+SDA sur PB9
+SCL sur PB8
+
+i2c_bus.c/i2c_bus.h : librairie pour communication I2C entre STM32(microcontrolleur) et MPU 9250 (IMU)
+mpu9250.c/mpu9250.h : librairie qui gere les registres de config de l'IMU
+imu.c/imu.h : capture des donnees de l'imu (Thread) et partage des donnees via (MessageBus)
+main.c : calculation de l'acceleration a partir des valeurs de l'IMU
+
+Pour visualiser les valeurs de l'imu, utiliser realterm/hterm
+Choisir un baudrate de 115200 (en realite le baudrate a pas d'importance), choisir le port serie (COM 4), optionnellement active le DTR signal pour demarrer la transmission
+Baudrate (bits par seconde) : determine la vitesse de transmission des bits sur la ligne
+DTR signal : signal de control du protocol RS-232 envoye de l'ordi vers l'epuck pour lui dire que la ligne est prete pour recevoir des donnees et que l'epuck peut commencé la transmission
+
+https://docs.microsoft.com/en-us/cpp/cpp/data-type-ranges?view=msvc-160
+uint8_t : 0 a 255
+uint16_t : 0 a 65'535
+uint32_t : 0 a 2^32-1 = 4'294'967'295
+
+__int8 : -128 to 127
+__int16 : -32'768 to 32'767
+__int32 : -2'147'483'648 to 2'147'483'647
+
+#define STANDARD_GRAVITY    9.80665f -> definit la cste de gravite de type float
+
+Pour imu_compute_offset il faut faire attention au type de variable pour utiliser le moins de place en memoire
+On voit que nb_samples est un unit_16 (0 a 2^16-1) donc pour compter le nombre de echantillons on doit utiliser un uint_16 aussi (la variable i est de type uint16_t i)
+Comme on veut faire une moyenne des echantillons on doit sommer bcp de valeurs (qui peuvent etre signes accel et vitesse angul peuvent etre negatives)
+Pour trouver le type adequat pour stocker la somme on sait que int16 va de -2^16/2 (-32'678) a 2^16/2-1 (32'767, -1 car on prend en compte 0)
+Le pire des cas serait que tout les echantillons (int16) on la valeur maximal donc 32767 et le nombre d'echantillons (u_int16) vaut au maximum 2^16-1 = 65535
+Ce qui fait 65535*32767 = 2'147'385'345  qui est inferieur a 2^32/2-1 = 2'147'483'647 donc int32 est acceptable pour stocker la somme
+
+Tableau pour stocker les sommes
+int32_t temp_acc_offset[NB_AXIS] = {0};
+int32_t temp_gyro_offset[NB_AXIS] = {0};
+// NB_AXIS = 3 // int exemple [3] = {0}; -> creer un tableau 3x1 ou 1x3 avec 0 dans chaque case // exemple[0] = 32; met 32 dans le premier champ
+
+On met -1g pour l'accel suivant z
+
+Dans la datasheet de MPU9250 p22 paragraphe 4.6 et 4.7 on apprend que les accelerations et vitesse angulaire sont stockes sur 16 bits dans l'imu
+Donc pour faire la conversion d'unite dans imu_compute_units(), on commence par soustraire les offset (imu_values.acc_raw[i] - imu_values.acc_offset[i])
+Ensuite on multiplie le resultat par * STANDARD_GRAVITY (9.81 m/s^2) * ACC_RAW2G (2/32768) pour obtenir des m/s^2
+Valeur stocker dans les registres de l'imu sont de type int16 donc entre -32768 et 32767 qui represente -2g a 2g
+Donc en divisant par 32768 on obtient les valeurs entre -1 et 1 puis en multipliant par 2g on retrouve les valeurs entre -2g et 2g qui sont donc en m/s^2 
+Acceleration Ax,Ay,Az en m/s^2
+
+Pour les vitesses angulaires -32768 et 32767  represente -250deg/s et 250deg/s, apres avoir soustrait on multiplie par * DEG2RAD(GYRO_RAW2DPS)
+GYRO_RAW2DPS = RES_250DPS(250) / MAX_INT16(32768) et la fonction DEG2RAD(deg) (deg / 180 * M_PI)
+250*PI/180 = 4.36 rad/s
+Donc en divisant par 32768 on obtient les valeurs entre -1 et 1 puis en multipliant par 4.36 rad/s on obtient les valeurs entre -4.36rad/s (-250deg/s) et 4.36 rad/s (250deg/s)
+Gyroscope rates (vitesses angulaires) Gx,Gy,Gz en rad/s
+
+chSysLock() => le scheduler va pas faire de changement de contexte et les interruptions sont desactives, utiliser pour qu'un thread critique puis terminer son execution
+https://stackoverflow.com/questions/49596236/what-is-rtos-kernel-locking-and-when-do-you-need-to-use-it
+Methode utilise pour chronometrer un temps d'execution (par exemple l'execution de la fonction atan2 ou les comparaisons de threshold dans l'exemple 2)
+
+Exemple 1 IMU par trigo
+Exemple 2 IMU par threshold -> possiblite de faire des thresholds variables / differents suivant les cas
+
+Dans realterm
+Premiere ligne  = valeurs brutes
+Deuxieme ligne  = valeurs brutes - offset
+Troisieme ligne = valeurs en m/s^2 et rad/s
+========================================================================================================================================
+
+Big Endian Byte Order: The most significant byte (the "big end") of the data is placed at the byte with the lowest address. The rest of the data is placed in order in the next three bytes in memory.
+Little Endian Byte Order: The least significant byte (the "little end") of the data is placed at the byte with the lowest address. The rest of the data is placed in order in the next three bytes in memory.
+
+
+
+==============================================================================================================
+questions :  
+explication inversion roue C et D ?
+explication proccedure DFU
+difference systeme tic et cycle
+expliquer l'influence du baudrate et dtr signal
+comment est initialise NB_AXIS dans mpu9250.h et pk X_AXIS = 0
+#define MAX_INT16	32768.0f <- 32767 ???
+----------------
+Impossible de run le corrige TP3 (meme en rajoutant chibiOs et msgbus manquant) :
+Makefile:91: ../../lib/ChibiOS/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk: No such file or directory
+Makefile:93: ../../lib/ChibiOS/os/hal/hal.mk: No such file or directory
+Makefile:94: ../../lib/ChibiOS/os/hal/ports/STM32/STM32F4xx/platform.mk: No such file or directory
+Makefile:102: ../../lib/ChibiOS/os/hal/osal/rt/osal.mk: No such file or directory
+Makefile:104: ../../lib/ChibiOS/os/rt/rt.mk: No such file or directory
+Makefile:105: ../../lib/ChibiOS/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk: No such file or directory
+Makefile:228: ../../lib/ChibiOS/os/common/ports/ARMCMx/compilers/GCC/rules.mk: No such file or directory
+make: *** No rule to make target `../../lib/ChibiOS/os/common/ports/ARMCMx/compilers/GCC/rules.mk'.  Stop.
+-----------------
