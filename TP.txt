@@ -6,6 +6,9 @@ https://education.github.com/git-cheat-sheet-education.pdf
 To Merge User to master (user->master) : selectionner comme current branch "master" puis dans branch choisir branch to current branch et choisir la branch voulu
 To Merge master to user (master->user) : selectionner comme current branch la branch voulu puis dans branch choisir branch to current branch et choisir la branch master 
 
+https://www.gctronic.com/doc/index.php/e-puck2
+https://www.gctronic.com/doc/index.php?title=e-puck2_robot_side_development
+
 https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
 https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html#Warning-Options
 ---------------------
@@ -453,7 +456,7 @@ PE15 	Motor2 D //inversion
 https://fr.wikipedia.org/wiki/Odométrie
 
 Pour une trajectoire circulaire : 
-e : ecart entre les roues
+e : ecart entre les roues (5.8 cm)
 vd : vitesse roue droite
 vg : vitesse roue gauche 
 v : vitesse du robot
@@ -561,6 +564,8 @@ mpu9250.c/mpu9250.h : librairie qui gere les registres de config de l'IMU
 imu.c/imu.h : capture des donnees de l'imu (Thread) et partage des donnees via (MessageBus)
 main.c : calculation de l'acceleration a partir des valeurs de l'IMU
 
+baudrate par port p35 datasheet
+
 Pour visualiser les valeurs de l'imu, utiliser realterm/hterm
 Choisir un baudrate de 115200 (en realite le baudrate a pas d'importance), choisir le port serie (COM 4), optionnellement active le DTR signal pour demarrer la transmission
 Baudrate (bits par seconde) : determine la vitesse de transmission des bits sur la ligne
@@ -616,28 +621,79 @@ Premiere ligne  = valeurs brutes
 Deuxieme ligne  = valeurs brutes - offset
 Troisieme ligne = valeurs en m/s^2 et rad/s
 ========================================================================================================================================
+Bluetooth/WiFi a travers le esp32 qui via une ligne UART va vers STM32
+Serial Monitor (COM4) et GDB (COM5) vont de l'USB vers le programateur (STM32F413) puis vers STM32
+USB virtuel (e-puck2 STM32F407 = COM6) vers STM32 directement
+
+EXEPATH\dfu-util -d 0483:df11 -a 0 -s 0x08000000 -D e-puck2_main-processor.bin
+Reset+bouton noir bootloader -> lancer la commande pour charger le programme -> mettre le selecteur vers le centre du robot puis presser sur reset -> ouvrir epuckmonitor.exe et charger le com6
+
+GDB,UART,SPI sont des bluetooth com ports qui vont de l'ordre vers l'ESP32 puis avec l'UART3 vers STM32
+GDB server, Serial Monitor, e-puck2 STM32F407 sont des USB com ports qui vont de l'ordi vers l'USB HUB puis le GDB et Serial monitor vont vers le programmer puis via UART3 vers STM32 et e-puck2 STM32F407 va de l'USB HUB vers STM32 sans passer par le programmeur et UART3
+
+Interface DCMI p38 Datasheet : recuperer les lignes de l'image, la camera dicte le rythme d'acquisition
+Camera sur l'epuck CMOS 640 X 480 pixel 30 FPS (Max) angle de vue 45 degree
+Maximum data transfer rate 54 Mbyte/s at 54 MHz
+Utilise la communication I2C (SCL PB8 SDA PB9)
+
+Pointeur SD3 (UART3) pour USB et bluetooth sur realterm il faut prendre COM4
+Pointeur SDU1 (USB) sur realterm il faut prendre COM6
+
+UART peut envoyer des donnees meme si il y'a personne sur la ligne
+USB une presence sur la ligne est obligatoire pour envoyer des donnees
+
+Activer le bluetooth : hold the User button (next to the Reset button) while turning ON the robot
+Bluetooth has a smaller transmission speed than USB. So if you transmit too many data too quickly, it is possible to loose data
+
+cast (BaseSequentialStream *) is here to convert the type of the pointer into the good one
 
 Big Endian Byte Order: The most significant byte (the "big end") of the data is placed at the byte with the lowest address. The rest of the data is placed in order in the next three bytes in memory.
 Little Endian Byte Order: The least significant byte (the "little end") of the data is placed at the byte with the lowest address. The rest of the data is placed in order in the next three bytes in memory.
+
+La thread PI regulateur a lieu a frequence fixe et n'attent pas de nouvelle image
+
+La thread CaptureImage prend une photo et relache une semaphore apres avoir finit
+
+La thread ProcessImage attend que la semaphore soit relache puis traite l'image
+
+python path_to_the_script\plotFFT.py comX » (for Windows)
+python3 path_to_the_script/plotFFT.py /dev/cu.usbmodemXXXX
+
+python plotImage.py com4 for Windows
+
+Pour mesurer le temps d'execution de fonctions, a mettre dans une thread
+systime_t time; //hors de la boucle while
+time = chVTGetSystemTime(); //dans boucle while
+//-> Functions to measure <-//
+chprintf((BaseSequentialStream *)&SDU1, "capture␣time␣=␣%d\n", chVTGetSystemTime()-time);
+
+==============================================================================================================
+Sound - 4micros (3 on top, one on back)
+
+Shannon Nyquist Fsample > 2*Fmax 
+Fsample (300Hz) -> Fmax = 150Hz
+
+2^10 = 1024 -> -512,512
+----------
+On observe deux pics car la transformee de fourier d'un sinus donne deux dirac symetrique, il represente la frequence, on met 0 au centre car c'est symmetrique
+Frequence max 150Hz car la frequence d'echantillonage est de 300Hz
+----------
+Frequency = 150-abs(position)*150/512
+position est la valeur de la frequence sur plotFFT.py
+On a pas des dirac parfait car il faut prendre une periode entiere du signal
+----------
+float sur stm32 => 32bits
+
+Optimized = instructions en assembleur 
+
 
 
 
 ==============================================================================================================
 questions :  
-explication inversion roue C et D ?
-explication proccedure DFU
-difference systeme tic et cycle
+
+comment activer FPU -> activer par defaut
+explication proccedure DFU & inversion moteur => Dany
+difference systeme tic (vitesse d'horloge du microcontroleur et cycle (en terme de processeur) => Dany
 expliquer l'influence du baudrate et dtr signal
-comment est initialise NB_AXIS dans mpu9250.h et pk X_AXIS = 0
-#define MAX_INT16	32768.0f <- 32767 ???
-----------------
-Impossible de run le corrige TP3 (meme en rajoutant chibiOs et msgbus manquant) :
-Makefile:91: ../../lib/ChibiOS/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f4xx.mk: No such file or directory
-Makefile:93: ../../lib/ChibiOS/os/hal/hal.mk: No such file or directory
-Makefile:94: ../../lib/ChibiOS/os/hal/ports/STM32/STM32F4xx/platform.mk: No such file or directory
-Makefile:102: ../../lib/ChibiOS/os/hal/osal/rt/osal.mk: No such file or directory
-Makefile:104: ../../lib/ChibiOS/os/rt/rt.mk: No such file or directory
-Makefile:105: ../../lib/ChibiOS/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v7m.mk: No such file or directory
-Makefile:228: ../../lib/ChibiOS/os/common/ports/ARMCMx/compilers/GCC/rules.mk: No such file or directory
-make: *** No rule to make target `../../lib/ChibiOS/os/common/ports/ARMCMx/compilers/GCC/rules.mk'.  Stop.
------------------
+#define MAX_INT16	32768.0f <- 32767 => Dany
