@@ -7,9 +7,9 @@
 
 typedef enum{
     X_AXIS = 0,
-    Y_AXIS,
-    Z_AXIS,
-    NB_AXIS,
+    Y_AXIS, //1
+    Z_AXIS, //2
+    NB_AXIS, //3
 }imu_axis_t;
 
 // mpu60X0_setup() config options

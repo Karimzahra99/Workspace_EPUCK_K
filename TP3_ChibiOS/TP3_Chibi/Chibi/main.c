@@ -258,8 +258,8 @@ int main(void)
     imu_msg_t imu_values;
 
     //wait 2 sec to be sure the e-puck is in a stable position
-    chThdSleepMilliseconds(2000);
-    imu_compute_offset(imu_topic, NB_SAMPLES_OFFSET);
+    chThdSleepMilliseconds(2000); //sleep de 2s
+    imu_compute_offset(imu_topic, NB_SAMPLES_OFFSET); //on compute les offset et on les store dans la variable imu_values
 
     while(1){
         //wait for new measures to be published
@@ -285,7 +285,7 @@ int main(void)
                 imu_values.status);
        
         show_gravity(&imu_values);
-        chThdSleepMilliseconds(100);
+        chThdSleepMilliseconds(100); //sleep de 0.1s
     }
 
 }
