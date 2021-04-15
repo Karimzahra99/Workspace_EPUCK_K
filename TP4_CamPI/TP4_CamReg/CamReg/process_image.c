@@ -114,11 +114,11 @@ static THD_FUNCTION(CaptureImage, arg) {
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 
-	systime_t time;//utiliser pour calculer le temps d'execution
+	//systime_t time;//utiliser pour calculer le temps d'execution
 
 	while(1){
 
-    	time = chVTGetSystemTime();
+    	//time = chVTGetSystemTime();
 
     	//starts a capture
 		dcmi_capture_start();
@@ -127,7 +127,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 		//signals an image has been captured
 		chBSemSignal(&image_ready_sem);
 		//chThdSleepMilliseconds(12);
-		chprintf((BaseSequentialStream *)&SDU1, "capture time = %d\n", chVTGetSystemTime()-time);
+		//chprintf((BaseSequentialStream *)&SDU1, "capture time = %d\n", chVTGetSystemTime()-time);
     }
 
 }
