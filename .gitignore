@@ -1,3 +1,6 @@
+#Folders
+lib/
+
 .DS_Store
 # Prerequisites
 *.d
