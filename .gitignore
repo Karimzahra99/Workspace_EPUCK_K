@@ -25,6 +25,9 @@ TP2_move/move/.cproject
 TP2_move/move/.project
 TP2_move/move/.settings/
 
+TP1_blinky/blinky/.project
+TP1_blinky/blinky/.cproject
+
 .DS_Store
 # Prerequisites
 *.d
