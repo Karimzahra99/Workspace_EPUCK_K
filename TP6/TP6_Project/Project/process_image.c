@@ -332,7 +332,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 
 		//search for a line in the image and gets its width in pixels
-		lineWidth = extract_line_width(image_red);
+		lineWidth = extract_line_width(image_green);
 
 		//converts the width into a distance between the robot and the camera
 		if(lineWidth){
@@ -343,7 +343,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//To visualize one image on computer with plotImage.py
 		if(send_to_computer){
 		//sends to the computer the image
-		SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
+		SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
 		}
 
 		//invert the bool
