@@ -33,3 +33,4 @@ build/
 
 # Packager generated
 CMakeLists.txt
+*.git

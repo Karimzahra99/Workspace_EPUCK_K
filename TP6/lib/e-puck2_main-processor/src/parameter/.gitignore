@@ -4,3 +4,4 @@ dependencies
 
 # vim swap files
 *.sw[po]
+*.git
