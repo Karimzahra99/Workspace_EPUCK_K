@@ -16,7 +16,7 @@ uint8_t get_color(void);
 #define MIN_COUNT					5
 
 //Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
-#define SHIFT_1						3
-#define SHIFT_2						5
+#define SHIFT_3						3
+#define SHIFT_5						5
 
 #endif /* PROCESS_IMAGE_H */

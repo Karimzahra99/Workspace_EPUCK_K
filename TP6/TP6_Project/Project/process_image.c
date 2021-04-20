@@ -243,9 +243,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 			//extracting red 5 bits and shifting them right
-			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_1;
+			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 			//extracting green 6 bits and rearranging their order
-			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_1) + (((uint8_t)img_buff_ptr[i+1]&0xE0) >> SHIFT_2);
+			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_3) + (((uint8_t)img_buff_ptr[i+1]&0xE0) >> SHIFT_5);
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
