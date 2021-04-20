@@ -23,10 +23,17 @@ TP3_ChibiOS/TP3_Chibi/.project
 
 TP2_move/move/.cproject
 TP2_move/move/.project
-TP2_move/move/.settings/
 
 TP1_blinky/blinky/.project
 TP1_blinky/blinky/.cproject
+
+TP6/TP6_Project/Project/.settings/
+TP5_FFT/Noisy_correction/.settings/
+TP5_FFT/Noisy/.settings/
+TP4_CamPI/TP4_CamReg/CamReg/.settings/
+TP3_ChibiOS/TP3_Chibi/Chibi/.settings/
+TP2_move/move/.settings/
+TP1_blinky/blinky/.settings/
 
 .DS_Store
 # Prerequisites
