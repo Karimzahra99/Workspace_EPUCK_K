@@ -16,6 +16,12 @@ TP4_CamPI/TP4_CamReg/CamReg/build/
 TP4_CamPI/TP4_CamReg/CamReg/.cproject
 TP4_CamPI/TP4_CamReg/CamReg/.project
 
+TP3_ChibiOS/TP3_Chibi/Chibi/build/
+TP3_ChibiOS/TP3_Chibi/Chibi/.cprojet
+TP3_ChibiOS/TP3_Chibi/Chibi/.projet
+TP3_ChibiOS/TP3_Chibi/.projet
+
+
 .DS_Store
 # Prerequisites
 *.d
