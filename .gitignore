@@ -4,6 +4,18 @@ TP6/TP6_Project/Project/build/
 TP6/TP6_Project/Project/.cproject
 TP6/TP6_Project/Project/.project
 
+TP5_FFT/Noisy/build/
+TP5_FFT/Noisy/.cproject
+TP5_FFT/Noisy/.project
+
+TP5_FFT/Noisy_correction/build/
+TP5_FFT/Noisy_correction/.cproject
+TP5_FFT/Noisy_correction/.project
+
+TP4_CamPI/TP4_CamReg/CamReg/build/
+TP4_CamPI/TP4_CamReg/CamReg/.cproject
+TP4_CamPI/TP4_CamReg/CamReg/.project
+
 .DS_Store
 # Prerequisites
 *.d
