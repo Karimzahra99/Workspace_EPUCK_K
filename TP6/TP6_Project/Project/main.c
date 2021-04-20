@@ -10,7 +10,7 @@
 #include <motors.h>
 #include <camera/po8030.h>
 #include <chprintf.h>
-
+#include <sensors/proximity.h>
 #include <pid_regulator.h>
 #include <process_image.h>
 
@@ -33,12 +33,19 @@ static void serial_start(void)
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
 
+messagebus_t bus;
+MUTEX_DECL(bus_lock);
+CONDVAR_DECL(bus_condvar);
+
 int main(void)
 {
 
     halInit();
     chSysInit();
     mpu_init();
+
+    //Initialisation bus
+	messagebus_init(&bus, &bus_lock, &bus_condvar);
 
     //starts the serial communication / can be removed if communication not needed
     serial_start();
@@ -54,6 +61,8 @@ int main(void)
 	//pi_regulator_start();
 
 	process_image_start();
+
+	//proximity_start();
 
     /* Infinite loop. */
     while (1) {
