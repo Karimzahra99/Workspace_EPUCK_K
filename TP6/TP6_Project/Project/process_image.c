@@ -343,7 +343,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//To visualize one image on computer with plotImage.py
 		if(send_to_computer){
 		//sends to the computer the image
-		SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
+		SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
 		}
 
 		//invert the bool
@@ -365,7 +365,6 @@ void process_image_start(void){
 uint16_t get_line_position(void){
 	return line_position;
 }
-
 
 void check_threshold(void){
 	count_red = 0;
