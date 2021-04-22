@@ -11,6 +11,8 @@
 #include <camera/po8030.h>
 #include <chprintf.h>
 #include <sensors/proximity.h>
+#include <leds.h>
+#include <spi_comm.h>
 #include <pid_regulator.h>
 #include <process_image.h>
 
@@ -47,6 +49,11 @@ int main(void)
     //Initialisation bus
 	messagebus_init(&bus, &bus_lock, &bus_condvar);
 
+	// Init the peripherals.
+	clear_leds();
+	set_body_led(0);
+	set_front_led(0);
+
     //starts the serial communication / can be removed if communication not needed
     serial_start();
     //start the USB communication / can be removed if communication not needed
@@ -56,11 +63,18 @@ int main(void)
 	po8030_start();
 	//inits the motors
 	motors_init();
+	//For RGB LEDS
+	spi_comm_start();
 
 	//stars the threads for the pi regulator and the processing of the image
 	//pi_regulator_start();
 
 	process_image_start();
+
+	set_rgb_led(0, 10, 0, 10);
+	set_rgb_led(1, 10, 0, 10);
+	set_rgb_led(2, 10, 0, 10);
+	set_rgb_led(3, 10, 0, 10);
 
 	//proximity_start();
 
