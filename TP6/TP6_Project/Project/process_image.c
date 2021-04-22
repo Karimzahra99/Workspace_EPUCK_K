@@ -180,8 +180,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 		switch (selector_value)
 		{
 			case 0:
-				threshold_red_blue = 8;
-				threshold_green = 16;
+				threshold_red_blue = 0;
+				threshold_green = 0;
 				break;
 			case 1:
 				threshold_red_blue = 10;
