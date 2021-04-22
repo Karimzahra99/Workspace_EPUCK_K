@@ -22,6 +22,9 @@ int16_t pid_regulator(float distance, float goal){
 
 	error = distance - goal;
 
+	//get(IR3)
+	//get(IR1)
+
 	//disables the PID regulator if the error is to small
 	//this avoids to always move as we cannot exactly be where we want and
 	//the camera is a bit noisy

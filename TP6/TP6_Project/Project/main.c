@@ -64,7 +64,7 @@ int main(void)
 	//inits the motors
 	motors_init();
 	//For RGB LEDS
-	spi_comm_start();
+	spi_comm_start(); //Cant use plotImage.py
 
 	//stars the threads for the pi regulator and the processing of the image
 	//pi_regulator_start();
@@ -76,7 +76,7 @@ int main(void)
 	set_rgb_led(2, 10, 0, 10);
 	set_rgb_led(3, 10, 0, 10);
 
-	//proximity_start();
+	proximity_start();
 
     /* Infinite loop. */
     while (1) {

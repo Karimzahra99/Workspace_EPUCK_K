@@ -24,6 +24,10 @@ static uint8_t max_blue = 0;
 static uint8_t max_red  = 0;
 static uint8_t max_green  = 0;
 
+static uint8_t mean_blue = 0;
+static uint8_t mean_red = 0;
+static uint8_t mean_green = 0;
+
 static uint8_t image_red[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_green[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_blue[IMAGE_BUFFER_SIZE] = {0};
@@ -126,9 +130,14 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
 	po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+
+	//
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
+	po8030_set_awb(0);
+	po8030_set_contrast(80);
+
 
 	//systime_t time;//utiliser pour calculer le temps d'execution
 
@@ -242,10 +251,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
+
 			//extracting red 5 bits and shifting them right
 			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
+
 			//extracting green 6 bits and rearranging their order
 			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_3) + (((uint8_t)img_buff_ptr[i+1]&0xE0) >> SHIFT_5);
+
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
@@ -268,60 +280,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 			check_threshold();
 			calc_max();
+			calc_mean();
 			uint8_t color_idx = get_color();
-
-			//clear array if condition is not satisfied
-//			if (count_red < MIN_COUNT){
-//				memset(image_red, 0, sizeof(image_red));
-//			}
-//			if (count_green < MIN_COUNT){
-//				memset(image_green, 0, sizeof(image_green));
-//			}
-//			if (count_blue < MIN_COUNT){
-//				memset(image_blue, 0, sizeof(image_blue));
-//			}
-
-//			set_rgb_led(LED4, 255, 0, 0);
-//			set_rgb_led(LED2, 0, 255, 0);
-//			set_rgb_led(LED8, 0, 0, 255);
-
-//			if (r > 130){
-//				image_red[i/2]=r;
-//
-//			}else image_red[i/2] = 0;
-//
-//			if (g > 130){
-//				image_green[i/2]=g;
-//
-//			}else image_green[i/2] = 0;
-//
-//			if (b > 130){
-//				image_blue[i/2]=b;
-//
-//			}else image_blue[i/2] = 0;
-//
-//			if (image_red[i/2]>image_green[i/2] && image_red[i/2]>image_blue[i/2]){
-//				palWritePad(GPIOD, GPIOD_LED1, 0);//led on
-//				palWritePad(GPIOD, GPIOD_LED3, 1);//led off
-//				palWritePad(GPIOD, GPIOD_LED5, 1);//led off
-//
-//			}else
-//
-//			if (image_green[i/2]>image_blue[i/2] && image_green[i/2]>image_red[i/2]){
-//				palWritePad(GPIOD, GPIOD_LED1, 1);//led off
-//				palWritePad(GPIOD, GPIOD_LED3, 0);//led on
-//				palWritePad(GPIOD, GPIOD_LED5, 1);//led off
-//			}else
-//
-//			if (image_blue[i/2]>image_green[i/2] && image_blue[i/2]>image_red[i/2]){
-//				palWritePad(GPIOD, GPIOD_LED1, 1);//led off
-//				palWritePad(GPIOD, GPIOD_LED3, 1);//led off
-//				palWritePad(GPIOD, GPIOD_LED5, 0);//led on
-//			}
-
-//		chprintf((BaseSequentialStream *)&SDU1, "Red intensity = %d\n", image_red[i/2]);
-//		chprintf((BaseSequentialStream *)&SDU1, "Green intensity = %d\n", image_green[i/2]);
-//		chprintf((BaseSequentialStream *)&SDU1, "Blue intensity = %d\n", image_blue[i/2]);
 
 		}
 
@@ -336,13 +296,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 
 		//To visualize one image on computer with plotImage.py
-//		if(send_to_computer){
-//		//sends to the computer the image
-//		SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
-//		}
-//
-//		//invert the bool
-//			send_to_computer = !send_to_computer;
+		if(send_to_computer){
+		//sends to the computer the image
+		SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
+		}
+
+		//invert the bool
+			send_to_computer = !send_to_computer;
 		//chThdSleepMilliseconds(1000);
 		}
 
@@ -417,9 +377,41 @@ void calc_max(void){
 uint8_t get_color(void){
 	uint8_t idx = 0;
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Red Count =%-7d Green Count=%-7d Blue Count =%-7d\r\n\n",
-	              max_red,max_green,max_blue,count_red,count_green,count_blue);
+//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Red Count =%-7d Green Count=%-7d Blue Count =%-7d\r\n\n",
+//	              max_red,max_green,max_blue,count_red,count_green,count_blue);
+//	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+//		              mean_red, mean_blue, mean_green);
 //Add some conditions to find the color off the line
 
 	return idx;
+}
+
+void calc_mean(void){
+
+	uint16_t temp = 0;
+	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
+		if (image_red[i] > threshold_red_blue){
+			temp = temp + image_red[i];
+		}
+	}
+	mean_red = temp / count_red;
+
+	temp = 0;
+	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
+		if (image_blue[i] > threshold_red_blue){
+			temp = temp + image_blue[i];
+		}
+	}
+	mean_blue = temp / count_blue;
+
+
+	temp = 0;
+	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
+		if (image_green[i] > threshold_green){
+			temp = temp + image_green[i];
+		}
+	}
+	mean_green = temp / count_green;
+
+
 }
