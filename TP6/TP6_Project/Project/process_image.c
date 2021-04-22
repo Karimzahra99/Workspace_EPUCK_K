@@ -3,7 +3,7 @@
 #include <chprintf.h>
 #include <usbcfg.h>
 #include <string.h>
-
+#include <leds.h>
 #include <main.h>
 #include <camera/po8030.h>
 
@@ -23,10 +23,6 @@ static uint16_t count_green  = 0;
 static uint8_t max_blue = 0;
 static uint8_t max_red  = 0;
 static uint8_t max_green  = 0;
-
-static uint8_t mean_blue = 0;
-static uint8_t mean_red = 0;
-static uint8_t mean_green = 0;
 
 static uint8_t image_red[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_green[IMAGE_BUFFER_SIZE] = {0};
@@ -136,6 +132,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 	po8030_set_awb(0);
+	//po8030_set_mirror(0, 1);
 	po8030_set_contrast(80);
 
 
@@ -280,14 +277,14 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 			check_threshold();
 			calc_max();
-			calc_mean();
+			//calc_mean();
 			uint8_t color_idx = get_color();
 
 		}
 
 
 		//search for a line in the image and gets its width in pixels
-		lineWidth = extract_line_width(image_green);
+		lineWidth = extract_line_width(image_red);
 
 		//converts the width into a distance between the robot and the camera
 		if(lineWidth){
@@ -296,13 +293,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 
 		//To visualize one image on computer with plotImage.py
-		if(send_to_computer){
-		//sends to the computer the image
-		SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
-		}
-
-		//invert the bool
-			send_to_computer = !send_to_computer;
+//		if(send_to_computer){
+//		//sends to the computer the image
+//		SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
+//		}
+//
+//		//invert the bool
+//			send_to_computer = !send_to_computer;
 		//chThdSleepMilliseconds(1000);
 		}
 
@@ -377,41 +374,80 @@ void calc_max(void){
 uint8_t get_color(void){
 	uint8_t idx = 0;
 
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Red Count =%-7d Green Count=%-7d Blue Count =%-7d\r\n\n",
-//	              max_red,max_green,max_blue,count_red,count_green,count_blue);
-//	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//		              mean_red, mean_blue, mean_green);
-//Add some conditions to find the color off the line
+	if ((max_red > max_blue) && (max_red > max_green/2)){
+		set_rgb_led(0, 10, 0, 0);
+		set_rgb_led(1, 10, 0, 0);
+		set_rgb_led(2, 10, 0, 0);
+		set_rgb_led(3, 10, 0, 0);
+		idx = 1; //RED
+	}
+	else{
+
+		if ((max_green/2 > max_blue) && (max_green/2 > max_red)){
+			set_rgb_led(0, 0, 10, 0);
+			set_rgb_led(1, 0, 10, 0);
+			set_rgb_led(2, 0, 10, 0);
+			set_rgb_led(3, 0, 10, 0);
+			idx = 2; //GREEN
+		}
+
+		else {
+			if (((max_blue > 21) && (max_red < 23)) && (max_green < 35)){
+				set_rgb_led(0, 0, 0, 10);
+				set_rgb_led(1, 0, 0, 10);
+				set_rgb_led(2, 0, 0, 10);
+				set_rgb_led(3, 0, 0, 10);
+				idx = 3; //BLUE
+			}
+			else {
+
+				//if (((max_blue < 20) && (max_red < 20)) && (max_green < 35)){
+					set_rgb_led(0, 0, 0, 0);
+					set_rgb_led(1, 0, 0, 0);
+					set_rgb_led(2, 0, 0, 0);
+					set_rgb_led(3, 0, 0, 0);
+				//}
+			}
+		}
+	}
+	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
+		              max_red,max_green,max_blue,idx);
 
 	return idx;
 }
 
-void calc_mean(void){
 
-	uint16_t temp = 0;
-	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
-		if (image_red[i] > threshold_red_blue){
-			temp = temp + image_red[i];
-		}
-	}
-	mean_red = temp / count_red;
+//void calc_mean(void){
+//
+//	uint16_t temp = 0;
+//	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
+//		if (image_red[i] > threshold_red_blue){
+//			temp = temp + image_red[i];
+//		}
+//	}
+//	mean_red = temp / count_red;
+//
+//	temp = 0;
+//	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
+//		if (image_blue[i] > threshold_red_blue){
+//			temp = temp + image_blue[i];
+//		}
+//	}
+//	mean_blue = temp / count_blue;
+//
+//
+//	temp = 0;
+//	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
+//		if (image_green[i] > threshold_green){
+//			temp = temp + image_green[i];
+//		}
+//	}
+//	mean_green = temp / count_green;
+//
+//
+//}
 
-	temp = 0;
-	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
-		if (image_blue[i] > threshold_red_blue){
-			temp = temp + image_blue[i];
-		}
-	}
-	mean_blue = temp / count_blue;
-
-
-	temp = 0;
-	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
-		if (image_green[i] > threshold_green){
-			temp = temp + image_green[i];
-		}
-	}
-	mean_green = temp / count_green;
-
-
-}
+//chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Red Count =%-7d Green Count=%-7d Blue Count =%-7d\r\n\n",
+//	              max_red,max_green,max_blue,count_red,count_green,count_blue);
+//	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+//		              mean_red, mean_blue, mean_green);
