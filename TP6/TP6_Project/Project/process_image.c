@@ -220,7 +220,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its width in pixels
 		lineWidth = get_lineWidth(color_idx);
 
-		//converts the width into a distance between the robot and the camera // Remove ?????
+		//converts the width into a distance between the robot and the camera // Remove ????? or change PXTOCM
 		if(lineWidth){
 			distance_cm = PXTOCM/lineWidth;
 		}
@@ -251,82 +251,25 @@ uint16_t get_line_position(void){
 	return line_position;
 }
 
+uint16_t get_lineWidth(uint8_t color_index){
 
-void max_count(void){
-
-	uint16_t count_r = 0;
-	uint16_t count_g = 0;
-	uint16_t count_b = 0;
-
-	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
-		if(image_red[i] == max_red){
-			count_r = count_r +1;
-		}
-		if(image_green[i] == max_green){
-			count_g = count_g +1;
-		}
-		if(image_blue[i] == max_blue){
-			count_b = count_b +1;
-		}
+	uint16_t linewidth = 0;
+	if (color_index == RED_IDX){
+		linewidth = extract_line_width(image_red);
 	}
-
-	count_red = count_r;
-	count_green = count_g;
-	count_blue = count_b;
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//						              count_red, count_green, count_blue);
-
-}
-
-uint8_t get_color(void){
-
-	uint8_t idx = 0;
-
-	if ((max_red > max_blue) && (max_red > max_green) && (count_red > MIN_COUNT)){
-		set_rgb_led(0, 10, 0, 0);
-		set_rgb_led(1, 10, 0, 0);
-		set_rgb_led(2, 10, 0, 0);
-		set_rgb_led(3, 10, 0, 0);
-		idx = RED_IDX;
-	}
-	else{
-
-		if ((max_green > max_blue) && (max_green > max_red) && (count_green > MIN_COUNT)){
-			set_rgb_led(0, 0, 10, 0);
-			set_rgb_led(1, 0, 10, 0);
-			set_rgb_led(2, 0, 10, 0);
-			set_rgb_led(3, 0, 10, 0);
-			idx = GREEN_IDX;
+	else {
+		if (color_index == GREEN_IDX){
+			linewidth = extract_line_width(image_green);
 		}
 
 		else {
-			//if (((max_blue > 21) && (max_red < 23)) && (max_green < 23)){
-			if ((max_blue > max_green) && (max_blue > max_red) && (count_blue > MIN_COUNT)){
-				set_rgb_led(0, 0, 0, 10);
-				set_rgb_led(1, 0, 0, 10);
-				set_rgb_led(2, 0, 0, 10);
-				set_rgb_led(3, 0, 0, 10);
-				idx = BLUE_IDX;
-			}
-			else {
-
-				//if (((max_blue < 20) && (max_red < 20)) && (max_green < 35)){
-					set_rgb_led(0, 0, 0, 0);
-					set_rgb_led(1, 0, 0, 0);
-					set_rgb_led(2, 0, 0, 0);
-					set_rgb_led(3, 0, 0, 0);
-				//}
+			if (color_index == BLUE_IDX){
+				linewidth = extract_line_width(image_blue);
 			}
 		}
 	}
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-//		              max_red,max_green,max_blue,idx);
 
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
-//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
-
-	return idx;
+	return linewidth;
 }
 
 void set_threshold_color(int selector_pos){
@@ -451,23 +394,81 @@ void calc_max_mean(void){
 
 }
 
-uint16_t get_lineWidth(uint8_t color_index){
+void max_count(void){
 
-	uint16_t linewidth = 0;
-	if (color_index == RED_IDX){
-		linewidth = extract_line_width(image_red);
+	uint16_t count_r = 0;
+	uint16_t count_g = 0;
+	uint16_t count_b = 0;
+
+	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
+		if(image_red[i] == max_red){
+			count_r = count_r +1;
+		}
+		if(image_green[i] == max_green){
+			count_g = count_g +1;
+		}
+		if(image_blue[i] == max_blue){
+			count_b = count_b +1;
+		}
 	}
-	else {
-		if (color_index == GREEN_IDX){
-			linewidth = extract_line_width(image_green);
+
+	count_red = count_r;
+	count_green = count_g;
+	count_blue = count_b;
+
+//	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+//						              count_red, count_green, count_blue);
+
+}
+
+uint8_t get_color(void){
+
+	uint8_t idx = 0;
+
+	if ((max_red > max_blue) && (max_red > max_green) && (count_red > MIN_COUNT)){
+		set_rgb_led(0, 10, 0, 0);
+		set_rgb_led(1, 10, 0, 0);
+		set_rgb_led(2, 10, 0, 0);
+		set_rgb_led(3, 10, 0, 0);
+		idx = RED_IDX;
+	}
+	else{
+
+		if ((max_green > max_blue) && (max_green > max_red) && (count_green > MIN_COUNT)){
+			set_rgb_led(0, 0, 10, 0);
+			set_rgb_led(1, 0, 10, 0);
+			set_rgb_led(2, 0, 10, 0);
+			set_rgb_led(3, 0, 10, 0);
+			idx = GREEN_IDX;
 		}
 
 		else {
-			if (color_index == BLUE_IDX){
-				linewidth = extract_line_width(image_blue);
+			//if (((max_blue > 21) && (max_red < 23)) && (max_green < 23)){
+			if ((max_blue > max_green) && (max_blue > max_red) && (count_blue > MIN_COUNT)){
+				set_rgb_led(0, 0, 0, 10);
+				set_rgb_led(1, 0, 0, 10);
+				set_rgb_led(2, 0, 0, 10);
+				set_rgb_led(3, 0, 0, 10);
+				idx = BLUE_IDX;
+			}
+			else {
+
+				//if (((max_blue < 20) && (max_red < 20)) && (max_green < 35)){
+					set_rgb_led(0, 0, 0, 0);
+					set_rgb_led(1, 0, 0, 0);
+					set_rgb_led(2, 0, 0, 0);
+					set_rgb_led(3, 0, 0, 0);
+				//}
 			}
 		}
 	}
+//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
+//		              max_red,max_green,max_blue,idx);
 
-	return linewidth;
+//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
+//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
+
+	return idx;
 }
+
+
