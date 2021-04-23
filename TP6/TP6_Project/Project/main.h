@@ -16,7 +16,7 @@ extern "C" {
 #define MIN_LINE_WIDTH			40
 #define ROTATION_THRESHOLD		10
 #define ROTATION_COEFF			2
-
+#define LINEWIDTH				100		//en fonction de la ligne imprimmer, a voir si utile
 #define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
 #define KP						800.0f
 #define KI 						3.5f	//must not be zero

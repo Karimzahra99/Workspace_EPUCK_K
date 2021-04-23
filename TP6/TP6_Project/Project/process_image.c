@@ -41,71 +41,51 @@ static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 */
 void calc_middle(uint8_t *buffer){
 
-	uint16_t i = 0, begin = 0, end = 0;
-	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
-	uint32_t mean = 0;
+	uint16_t begin = 0;
+	uint16_t end = 0;
+	uint8_t start = 0;
+	uint8_t no_begin = 0;
+	uint8_t no_end = 0;
 
-	//performs an average
-	for(uint16_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++){
-		mean += buffer[i];
+	//Check partial line cases :
+	//Line has already started
+	if (buffer[0] != 0){
+		no_begin = 1;
 	}
-	mean /= IMAGE_BUFFER_SIZE;
+	//Line has no end
+	if (buffer[IMAGE_BUFFER_SIZE] != 0){
+		no_end = 1;
+		end = IMAGE_BUFFER_SIZE;
+	}
 
-	do{
-		wrong_line = 0;
-		//search for a begin
- 		while(stop == 0 && i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE))
-		{
-			//the slope must at least be WIDTH_SLOPE wide and is compared
-			//to the mean of the image
-			if(buffer[i] > mean && buffer[i+WIDTH_SLOPE] < mean)
-			{
+	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; i++){
+
+		if (!no_begin){
+			if ((buffer[i] > 0) && (start == 0)){
 				begin = i;
-				stop = 1;
+				start = 1;
+				//If the line dosen't end => quit the loop
+				if (no_end) break;
 			}
-			i++;
-		}
-		//if a begin was found, search for an end
-		if (i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE) && begin)
-		{
-			stop = 0;
-
-			while(stop == 0 && i < IMAGE_BUFFER_SIZE)
-			{
-				if(buffer[i] > mean && buffer[i-WIDTH_SLOPE] < mean)
-				{
-					end = i;
-					stop = 1;
-				}
-				i++;
-			}
-			//if an end was not found
-			if (i > IMAGE_BUFFER_SIZE || !end)
-			{
-				line_not_found = 1;
+			// Searching for end point
+			if ((buffer[i] == 0) && (start == 1)){
+				end= i-1;
+				break;
 			}
 		}
-		else//if no begin was found
-		{
-			line_not_found = 1;
+		//No begin point case :
+		else {
+			// Searching for end point
+			if (buffer[i] == 0){
+				end = i-1;
+				break;
+			}
 		}
-
-		//if a line too small has been detected, continues the search
-		if(!line_not_found && (end-begin) < MIN_LINE_WIDTH){
-			i = end;
-			begin = 0;
-			end = 0;
-			stop = 0;
-			wrong_line = 1;
-		}
-	}while(wrong_line);
-
-	if(line_not_found){
-		begin = 0;
-		end = 0;
-	}else{
-		middle_line = (begin + end)/2; //gives the line position.
 	}
+	//Calculated middle of line
+	middle_line = (begin + end)/2;
+
+	chprintf((BaseSequentialStream *)&SD3, "%Middle =%-7d \r\n\n", middle_line);
 
 }
 
@@ -302,7 +282,6 @@ void set_threshold_color(int selector_pos){
 	default:
 		threshold_color = 15;
 		break;
-
 	}
 }
 
@@ -320,7 +299,7 @@ void calc_max_mean(void){
 	uint8_t max_g = 0;
 	uint8_t max_b = 0;
 
-	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
+	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; i++){
 
 		if(image_red[i]> 0){
 			temp_r = temp_r + image_red[i];
@@ -375,7 +354,7 @@ void max_count(void){
 	uint16_t count_g = 0;
 	uint16_t count_b = 0;
 
-	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
+	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; i++){
 		if(image_red[i] == max_red){
 			count_r = count_r +1;
 		}
