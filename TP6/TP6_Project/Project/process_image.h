@@ -8,6 +8,7 @@ void set_threshold_color(int selector_pos);
 void calc_max_mean(void);
 void max_count(void);
 uint8_t get_color(void);
+uint16_t get_lineWidth(uint8_t color_index);
 
 //Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
 #define LINE_INDEX					25
@@ -22,4 +23,8 @@ uint8_t get_color(void);
 #define SHIFT_3						3
 #define SHIFT_5						5
 
+//Index des couleurs / utiliser enum ?
+#define RED_IDX						1
+#define GREEN_IDX					2
+#define BLUE_IDX					3
 #endif /* PROCESS_IMAGE_H */

@@ -217,12 +217,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 			uint8_t color_idx = get_color();
 
 		}
-
-
 		//search for a line in the image and gets its width in pixels
-		lineWidth = extract_line_width(image_blue);
+		lineWidth = get_lineWidth(color_idx);
 
-		//converts the width into a distance between the robot and the camera
+		//converts the width into a distance between the robot and the camera // Remove ?????
 		if(lineWidth){
 			distance_cm = PXTOCM/lineWidth;
 		}
@@ -276,8 +274,8 @@ void max_count(void){
 	count_green = count_g;
 	count_blue = count_b;
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-						              count_red, count_green, count_blue);
+//	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+//						              count_red, count_green, count_blue);
 
 }
 
@@ -290,7 +288,7 @@ uint8_t get_color(void){
 		set_rgb_led(1, 10, 0, 0);
 		set_rgb_led(2, 10, 0, 0);
 		set_rgb_led(3, 10, 0, 0);
-		idx = 1; //RED
+		idx = RED_IDX;
 	}
 	else{
 
@@ -299,7 +297,7 @@ uint8_t get_color(void){
 			set_rgb_led(1, 0, 10, 0);
 			set_rgb_led(2, 0, 10, 0);
 			set_rgb_led(3, 0, 10, 0);
-			idx = 2; //GREEN
+			idx = GREEN_IDX;
 		}
 
 		else {
@@ -309,7 +307,7 @@ uint8_t get_color(void){
 				set_rgb_led(1, 0, 0, 10);
 				set_rgb_led(2, 0, 0, 10);
 				set_rgb_led(3, 0, 0, 10);
-				idx = 3; //BLUE
+				idx = BLUE_IDX;
 			}
 			else {
 
@@ -451,4 +449,25 @@ void calc_max_mean(void){
 //	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
 //						              max_red, max_green, max_blue);
 
+}
+
+uint16_t get_lineWidth(uint8_t color_index){
+
+	uint16_t linewidth = 0;
+	if (color_index == RED_IDX){
+		linewidth = extract_line_width(image_red);
+	}
+	else {
+		if (color_index == GREEN_IDX){
+			linewidth = extract_line_width(image_green);
+		}
+
+		else {
+			if (color_index == BLUE_IDX){
+				linewidth = extract_line_width(image_blue);
+			}
+		}
+	}
+
+	return linewidth;
 }
