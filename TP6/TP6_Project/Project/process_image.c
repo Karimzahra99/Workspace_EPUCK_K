@@ -16,18 +16,17 @@ static uint16_t line_position = IMAGE_BUFFER_SIZE/2; //middle
 static uint8_t threshold_color = 0;
 
 //mettre dans des structures ?
-static uint16_t count_blue = 0;
 static uint16_t count_red  = 0;
 static uint16_t count_green  = 0;
+static uint16_t count_blue = 0;
 
-static uint8_t max_blue = 0;
 static uint8_t max_red  = 0;
 static uint8_t max_green  = 0;
+static uint8_t max_blue = 0;
 
-static uint8_t mean_blue = 0;
-static uint8_t mmean_red  = 0;
+static uint8_t mean_red  = 0;
 static uint8_t mean_green  = 0;
-
+static uint8_t mean_blue = 0;
 static uint8_t image_red[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_green[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_blue[IMAGE_BUFFER_SIZE] = {0};
@@ -237,7 +236,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 //
 //		//invert the bool
 //		send_to_computer = !send_to_computer;
-//		}
+		}
 
 }
 
@@ -257,9 +256,9 @@ uint16_t get_line_position(void){
 
 void max_count(void){
 
-	uint8_t count_r = 0;
-	uint8_t count_g = 0;
-	uint8_t count_b = 0;
+	uint16_t count_r = 0;
+	uint16_t count_g = 0;
+	uint16_t count_b = 0;
 
 	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
 		if(image_red[i] == max_red){
@@ -276,6 +275,9 @@ void max_count(void){
 	count_red = count_r;
 	count_green = count_g;
 	count_blue = count_b;
+
+	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+						              count_red, count_green, count_blue);
 
 }
 
@@ -323,10 +325,8 @@ uint8_t get_color(void){
 //	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
 //		              max_red,max_green,max_blue,idx);
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
-		              max_red,max_green,max_blue,count_red,count_green,count_blue);
-		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-			              mean_red, mean_blue, mean_green);
+//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
+//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
 
 	return idx;
 }
@@ -396,15 +396,30 @@ void calc_max_mean(void){
 	uint16_t temp_g = 0;
 	uint16_t temp_b = 0;
 
+	uint16_t count_r = 0;
+	uint16_t count_g = 0;
+	uint16_t count_b = 0;
+
 	uint8_t max_r = 0;
 	uint8_t max_g = 0;
 	uint8_t max_b = 0;
 
 	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
 
-		temp_r = temp_r + image_red[i];
-		temp_g = temp_g + image_green[i];
-		temp_b = temp_b + image_blue[i];
+		if(image_red[i]> 0){
+			temp_r = temp_r + image_red[i];
+			count_r = count_r + 1;
+		}
+
+		if(image_green[i]> 0){
+			temp_g = temp_g + image_green[i];
+			count_g = count_g + 1;
+		}
+
+		if(image_blue[i]> 0){
+			temp_b = temp_b + image_blue[i];
+			count_b = count_b + 1;
+		}
 
 		if(image_red[i]> max_r){
 			max_r = image_red[i];
@@ -419,12 +434,21 @@ void calc_max_mean(void){
 		}
 	}
 
-	mean_red = temp_r / IMAGE_BUFFER_SIZE;
-	mean_green = temp_g / IMAGE_BUFFER_SIZE;
-	mean_blue = temp_b / IMAGE_BUFFER_SIZE;
+//	chprintf((BaseSequentialStream *)&SD3, "%R Temp =%-7d G Temp =%-7d B Temp =%-7d %R C =%-7d G C =%-7d B C =%-7d \r\n\n",
+//						              temp_r,temp_g,temp_b,count_r,count_g,count_b);
+
+	mean_red = temp_r / count_r;
+	mean_green = temp_g / count_g;
+	mean_blue = temp_b / count_b;
+
+//	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+//					              mean_red, mean_green, mean_blue);
 
 	max_red = max_r;
 	max_green = max_g;
 	max_blue = max_b;
+
+//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+//						              max_red, max_green, max_blue);
 
 }

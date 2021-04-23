@@ -13,7 +13,7 @@ uint8_t get_color(void);
 #define LINE_INDEX					25
 
 //Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
-#define MIN_COUNT					10
+#define MIN_COUNT					5
 
 //Valeur maximal d'intensite d'un pixel (vert ramener sur [0,31])
 #define MAX_VALUE					31
