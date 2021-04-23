@@ -5,16 +5,18 @@ float get_distance_cm(void);
 void process_image_start(void);
 uint16_t get_line_position(void);
 void set_threshold_color(int selector_pos);
-void calc_max(void);
-void calc_mean(void);
-void check_threshold(void);
+void calc_max_mean(void);
+void max_count(void);
 uint8_t get_color(void);
 
 //Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
 #define LINE_INDEX					25
 
 //Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
-#define MIN_COUNT					5
+#define MIN_COUNT					10
+
+//Valeur maximal d'intensite d'un pixel (vert ramener sur [0,31])
+#define MAX_VALUE					31
 
 //Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
 #define SHIFT_3						3
