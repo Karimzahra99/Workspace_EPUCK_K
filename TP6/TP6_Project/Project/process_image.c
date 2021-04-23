@@ -379,7 +379,7 @@ uint8_t get_color(void){
 
 	uint8_t idx = 0;
 
-	if ((max_red > max_blue) && (max_red > max_green) && (count_red > MIN_COUNT)){
+	if ((mean_red > mean_blue) && (mean_red > mean_green) && (count_red > MIN_COUNT)){
 		set_rgb_led(0, 10, 0, 0);
 		set_rgb_led(1, 10, 0, 0);
 		set_rgb_led(2, 10, 0, 0);
@@ -388,7 +388,7 @@ uint8_t get_color(void){
 	}
 	else{
 
-		if ((max_green > max_blue) && (max_green > max_red) && (count_green > MIN_COUNT)){
+		if ((mean_green > mean_blue) && (mean_green > mean_red) && (count_green > MIN_COUNT)){
 			set_rgb_led(0, 0, 10, 0);
 			set_rgb_led(1, 0, 10, 0);
 			set_rgb_led(2, 0, 10, 0);
@@ -397,8 +397,7 @@ uint8_t get_color(void){
 		}
 
 		else {
-			//if (((max_blue > 21) && (max_red < 23)) && (max_green < 23)){
-			if ((max_blue > max_green) && (max_blue > max_red) && (count_blue > MIN_COUNT)){
+			if ((mean_blue > mean_green) && (mean_blue > mean_red) && (count_blue > MIN_COUNT)){
 				set_rgb_led(0, 0, 0, 10);
 				set_rgb_led(1, 0, 0, 10);
 				set_rgb_led(2, 0, 0, 10);
