@@ -392,7 +392,7 @@ uint8_t get_color(void){
 		}
 
 		else {
-			if (((max_blue > 21) && (max_red < 23)) && (max_green < 35)){
+			if (((max_blue > 21) && (max_red < 23)) && (max_green/2 < 23)){
 				set_rgb_led(0, 0, 0, 10);
 				set_rgb_led(1, 0, 0, 10);
 				set_rgb_led(2, 0, 0, 10);
@@ -411,7 +411,7 @@ uint8_t get_color(void){
 		}
 	}
 	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-		              max_red,max_green,max_blue,idx);
+		              max_red,max_green/2,max_blue,idx);
 
 	return idx;
 }
