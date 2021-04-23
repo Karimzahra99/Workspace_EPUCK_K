@@ -4,7 +4,7 @@
 float get_distance_cm(void);
 void process_image_start(void);
 uint16_t get_line_position(void);
-
+void set_threshold_color(int selector_pos);
 void calc_max(void);
 void calc_mean(void);
 void check_threshold(void);

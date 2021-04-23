@@ -13,8 +13,7 @@
 static float distance_cm = 0;
 static uint16_t line_position = IMAGE_BUFFER_SIZE/2; //middle
 
-static uint8_t threshold_green = 61;
-static uint8_t threshold_red_blue  = 30;
+static uint8_t threshold_color = 0;
 
 static uint16_t count_blue = 0;
 static uint16_t count_red  = 0;
@@ -52,7 +51,7 @@ uint16_t extract_line_width(uint8_t *buffer){
 	do{
 		wrong_line = 0;
 		//search for a begin
-		while(stop == 0 && i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE))
+ 		while(stop == 0 && i < (IMAGE_BUFFER_SIZE - WIDTH_SLOPE))
 		{
 			//the slope must at least be WIDTH_SLOPE wide and is compared
 			//to the mean of the image
@@ -133,7 +132,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 	dcmi_prepare();
 	po8030_set_awb(0);
 	//po8030_set_mirror(0, 1);
-	po8030_set_contrast(80);
+	po8030_set_contrast(90);
 
 
 	//systime_t time;//utiliser pour calculer le temps d'execution
@@ -166,86 +165,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	bool send_to_computer = true;
 
-
     while(1){
     	//waits until an image has been captured
         chBSemWait(&image_ready_sem);
 		//gets the pointer to the array filled with the last image in RGB565    
 		img_buff_ptr = dcmi_get_last_image_ptr();
 
-		int selector_value = get_selector();
-		switch (selector_value)
-		{
-			case 0:
-				threshold_red_blue = 0;
-				threshold_green = 0;
-				break;
-			case 1:
-				threshold_red_blue = 10;
-				threshold_green = 19;
-				break;
-			case 2:
-				threshold_red_blue = 11;
-				threshold_green = 23;
-				break;
-			case 3:
-				threshold_red_blue = 13;
-				threshold_green = 26;
-				break;
-			case 4:
-				threshold_red_blue = 14;
-				threshold_green = 29;
-				break;
-			case 5:
-				threshold_red_blue = 16;
-				threshold_green = 32;
-				break;
-			case 6:
-				threshold_red_blue = 18;
-				threshold_green = 35;
-				break;
-			case 7:
-				threshold_red_blue = 19;
-				threshold_green = 38;
-				break;
-			case 8:
-				threshold_red_blue = 21;
-				threshold_green = 41;
-				break;
-			case 9:
-				threshold_red_blue = 22;
-				threshold_green = 45;
-				break;
-			case 10:
-				threshold_red_blue = 24;
-				threshold_green = 48;
-				break;
-			case 11:
-				threshold_red_blue = 25;
-				threshold_green = 50;
-				break;
-			case 12:
-				threshold_red_blue = 27;
-				threshold_green = 54;
-				break;
-			case 13:
-				threshold_red_blue = 28;
-				threshold_green = 57;
-				break;
-			case 14:
-				threshold_red_blue = 29;
-				threshold_green = 60;
-				break;
-			case 15:
-				threshold_red_blue = 30;
-				threshold_green = 61;
-				break;
-			default:
-				threshold_red_blue = 24;
-				threshold_green = 45;
-				break;
-
-		}
+		set_threshold_color(get_selector());
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 
@@ -253,23 +179,29 @@ static THD_FUNCTION(ProcessImage, arg) {
 			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 
 			//extracting green 6 bits and rearranging their order
-			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_3) + (((uint8_t)img_buff_ptr[i+1]&0xE0) >> SHIFT_5);
+			//uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_3) + (((uint8_t)img_buff_ptr[i+1]&0xE0) >> SHIFT_5);
+
+			//Extract G6G5G4G3G2
+			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << 2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> 6);
+
+			//Extract G5G4G3G2G1
+			//uint8_t g = (((uint8_t)img_buff_ptr[i]&0x03) << 3) + (((uint8_t)img_buff_ptr[i+1]&0xE0) >> 5);
 
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
-			//filtering noise for each colour
-			if (r > threshold_red_blue){
+			//filtering noise for each color
+			if (r > threshold_color){
 				image_red[i/2] = r;
 			}
 			else image_red[i/2] = 0;
 
-			if (b > threshold_red_blue){
+			if (b > threshold_color){
 				image_blue[i/2] = b;
 			}
 			else image_blue[i/2] = 0;
 
-			if (g >threshold_green){
+			if (g >threshold_color){
 				image_green[i/2] = g;
 			}
 			else image_green[i/2] = 0;
@@ -284,7 +216,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 
 		//search for a line in the image and gets its width in pixels
-		lineWidth = extract_line_width(image_red);
+		lineWidth = extract_line_width(image_blue);
 
 		//converts the width into a distance between the robot and the camera
 		if(lineWidth){
@@ -293,13 +225,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 
 		//To visualize one image on computer with plotImage.py
-//		if(send_to_computer){
-//		//sends to the computer the image
-//		SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
-//		}
-//
-//		//invert the bool
-//			send_to_computer = !send_to_computer;
+		if(send_to_computer){
+		//sends to the computer the image
+		SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
+		}
+
+		//invert the bool
+			send_to_computer = !send_to_computer;
 		//chThdSleepMilliseconds(1000);
 		}
 
@@ -322,21 +254,21 @@ uint16_t get_line_position(void){
 void check_threshold(void){
 	count_red = 0;
 	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
-		if(image_red[i] > threshold_red_blue){
+		if(image_red[i] > threshold_color){
 			count_red ++;
 		}
 	}
 
 	count_green = 0;
 	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
-		if(image_green[i] > threshold_green){
+		if(image_green[i] > threshold_color){
 			count_green ++;
 		}
 	}
 
 	count_blue = 0;
 	for (uint16_t i =0; i < IMAGE_BUFFER_SIZE; i++){
-		if(image_blue[i] > threshold_red_blue){
+		if(image_blue[i] > threshold_color){
 			count_blue ++;
 		}
 	}
@@ -374,7 +306,7 @@ void calc_max(void){
 uint8_t get_color(void){
 	uint8_t idx = 0;
 
-	if ((max_red > max_blue) && (max_red > max_green/2)){
+	if ((max_red > max_blue) && (max_red > max_green)){
 		set_rgb_led(0, 10, 0, 0);
 		set_rgb_led(1, 10, 0, 0);
 		set_rgb_led(2, 10, 0, 0);
@@ -383,7 +315,7 @@ uint8_t get_color(void){
 	}
 	else{
 
-		if ((max_green/2 > max_blue) && (max_green/2 > max_red)){
+		if ((max_green > max_blue) && (max_green > max_red)){
 			set_rgb_led(0, 0, 10, 0);
 			set_rgb_led(1, 0, 10, 0);
 			set_rgb_led(2, 0, 10, 0);
@@ -392,7 +324,8 @@ uint8_t get_color(void){
 		}
 
 		else {
-			if (((max_blue > 21) && (max_red < 23)) && (max_green/2 < 23)){
+			//if (((max_blue > 21) && (max_red < 23)) && (max_green < 23)){
+			if ((max_blue > max_green) && (max_blue > max_red)){
 				set_rgb_led(0, 0, 0, 10);
 				set_rgb_led(1, 0, 0, 10);
 				set_rgb_led(2, 0, 0, 10);
@@ -410,44 +343,67 @@ uint8_t get_color(void){
 			}
 		}
 	}
-	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-		              max_red,max_green/2,max_blue,idx);
+//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
+//		              max_red,max_green,max_blue,idx);
 
 	return idx;
 }
 
+void set_threshold_color(int selector_pos){
 
-//void calc_mean(void){
-//
-//	uint16_t temp = 0;
-//	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
-//		if (image_red[i] > threshold_red_blue){
-//			temp = temp + image_red[i];
-//		}
-//	}
-//	mean_red = temp / count_red;
-//
-//	temp = 0;
-//	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
-//		if (image_blue[i] > threshold_red_blue){
-//			temp = temp + image_blue[i];
-//		}
-//	}
-//	mean_blue = temp / count_blue;
-//
-//
-//	temp = 0;
-//	for (uint16_t i = 0; i <  IMAGE_BUFFER_SIZE; i++){
-//		if (image_green[i] > threshold_green){
-//			temp = temp + image_green[i];
-//		}
-//	}
-//	mean_green = temp / count_green;
-//
-//
-//}
+	switch (selector_pos)
+	{
+	case 0:
+		threshold_color = 0;
+		break;
+	case 1:
+		threshold_color = 5;
+		break;
+	case 2:
+		threshold_color = 10;
+		break;
+	case 3:
+		threshold_color = 12;
+		break;
+	case 4:
+		threshold_color = 14;
+		break;
+	case 5:
+		threshold_color = 16;
+		break;
+	case 6:
+		threshold_color = 18;
+		break;
+	case 7:
+		threshold_color = 20;
+		break;
+	case 8:
+		threshold_color = 22;
+		break;
+	case 9:
+		threshold_color = 23;
+		break;
+	case 10:
+		threshold_color = 24;
+		break;
+	case 11:
+		threshold_color = 25;
+		break;
+	case 12:
+		threshold_color = 26;
+		break;
+	case 13:
+		threshold_color = 27;
+		break;
+	case 14:
+		threshold_color = 28;
+		break;
+	case 15:
+		threshold_color = 29;
+		break;
+	default:
+		threshold_color = 15;
+		break;
 
-//chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Red Count =%-7d Green Count=%-7d Blue Count =%-7d\r\n\n",
-//	              max_red,max_green,max_blue,count_red,count_green,count_blue);
-//	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//		              mean_red, mean_blue, mean_green);
+	}
+}
