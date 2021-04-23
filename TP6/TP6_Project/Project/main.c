@@ -71,11 +71,6 @@ int main(void)
 
 	process_image_start();
 
-	set_rgb_led(0, 10, 0, 10);
-	set_rgb_led(1, 10, 0, 10);
-	set_rgb_led(2, 10, 0, 10);
-	set_rgb_led(3, 10, 0, 10);
-
 	proximity_start();
 
     /* Infinite loop. */

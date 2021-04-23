@@ -11,8 +11,9 @@
 #include <process_image.h>
 
 //simple PI regulator implementation
-int16_t pid_regulator(float distance, float goal){
+int16_t pid_regulator(float middle){
 
+	float goal = 350; //milieu theorique d'une ligne parfaitement centre sur le robot
 	float error = 0;
 	float speed = 0;
 	float derivative = 0;
@@ -20,7 +21,7 @@ int16_t pid_regulator(float distance, float goal){
 	static float sum_error = 0;
 	static float last_error = 0;
 
-	error = distance - goal;
+	error = middle - goal;
 
 	//get(IR3)
 	//get(IR1)
@@ -73,16 +74,16 @@ static THD_FUNCTION(PidRegulator, arg) {
         switch (color_idx)
         {
         case 0:
-        	speed = 3;
+        	speed = 0;
         	break;
         case 1:
-        	speed = 8;
+        	speed = 1;
         	break;
         case 2:
-        	speed = 12;
+        	speed = 2;
         	break;
         default:
-        	speed = 8;
+        	speed = 3;
         	break;
         }
 

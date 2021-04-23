@@ -10,8 +10,8 @@
 #include <process_image.h>
 #include <selector.h>
 
-static float distance_cm = 0;
-static uint16_t line_position = IMAGE_BUFFER_SIZE/2; //middle
+
+static uint16_t middle_line = IMAGE_BUFFER_SIZE/2; //middle of line
 
 static uint8_t threshold_color = 0;
 
@@ -34,20 +34,19 @@ static uint8_t image_blue[IMAGE_BUFFER_SIZE] = {0};
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
+
 /*
 * Returns the line's width extracted from the image buffer given
 * Returns 0 if line not found
 */
-uint16_t extract_line_width(uint8_t *buffer){
+void calc_middle(uint8_t *buffer){
 
-	uint16_t i = 0, begin = 0, end = 0, width = 0;
+	uint16_t i = 0, begin = 0, end = 0;
 	uint8_t stop = 0, wrong_line = 0, line_not_found = 0;
 	uint32_t mean = 0;
 
-	static uint16_t last_width = PXTOCM/GOAL_DISTANCE;
-
 	//performs an average
-	for(uint16_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++){ //on avait mit 32 a check
+	for(uint16_t i = 0 ; i < IMAGE_BUFFER_SIZE ; i++){
 		mean += buffer[i];
 	}
 	mean /= IMAGE_BUFFER_SIZE;
@@ -104,18 +103,10 @@ uint16_t extract_line_width(uint8_t *buffer){
 	if(line_not_found){
 		begin = 0;
 		end = 0;
-		width = last_width;
 	}else{
-		last_width = width = (end - begin);
-		line_position = (begin + end)/2; //gives the line position.
+		middle_line = (begin + end)/2; //gives the line position.
 	}
 
-	//sets a maximum width or returns the measured width
-	if((PXTOCM/width) > MAX_DISTANCE){
-		return PXTOCM/MAX_DISTANCE;
-	}else{
-		return width;
-	}
 }
 
 
@@ -182,49 +173,21 @@ static THD_FUNCTION(ProcessImage, arg) {
 			//extracting red 5 bits and shifting them right
 			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 
-			//extracting green 6 bits and rearranging their order
-			//uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_3) + (((uint8_t)img_buff_ptr[i+1]&0xE0) >> SHIFT_5);
-
 			//Extract G6G5G4G3G2
 			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << 2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> 6);
-
-			//Extract G5G4G3G2G1
-			//uint8_t g = (((uint8_t)img_buff_ptr[i]&0x03) << 3) + (((uint8_t)img_buff_ptr[i+1]&0xE0) >> 5);
 
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
-			//filtering noise for each color
-			if (r > threshold_color){
-				image_red[i/2] = r;
-			}
-			else image_red[i/2] = 0;
-
-			if (b > threshold_color){
-				image_blue[i/2] = b;
-			}
-			else image_blue[i/2] = 0;
-
-			if (g >threshold_color){
-				image_green[i/2] = g;
-			}
-			else image_green[i/2] = 0;
-
-
-			calc_max_mean();
-			max_count();
-
-			uint8_t color_idx = get_color();
+			filter_noise(i, r, g, b);
 
 		}
-		//search for a line in the image and gets its width in pixels
-		lineWidth = get_lineWidth(color_idx);
+		calc_max_mean();
+		max_count();
+		uint8_t color_idx = get_color();
 
-		//converts the width into a distance between the robot and the camera // Remove ????? or change PXTOCM
-		if(lineWidth){
-			distance_cm = PXTOCM/lineWidth;
-		}
-
+		//search for a line in the image and gets its middle position
+		calc_line_middle(color_idx);
 
 		//To visualize one image on computer with plotImage.py
 //		if(send_to_computer){
@@ -238,38 +201,50 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 }
 
-float get_distance_cm(void){
-	return distance_cm;
-}
-
 void process_image_start(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
-uint16_t get_line_position(void){
-	return line_position;
+uint16_t get_middle_line(void){
+	return middle_line;
 }
 
-uint16_t get_lineWidth(uint8_t color_index){
+void calc_line_middle(uint8_t color_index){
 
-	uint16_t linewidth = 0;
 	if (color_index == RED_IDX){
-		linewidth = extract_line_width(image_red);
+		calc_middle(image_red);
 	}
 	else {
 		if (color_index == GREEN_IDX){
-			linewidth = extract_line_width(image_green);
+			calc_middle(image_green);
 		}
 
 		else {
 			if (color_index == BLUE_IDX){
-				linewidth = extract_line_width(image_blue);
+				calc_middle(image_blue);
 			}
 		}
 	}
 
-	return linewidth;
+}
+
+void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
+	//filtering noise for each color
+	if (red_value > threshold_color){
+		image_red[index/2] = red_value;
+	}
+	else image_red[index/2] = 0;
+
+	if (green_value > threshold_color){
+		image_green[index/2] = green_value;
+	}
+	else image_green[index/2] = 0;
+
+	if (blue_value >threshold_color){
+		image_blue[index/2] = blue_value;
+	}
+	else image_blue[index/2] = 0;
 }
 
 void set_threshold_color(int selector_pos){
@@ -470,5 +445,4 @@ uint8_t get_color(void){
 
 	return idx;
 }
-
 
