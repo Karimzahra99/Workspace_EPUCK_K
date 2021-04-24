@@ -1,15 +1,15 @@
-#Folders
-Scripts_python/
+#Folders Files
 TP1_blinky/
 TP2_move/
 TP3_ChibiOS/
 TP4_CamPI/
 TP5_FFT/
+Scripts_python/
 
 TP6/TP6_Project/Project/build/
+TP6/TP6_Project/Project/.settings/
 TP6/TP6_Project/Project/.cproject
 TP6/TP6_Project/Project/.project
-TP6/TP6_Project/Project/.settings/
 
 .DS_Store
 # Prerequisites
@@ -20,7 +20,11 @@ TP6/TP6_Project/Project/.settings/
 *.ko
 *.obj
 *.elf
-*.lst
+
+# Linker output
+*.ilk
+*.map
+*.exp
 
 # Precompiled Headers
 *.gch
@@ -60,6 +64,3 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-/TP6/TP6_Project/Project/build/
-/TP6/TP6_Project/Project/build/lst/
-/TP6/TP6_Project/Project/.project
