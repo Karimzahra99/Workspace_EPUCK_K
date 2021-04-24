@@ -75,20 +75,21 @@ static THD_FUNCTION(PidRegulator, arg) {
         case 0:
         	speed = 0;
         	break;
-        case 1:
-        	speed = 8;
+        case 1: //RED
+        	speed = speedcms_to_speedsteps(1);
         	break;
-        case 2:
-        	speed = 9;
+        case 2: //GREEN
+        	speed = speedcms_to_speedsteps(2);
+        	break;
+        case 3: //BLUE
+        	speed = speedcms_to_speedsteps(3);
         	break;
         default:
-        	speed = 10;
+        	speed = speedcms_to_speedsteps(2);
         	break;
         }
 
-
-        //computes a correction factor to let the robot rotate to be in front of the line
-        speed_correction = (get_middle_line() - (IMAGE_BUFFER_SIZE/2));
+        speed_correction = pid_regulator(get_middle_line());
 
         //if the line is nearly in front of the camera, don't rotate
         if(abs(speed_correction) < ROTATION_THRESHOLD){
@@ -96,11 +97,8 @@ static THD_FUNCTION(PidRegulator, arg) {
         }
 
         //applies the speed from the PI regulator and the correction for the rotation
-        //right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-        //left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
-
-        right_motor_set_speed(speed);
-        left_motor_set_speed(speed);
+        right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
+        left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
@@ -109,4 +107,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 void pid_regulator_start(void){
 	chThdCreateStatic(waPidRegulator, sizeof(waPidRegulator), NORMALPRIO, PidRegulator, NULL);
+}
+
+float speedcms_to_speedsteps (uint8_t speed_cms) {
+	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }

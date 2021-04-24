@@ -12,8 +12,6 @@ extern "C" {
 
 //constants for the differents parts of the project
 #define IMAGE_BUFFER_SIZE		640
-#define WIDTH_SLOPE				5		// not for us
-#define MIN_LINE_WIDTH			40
 #define ROTATION_THRESHOLD		10
 #define ROTATION_COEFF			2
 #define LINEWIDTH				100		//en fonction de la ligne imprimmer, a voir si utile
@@ -21,9 +19,10 @@ extern "C" {
 #define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
 #define KP						800.0f
 #define KI 						3.5f	//must not be zero
-#define KD						25.0f		//a tuner -> utiliser deuxieme methode de ZN avec Ku et Pu
+#define KD						25.0f	//a tuner -> utiliser deuxieme methode de ZN avec Ku et Pu
 #define MAX_SUM_ERROR 			(MOTOR_SPEED_LIMIT/KI)
-
+#define WHEEL_PERIMETER     	13 		//[cm]
+#define NSTEP_ONE_TURN      	1000	// number of step for 1 turn of the motor
 
 //Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
 #define LINE_INDEX					25
