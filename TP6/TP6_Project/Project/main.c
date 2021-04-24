@@ -16,6 +16,7 @@
 #include <pid_regulator.h>
 #include <process_image.h>
 
+
 //Functions for communication and visualization
 void SendUint8ToComputer(uint8_t* data, uint16_t size) 
 {
