@@ -667,6 +667,13 @@ time = chVTGetSystemTime(); //dans boucle while
 //-> Functions to measure <-//
 chprintf((BaseSequentialStream *)&SDU1, "capture␣time␣=␣%d\n", chVTGetSystemTime()-time);
 
+RGB565 -> 5 bits rouge (MSB), 6 bits vert, 5 bits bleu (LSB)
+bleu et vert valeur de 0 a 31
+rouge valeur de 0 a 63
+
+le cast dans le uint8 //image[i/2] = (uint8_t)img_buff_ptr[i]&0xF8;
+Permet d'obtenir des valeurs de 0 a 255 -> on obtient le format RGB standart (0 = noir, 255 = itensite max)
+Si les trois pixels sont a 255 alors on a du blanc (si on est au format RGB888)
 ==============================================================================================================
 Sound - 4micros (3 on top, one on back)
 
@@ -679,7 +686,7 @@ On observe deux pics car la transformee de fourier d'un sinus donne deux dirac s
 Frequence max 150Hz car la frequence d'echantillonage est de 300Hz
 ----------
 Frequency = 150-abs(position)*150/512
-position est la valeur de la frequence sur plotFFT.py
+position est la valeur de la frequence  sur plotFFT.py
 On a pas des dirac parfait car il faut prendre une periode entiere du signal
 ----------
 float sur stm32 => 32bits
@@ -688,12 +695,20 @@ Optimized = instructions en assembleur
 
 
 
+comment activer FPU -> activer par defaut
 
+https://www.ledr.com/colours/multi.htm
 ==============================================================================================================
 questions :  
-
-comment activer FPU -> activer par defaut
-explication proccedure DFU & inversion moteur => Dany
-difference systeme tic (vitesse d'horloge du microcontroleur et cycle (en terme de processeur) => Dany
-expliquer l'influence du baudrate et dtr signal
-#define MAX_INT16	32768.0f <- 32767 => Dany
+tp4 system_t time bloque entierement la transimission dans process_image.c
+config le PlotImage.py pour voir les trois couleurs
+define dans main ou dans process_image.h
+PID via ZN Ku et Pu
+uint8_t est un int8 en realite ?
+extract line width buffer uint_8 alors que image est un tableau 
+difference struc et enum pour ranger les static
+mettre ttes les fonctions du .c dans le .h ou faire un choix ?
+static BSEMAPHORE_DECL(image_ready_sem, TRUE);
+long switch ca pause probleme ?
+calibrate IR ? 
+Resoudre les problemes d'include
