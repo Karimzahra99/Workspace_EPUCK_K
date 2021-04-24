@@ -65,9 +65,9 @@ int main(void)
 	//inits the motors
 	motors_init();
 	//For RGB LEDS
-	spi_comm_start(); //Cant use plotImage.py
+	spi_comm_start();
 
-	//stars the threads for the pi regulator and the processing of the image
+	//stars the threads for the pid regulator and the processing of the image
 	//pid_regulator_start();
 
 	process_image_start();
