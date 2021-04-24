@@ -10,7 +10,7 @@
 #include <process_image.h>
 #include <selector.h>
 
-//Color detection settings :
+//Color detection settings (uncomment only one) :
 
 //Identify color only using max values
 //#define USE_ONLY_MAX
@@ -449,7 +449,7 @@ void find_color(void){
 #ifdef USE_ONLY_MAX
 void find_color(void){
 
-	if ((((max_red > max_green) && (max_red > max_blue)) || ((mean_red > mean_green) && (mean_red > mean_blue))) && (count_red > MIN_COUNT)){
+	if (((max_red > max_green) && (max_red > max_blue)) && (count_red > MIN_COUNT)){
 		set_rgb_led(0, 10, 0, 0);
 		set_rgb_led(1, 10, 0, 0);
 		set_rgb_led(2, 10, 0, 0);
@@ -458,7 +458,7 @@ void find_color(void){
 	}
 	else{
 
-		if ((((max_green > max_red) && (max_green > max_blue)) || ((mean_green > mean_red) && (mean_green > mean_blue))) && (count_green > MIN_COUNT)){
+		if (((max_green > max_red) && (max_green > max_blue)) && (count_green > MIN_COUNT)){
 			set_rgb_led(0, 0, 10, 0);
 			set_rgb_led(1, 0, 10, 0);
 			set_rgb_led(2, 0, 10, 0);
@@ -467,7 +467,7 @@ void find_color(void){
 		}
 
 		else {
-			if ((((max_blue > max_red) && (max_blue > max_green)) || ((mean_blue > mean_red) && (mean_blue > mean_green))) && (count_blue > MIN_COUNT)){
+			if (((max_blue > max_red) && (max_blue > max_green)) && (count_blue > MIN_COUNT)){
 				set_rgb_led(0, 0, 0, 10);
 				set_rgb_led(1, 0, 0, 10);
 				set_rgb_led(2, 0, 0, 10);
@@ -507,7 +507,7 @@ void find_color(void){
 #ifdef USE_ONLY_MEAN
 void find_color(void){
 
-	if ((((max_red > max_green) && (max_red > max_blue)) || ((mean_red > mean_green) && (mean_red > mean_blue))) && (count_red > MIN_COUNT)){
+	if (((mean_red > mean_green) && (mean_red > mean_blue)) && (count_red > MIN_COUNT)){
 		set_rgb_led(0, 10, 0, 0);
 		set_rgb_led(1, 10, 0, 0);
 		set_rgb_led(2, 10, 0, 0);
@@ -516,7 +516,7 @@ void find_color(void){
 	}
 	else{
 
-		if ((((max_green > max_red) && (max_green > max_blue)) || ((mean_green > mean_red) && (mean_green > mean_blue))) && (count_green > MIN_COUNT)){
+		if (((mean_green > mean_red) && (mean_green > mean_blue)) && (count_green > MIN_COUNT)){
 			set_rgb_led(0, 0, 10, 0);
 			set_rgb_led(1, 0, 10, 0);
 			set_rgb_led(2, 0, 10, 0);
@@ -525,7 +525,7 @@ void find_color(void){
 		}
 
 		else {
-			if ((((max_blue > max_red) && (max_blue > max_green)) || ((mean_blue > mean_red) && (mean_blue > mean_green))) && (count_blue > MIN_COUNT)){
+			if (((mean_blue > mean_red) && (mean_blue > mean_green)) && (count_blue > MIN_COUNT)){
 				set_rgb_led(0, 0, 0, 10);
 				set_rgb_led(1, 0, 0, 10);
 				set_rgb_led(2, 0, 0, 10);
