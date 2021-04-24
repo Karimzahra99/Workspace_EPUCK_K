@@ -10,18 +10,18 @@
 #include <process_image.h>
 #include <selector.h>
 
-#include <sensors/proximity.h> //remove just used for testing IR sensors
+//#include <sensors/proximity.h> //remove just used for testing IR sensors
 
 //Color detection settings (uncomment only one) :
 
 //Identify color only using max values
-//#define USE_ONLY_MAX
+#define USE_ONLY_MAX
 
 //Identify color only using mean values
 //#define USE_ONLY_MEAN
 
 //Identify color using max and mean values
-#define USE_MAX_N_MEAN
+//#define USE_MAX_N_MEAN
 
 
 static uint16_t middle_line = IMAGE_BUFFER_SIZE/2; //middle of line
@@ -150,7 +150,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	uint8_t *img_buff_ptr;
 
-	bool send_to_computer = true;
+	//bool send_to_computer = true;
 
     while(1){
     	//waits until an image has been captured
@@ -181,21 +181,12 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its middle position
 		calc_line_middle();
 
-		int test1 = get_prox(3);
-		int test2 = get_calibrated_prox(3);
-		int test3 = get_ambient_light(3);
-
-		chprintf((BaseSequentialStream *)&SD3, "%Prox =%-7d Calibrated Prox =%-7d Ambient =%-7d \r\n\n",
-								              test1,test2,test3);
-
-		calibrate_ir(); //maybe place somewhere else
-
-		int test5 = get_prox(3);
-		int test6 = get_calibrated_prox(3);
-		int test7 = get_ambient_light(3);
-
-		chprintf((BaseSequentialStream *)&SD3, "%Prox2 =%-7d Calibrated Prox2 =%-7d Ambient2 =%-7d \r\n\n",
-				test4,test5,test6);
+//		int test1 = get_prox(3);
+//		int test2 = get_calibrated_prox(3);
+//		int test3 = get_ambient_light(3);
+//
+//		chprintf((BaseSequentialStream *)&SD3, "%Prox =%-7d Calibrated Prox =%-7d Ambient =%-7d \r\n\n",
+//								              test1,test2,test3);
 
 		//To visualize one image on computer with plotImage.py
 //		if(send_to_computer){
