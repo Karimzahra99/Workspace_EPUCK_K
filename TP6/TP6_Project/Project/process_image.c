@@ -12,7 +12,7 @@
 
 
 static uint16_t middle_line = IMAGE_BUFFER_SIZE/2; //middle of line
-
+static uint8_t color_idx = 0; //1 = RED, 2 = GREEN, 3 = BLUE
 static uint8_t threshold_color = 0;
 
 //mettre dans des structures ?
@@ -163,10 +163,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		calc_max_mean();
 		max_count();
-		uint8_t color_idx = get_color();
+		find_color();
 
 		//search for a line in the image and gets its middle position
-		calc_line_middle(color_idx);
+		calc_line_middle();
 
 		//To visualize one image on computer with plotImage.py
 //		if(send_to_computer){
@@ -189,23 +189,26 @@ uint16_t get_middle_line(void){
 	return middle_line;
 }
 
-void calc_line_middle(uint8_t color_index){
+uint8_t get_color(void){
+	return color_idx;
+}
 
-	if (color_index == RED_IDX){
+void calc_line_middle(void){
+
+	if (color_idx == RED_IDX){
 		calc_middle(image_red);
 	}
 	else {
-		if (color_index == GREEN_IDX){
+		if (color_idx == GREEN_IDX){
 			calc_middle(image_green);
 		}
 
 		else {
-			if (color_index == BLUE_IDX){
+			if (color_idx == BLUE_IDX){
 				calc_middle(image_blue);
 			}
 		}
 	}
-
 }
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
@@ -374,16 +377,14 @@ void max_count(void){
 
 }
 
-uint8_t get_color(void){
-
-	uint8_t idx = 0;
+void find_color(void){
 
 	if ((((max_red > max_green) && (max_red > max_blue)) || ((mean_red > mean_green) && (mean_red > mean_blue))) && (count_red > MIN_COUNT)){
 		set_rgb_led(0, 10, 0, 0);
 		set_rgb_led(1, 10, 0, 0);
 		set_rgb_led(2, 10, 0, 0);
 		set_rgb_led(3, 10, 0, 0);
-		idx = RED_IDX;
+		color_idx = RED_IDX;
 	}
 	else{
 
@@ -392,7 +393,7 @@ uint8_t get_color(void){
 			set_rgb_led(1, 0, 10, 0);
 			set_rgb_led(2, 0, 10, 0);
 			set_rgb_led(3, 0, 10, 0);
-			idx = GREEN_IDX;
+			color_idx = GREEN_IDX;
 		}
 
 		else {
@@ -401,7 +402,7 @@ uint8_t get_color(void){
 				set_rgb_led(1, 0, 0, 10);
 				set_rgb_led(2, 0, 0, 10);
 				set_rgb_led(3, 0, 0, 10);
-				idx = BLUE_IDX;
+				color_idx = BLUE_IDX;
 			}
 			else {
 				chprintf((BaseSequentialStream *)&SD3, "Resetting \n\n");
@@ -413,14 +414,14 @@ uint8_t get_color(void){
 		}
 	}
 
-//		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-//							              max_red, max_green, max_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//							              mean_red, mean_green, mean_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//								              count_red, count_green, count_blue);
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+							              max_red, max_green, max_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+							              mean_red, mean_green, mean_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+								              count_red, count_green, count_blue);
 
 
 
@@ -430,6 +431,5 @@ uint8_t get_color(void){
 //	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
 //		              max_red,max_green,max_blue,count_red,count_green,count_blue);
 
-	return idx;
 }
 

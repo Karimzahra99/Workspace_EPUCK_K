@@ -70,20 +70,19 @@ static THD_FUNCTION(PidRegulator, arg) {
 
         //computes the speed to give to the motors
         //distance_cm is modified by the image processing thread
-        uint8_t color_idx = get_color();
-        switch (color_idx)
+        switch (get_color())
         {
         case 0:
         	speed = 0;
         	break;
         case 1:
-        	speed = 1;
+        	speed = 8;
         	break;
         case 2:
-        	speed = 2;
+        	speed = 9;
         	break;
         default:
-        	speed = 3;
+        	speed = 10;
         	break;
         }
 
@@ -97,8 +96,11 @@ static THD_FUNCTION(PidRegulator, arg) {
         }
 
         //applies the speed from the PI regulator and the correction for the rotation
-        right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-        left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+        //right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
+        //left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+
+        right_motor_set_speed(speed);
+        left_motor_set_speed(speed);
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
