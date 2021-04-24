@@ -37,8 +37,8 @@ TP1_blinky/blinky/.settings/
 TP1_blinky/
 TP2_move/
 TP3_ChibiOS/
-TP4_CamPI
-TP5_FFT
+TP4_CamPI/
+TP5_FFT/
 
 .DS_Store
 # Prerequisites
