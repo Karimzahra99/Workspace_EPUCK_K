@@ -11,7 +11,9 @@ TP6/TP6_Project/Project/.settings/
 TP6/TP6_Project/Project/.cproject
 TP6/TP6_Project/Project/.project
 
+*.launch
 .DS_Store
+
 # Prerequisites
 *.d
 
