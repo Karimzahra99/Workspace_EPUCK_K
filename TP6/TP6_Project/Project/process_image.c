@@ -102,17 +102,25 @@ uint16_t extract_line_width(uint8_t *buffer){
 		begin = 0;
 		end = 0;
 		width = last_width;
+		mean_over_width = 0;
+		return mean_over_width;
+
 	}else{
 		last_width = width = (end - begin);
 		line_position = (begin + end)/2; //gives the line position.
+		for (uint16_t i = begin ; i < end ; i++){
+				mean_over_width += buffer[i];
+				}
+				mean_over_width /= width;
+				return mean_over_width;
 	}
 
-	//sets a maximum width or returns the measured width
-	if((PXTOCM/width) > MAX_DISTANCE){
-		return PXTOCM/MAX_DISTANCE;
-	}else{
-		return width;
-	}
+//	//sets a maximum width or returns the measured width
+//	if((PXTOCM/width) > MAX_DISTANCE){
+//		return PXTOCM/MAX_DISTANCE;
+//	}else{
+
+
 }
 
 
@@ -255,20 +263,20 @@ static THD_FUNCTION(ProcessImage, arg) {
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
-			//filtering noise for each color
-			if (r > threshold_red_blue){
 				image_red[i/2] = r;
-			}
-			else image_red[i/2] = 0;
-			if (b > threshold_red_blue){
-				image_blue[i/2] = b;
-			}
-			else image_blue[i/2] = 0;
 
-			if (g >threshold_green){
+				image_blue[i/2] = b;
+
 				image_green[i/2] = g;
-			}
-			else image_green[i/2] = 0;
+		}
+				mean_red_over_width/= extract_line_width(image_red[i/2]);
+				mean_blue_over_width /= extract_line_width(image_red[i/2]);
+				//mean_green /= extract_line_width(image_green[i/2]);
+
+				if (mean_red_over_width> mean_blue_over_width)
+					color = red;
+					else color = blue
+
 
 
 			check_threshold();
