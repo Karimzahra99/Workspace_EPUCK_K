@@ -171,3 +171,31 @@ void pid_regulator_start(void){
 float speedcms_to_speedsteps (uint8_t speed_cms) {
 	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
+
+// Ancien code utilise pour le TP2, faire un truc semblable pour eviter des cylindres
+//vitesse en cm/s //rayon en cm //angle en radian //mode = 0 cercle par top //mode = 1 cercle par bot
+//void mov_circ_right(float vitesse,float rayon,float angle, int mode){
+//	float dg = (rayon+ECART_ROUE/2)*angle;
+//	float dd = (rayon-ECART_ROUE/2)*angle;
+//	float vg = vitesse;
+//	float vd = dd*vg/dg;
+//	if (mode == 1){
+//		vd = -vd;
+//		vg = -vg;
+//	}
+//	motor_set_position(dd,dg,vd,vg);
+//	while(motor_position_reached() != POSITION_REACHED);
+//}
+//
+//void mov_circ_left(float vitesse,float rayon,float angle, int mode){
+//	float dg = (rayon-ECART_ROUE/2)*angle;
+//	float dd = (rayon+ECART_ROUE/2)*angle;
+//	float vd = vitesse;
+//	float vg = dg*vd/dd;
+//	if (mode == 1){
+//		vd = -vd;
+//		vg = -vg;
+//	}
+//	motor_set_position(dd,dg,vd,vg);
+//	while(motor_position_reached() != POSITION_REACHED);
+//}
