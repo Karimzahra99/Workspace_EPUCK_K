@@ -52,6 +52,7 @@ extern "C" {
 #define RED_IDX						1
 #define GREEN_IDX					2
 #define BLUE_IDX					3
+#define NO_COLOR					0
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;

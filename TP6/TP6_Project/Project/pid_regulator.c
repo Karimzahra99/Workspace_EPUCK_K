@@ -12,6 +12,8 @@
 
 static uint8_t obstacle_mode = 0;
 
+//Functions to use
+
 //simple PI regulator implementation
 int16_t pid_regulator(float middle){
 
@@ -96,7 +98,11 @@ static THD_FUNCTION(PidRegulator, arg) {
         		break;
         	}
 
-        	speed_correction = pid_regulator(get_middle_line());
+        	//speed_correction = pid_regulator(get_middle_line());
+        	speed_correction = 0;
+
+        	chprintf((BaseSequentialStream *)&SD3, "%Speed = %-7d Idx =%-7d \r\n\n",
+        							              speed,get_color());
 
         	//if the line is nearly in front of the camera, don't rotate
         	if(abs(speed_correction) < ROTATION_THRESHOLD){
@@ -109,55 +115,55 @@ static THD_FUNCTION(PidRegulator, arg) {
         }
 
         //Obstacle Avoidance
-        else {
-        	obstacle_mode = 1;
+//        else {
+//        	obstacle_mode = 1;
+//
+//        	//Simple PseudoCode to avoid cylindrical shapes with known radius
+//        	//Move backwards 5cm at speed 7cm/s
+////        	motor_set_position(5, 5, 7, 7);
+////        	while(motor_position_reached() != POSITION_REACHED);
+//        	if (ir_front_left > ir_front_right){
+//        		//Rotate CW 90deg
+////        		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
+////        		while(motor_position_reached() != POSITION_REACHED);
+//
+//        		//Half Circle Trajectory to avoid obstacle
+//        		//mov_circ_left(vitesse,rayon_obstacle + marge,PI);
+//
+//        		//Rotate CW 90deg
+//        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
+//        		//while(motor_position_reached() != POSITION_REACHED);
+//        	}
+//        	else {
+//        		//Rotate CCW 90deg
+//        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, vitesse, -vitesse);
+//        		//while(motor_position_reached() != POSITION_REACHED);
+//
+//        		//Half Circle Trajectory to avoid obstacle
+//        		//mov_circ_right(vitesse,rayon_obstacle + marge,PI);
+//
+//        		//Rotate CCW 90deg
+//        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, vitesse, -vitesse);
+//        		//while(motor_position_reached() != POSITION_REACHED);
+//
+//        	}
+//
+//        	//More Complex PseudoCode to avoid simple shapes like squares and cylinders :
+//        	//If IR3 > IR4
+//        	//Then Rotate robot until IR2 is maximal (remember the angle of rotation)
+//        	//Then advance (if IR2 is diminishing its a circle -> launch circular trajectory, else its a square)
+//        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
+//        	//Rotate by CCW 90deg and advance until finding line
+//        	//When line found, rotate by the angle previously saved
+//        	//Else
+//        	//Then Rotate robot until IR5 is maximal (remember the angle of rotation)
+//        	//Then advance (if IR6 is diminishing its a circle -> launch circular trajectory, else its a square)
+//        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
+//        	//Rotate by CW 90deg and advance until finding line
+//        	//When line found, rotate by the angle previously saved
+//        	//After avoidance finished -> Set obstacle_mode to 0
 
-        	//Simple PseudoCode to avoid cylindrical shapes with known radius
-        	//Move backwards 5cm at speed 7cm/s
-//        	motor_set_position(5, 5, 7, 7);
-//        	while(motor_position_reached() != POSITION_REACHED);
-        	if (ir_front_left > ir_front_right){
-        		//Rotate CW 90deg
-//        		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
-//        		while(motor_position_reached() != POSITION_REACHED);
-
-        		//Half Circle Trajectory to avoid obstacle
-        		//mov_circ_left(vitesse,rayon_obstacle + marge,PI);
-
-        		//Rotate CW 90deg
-        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
-        		//while(motor_position_reached() != POSITION_REACHED);
-        	}
-        	else {
-        		//Rotate CCW 90deg
-        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, vitesse, -vitesse);
-        		//while(motor_position_reached() != POSITION_REACHED);
-
-        		//Half Circle Trajectory to avoid obstacle
-        		//mov_circ_right(vitesse,rayon_obstacle + marge,PI);
-
-        		//Rotate CCW 90deg
-        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, vitesse, -vitesse);
-        		//while(motor_position_reached() != POSITION_REACHED);
-
-        	}
-
-        	//More Complex PseudoCode to avoid simple shapes like squares and cylinders :
-        	//If IR3 > IR4
-        	//Then Rotate robot until IR2 is maximal (remember the angle of rotation)
-        	//Then advance (if IR2 is diminishing its a circle -> launch circular trajectory, else its a square)
-        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
-        	//Rotate by CCW 90deg and advance until finding line
-        	//When line found, rotate by the angle previously saved
-        	//Else
-        	//Then Rotate robot until IR5 is maximal (remember the angle of rotation)
-        	//Then advance (if IR6 is diminishing its a circle -> launch circular trajectory, else its a square)
-        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
-        	//Rotate by CW 90deg and advance until finding line
-        	//When line found, rotate by the angle previously saved
-        	//After avoidance finished -> Set obstacle_mode to 0
-
-        }
+        //}
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
