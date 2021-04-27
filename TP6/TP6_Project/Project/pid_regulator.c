@@ -12,8 +12,6 @@
 
 static uint8_t obstacle_mode = 0;
 
-//Functions to use
-
 //simple PI regulator implementation
 int16_t pid_regulator(float middle){
 
@@ -81,7 +79,7 @@ static THD_FUNCTION(PidRegulator, arg) {
         	//distance_cm is modified by the image processing thread
         	switch (get_color())
         	{
-        	case 0:
+        	case 0: //NO COLOR
         		speed = 0;
         		break;
         	case 1: //RED

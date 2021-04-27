@@ -6,11 +6,8 @@
 #include <leds.h>
 #include <main.h>
 #include <camera/po8030.h>
-
 #include <process_image.h>
 #include <selector.h>
-
-//#include <sensors/proximity.h> //remove just used for testing IR sensors
 
 //Color detection settings (uncomment only one) :
 
@@ -18,10 +15,10 @@
 //#define USE_ONLY_MAX
 
 //Identify color only using mean values
-#define USE_ONLY_MEAN
+//#define USE_ONLY_MEAN
 
 //Identify color using max and mean values
-//#define USE_MAX_N_MEAN
+#define USE_MAX_N_MEAN
 
 
 void find_color(void);
@@ -32,7 +29,7 @@ void calc_line_middle(void);
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
 
 static uint16_t middle_line = IMAGE_BUFFER_SIZE/2; //middle of line
-static uint8_t color_idx = 0; //1 = RED, 2 = GREEN, 3 = BLUE
+static uint8_t color_idx = 0; //0 = NO_COLOR, 1 = RED, 2 = GREEN, 3 = BLUE
 static uint8_t threshold_color = 0;
 
 //mettre dans des structures ?
