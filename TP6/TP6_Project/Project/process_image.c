@@ -15,14 +15,21 @@
 //Color detection settings (uncomment only one) :
 
 //Identify color only using max values
-#define USE_ONLY_MAX
+//#define USE_ONLY_MAX
 
 //Identify color only using mean values
-//#define USE_ONLY_MEAN
+#define USE_ONLY_MEAN
 
 //Identify color using max and mean values
 //#define USE_MAX_N_MEAN
 
+
+void find_color(void);
+void set_threshold_color(int selector_pos);
+void calc_max_mean(void);
+void max_count(void);
+void calc_line_middle(void);
+void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
 
 static uint16_t middle_line = IMAGE_BUFFER_SIZE/2; //middle of line
 static uint8_t color_idx = 0; //1 = RED, 2 = GREEN, 3 = BLUE
@@ -132,10 +139,11 @@ static THD_FUNCTION(CaptureImage, arg) {
     	//starts a capture
 		dcmi_capture_start();
 		//waits for the capture to be done
-		wait_image_ready();
+		wait_image_ready(); //fait l'attente dans le while(1)
 		//signals an image has been captured
 		chBSemSignal(&image_ready_sem);
-		//chThdSleepMilliseconds(12);
+//		chThdSleepMilliseconds(12); //toujours avoir un sleep dans while(1)
+
 		//chprintf((BaseSequentialStream *)&SDU1, "capture time = %d\n", chVTGetSystemTime()-time);
     }
 
@@ -196,6 +204,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 //
 //		//invert the bool
 //		send_to_computer = !send_to_computer;
+
+		//chThdSleepMilliseconds(100);dans le wait au debut
 		}
 
 }
@@ -323,6 +333,7 @@ void calc_max_mean(void){
 
 	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; i++){
 
+		//MEAN
 		if(image_red[i]> 0){
 			temp_r = temp_r + image_red[i];
 			count_r = count_r + 1;
@@ -338,6 +349,7 @@ void calc_max_mean(void){
 			count_b = count_b + 1;
 		}
 
+		//MAX
 		if(image_red[i]> max_r){
 			max_r = image_red[i];
 		}
@@ -431,6 +443,7 @@ void find_color(void){
 					set_rgb_led(1, 0, 0, 0);
 					set_rgb_led(2, 0, 0, 0);
 					set_rgb_led(3, 0, 0, 0);
+					color_idx = NO_COLOR;
 			}
 		}
 	}
@@ -489,6 +502,7 @@ void find_color(void){
 					set_rgb_led(1, 0, 0, 0);
 					set_rgb_led(2, 0, 0, 0);
 					set_rgb_led(3, 0, 0, 0);
+					color_idx = NO_COLOR;
 			}
 		}
 	}
@@ -547,6 +561,7 @@ void find_color(void){
 					set_rgb_led(1, 0, 0, 0);
 					set_rgb_led(2, 0, 0, 0);
 					set_rgb_led(3, 0, 0, 0);
+					color_idx = NO_COLOR;
 			}
 		}
 	}
