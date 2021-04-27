@@ -10,6 +10,9 @@
 #include <pid_regulator.h>
 #include <process_image.h>
 
+#define WHEEL_PERIMETER 13 // [cm]
+#define NSTEP_ONE_TURN 1000 // number of step for 1 turn of the motor
+
 static uint8_t obstacle_mode = 0;
 
 //simple PI regulator implementation
@@ -84,7 +87,6 @@ static THD_FUNCTION(PidRegulator, arg) {
         		break;
         	case 1: //RED
         		speed = speedcms_to_speedsteps(1);
-        		break;
         	case 2: //GREEN
         		speed = speedcms_to_speedsteps(2);
         		break;
@@ -92,7 +94,7 @@ static THD_FUNCTION(PidRegulator, arg) {
         		speed = speedcms_to_speedsteps(3);
         		break;
         	default:
-        		speed = speedcms_to_speedsteps(2);
+        		speed = speedcms_to_speedsteps(0);
         		break;
         	}
 
@@ -114,7 +116,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 
         	//Simple PseudoCode to avoid cylindrical shapes with known radius
         	//Move backwards 5cm at speed 7cm/s
-//        	motor_set_position(5, 5, 7, 7);
+//      	motor_set_position(5, 5, 7, 7);
 //        	while(motor_position_reached() != POSITION_REACHED);
         	if (ir_front_left > ir_front_right){
         		//Rotate CW 90deg
@@ -172,6 +174,21 @@ float speedcms_to_speedsteps (uint8_t speed_cms) {
 	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
+//karim
+void motor_set_position(float position_r, float position_l, float speed_r, float speed_l){
+
+	int8_t POSITION_REACHED = 0;
+	int16_t position_to_reach_left = right_motor_get_pos() + position_l * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+	int16_t position_to_reach_right = left_motor_get_pos() -position_r * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+
+	while (!POSITION_REACHED){
+	left_motor_set_speed(speed_l);
+	right_motor_set_speed(speed_r);
+	if (right_motor_get_pos()==position_to_reach_right && left_motor_get_pos()==position_to_reach_left ){
+		POSITION_REACHED=1;
+	}
+	}
+}
 // Ancien code utilise pour le TP2, faire un truc semblable pour eviter des cylindres
 //vitesse en cm/s //rayon en cm //angle en radian //mode = 0 cercle par top //mode = 1 cercle par bot
 //void mov_circ_right(float vitesse,float rayon,float angle, int mode){
