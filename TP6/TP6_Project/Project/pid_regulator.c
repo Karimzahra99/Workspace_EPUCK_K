@@ -12,7 +12,9 @@
 
 #define WHEEL_PERIMETER 13 // [cm]
 #define NSTEP_ONE_TURN 1000 // number of step for 1 turn of the motor
+#define ECART_ROUE 5 ///// a corriger
 
+static uint8_t POSITION_REACHED = 0;
 static uint8_t obstacle_mode = 0;
 
 //simple PI regulator implementation
@@ -83,10 +85,11 @@ static THD_FUNCTION(PidRegulator, arg) {
         	switch (get_color())
         	{
         	case 0:
-        		speed = 0;
+        		speed =0;
         		break;
         	case 1: //RED
         		speed = speedcms_to_speedsteps(1);
+        		break;
         	case 2: //GREEN
         		speed = speedcms_to_speedsteps(2);
         		break;
@@ -116,15 +119,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 
         	//Simple PseudoCode to avoid cylindrical shapes with known radius
         	//Move backwards 5cm at speed 7cm/s
-//      	motor_set_position(5, 5, 7, 7);
-//        	while(motor_position_reached() != POSITION_REACHED);
+      	motor_set_position(5, 5, 7, 7);
         	if (ir_front_left > ir_front_right){
         		//Rotate CW 90deg
-//        		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
-//        		while(motor_position_reached() != POSITION_REACHED);
+        		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -5, 5);
 
         		//Half Circle Trajectory to avoid obstacle
-        		//mov_circ_left(vitesse,rayon_obstacle + marge,PI);
+        		//mov_circ_left(5,5,3.14);
 
         		//Rotate CW 90deg
         		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
@@ -176,43 +177,42 @@ float speedcms_to_speedsteps (uint8_t speed_cms) {
 
 //karim
 void motor_set_position(float position_r, float position_l, float speed_r, float speed_l){
+	POSITION_REACHED = 0;
+	left_motor_set_pos(0);
+	right_motor_set_pos(0);
+	int16_t rmp = right_motor_get_pos();
+	int16_t position_to_reach_left = + position_l * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+	int16_t position_to_reach_right = - position_r * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 
-	int8_t POSITION_REACHED = 0;
-	int16_t position_to_reach_left = right_motor_get_pos() + position_l * NSTEP_ONE_TURN / WHEEL_PERIMETER;
-	int16_t position_to_reach_right = left_motor_get_pos() -position_r * NSTEP_ONE_TURN / WHEEL_PERIMETER;
-
+	chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
+			position_to_reach_left, position_to_reach_right, rmp);
 	while (!POSITION_REACHED){
-	left_motor_set_speed(speed_l);
-	right_motor_set_speed(speed_r);
-	if (right_motor_get_pos()==position_to_reach_right && left_motor_get_pos()==position_to_reach_left ){
-		POSITION_REACHED=1;
-	}
+		left_motor_set_speed(speed_l);
+		right_motor_set_speed(speed_r);
+		rmp = right_motor_get_pos();
+		chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
+				position_to_reach_left, position_to_reach_right, rmp);
+		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
+			left_motor_set_speed(0);
+			right_motor_set_speed(0);
+			POSITION_REACHED=1;
+		}
 	}
 }
 // Ancien code utilise pour le TP2, faire un truc semblable pour eviter des cylindres
 //vitesse en cm/s //rayon en cm //angle en radian //mode = 0 cercle par top //mode = 1 cercle par bot
-//void mov_circ_right(float vitesse,float rayon,float angle, int mode){
-//	float dg = (rayon+ECART_ROUE/2)*angle;
-//	float dd = (rayon-ECART_ROUE/2)*angle;
-//	float vg = vitesse;
-//	float vd = dd*vg/dg;
-//	if (mode == 1){
-//		vd = -vd;
-//		vg = -vg;
-//	}
-//	motor_set_position(dd,dg,vd,vg);
-//	while(motor_position_reached() != POSITION_REACHED);
-//}
+void mov_circ_right(float vitesse,float rayon,float angle){
+	float dg = (rayon+ECART_ROUE/2)*angle;
+	float dd = (rayon-ECART_ROUE/2)*angle;
+	float vg = vitesse;
+	float vd = dd*vg/dg;
+	motor_set_position(dd,dg,vd,vg);
+}
 //
-//void mov_circ_left(float vitesse,float rayon,float angle, int mode){
+//void mov_circ_left(float vitesse,float rayon,float angle){
 //	float dg = (rayon-ECART_ROUE/2)*angle;
 //	float dd = (rayon+ECART_ROUE/2)*angle;
 //	float vd = vitesse;
 //	float vg = dg*vd/dd;
-//	if (mode == 1){
-//		vd = -vd;
-//		vg = -vg;
-//	}
 //	motor_set_position(dd,dg,vd,vg);
-//	while(motor_position_reached() != POSITION_REACHED);
 //}
