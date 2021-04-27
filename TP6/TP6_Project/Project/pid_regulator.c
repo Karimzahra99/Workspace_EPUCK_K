@@ -96,11 +96,11 @@ static THD_FUNCTION(PidRegulator, arg) {
         		break;
         	}
 
-        	//speed_correction = pid_regulator(get_middle_line());
-        	speed_correction = 0;
+        	speed_correction = pid_regulator(get_middle_line());
+//        	speed_correction = 0;
 
-        	chprintf((BaseSequentialStream *)&SD3, "%Speed = %-7d Idx =%-7d \r\n\n",
-        							              speed,get_color());
+//        	chprintf((BaseSequentialStream *)&SD3, "%Speed = %-7d Idx =%-7d \r\n\n",
+//        							              speed,get_color());
 
         	//if the line is nearly in front of the camera, don't rotate
         	if(abs(speed_correction) < ROTATION_THRESHOLD){
@@ -174,4 +174,8 @@ void pid_regulator_start(void){
 
 float speedcms_to_speedsteps (uint8_t speed_cms) {
 	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+}
+
+float cm_to_steps (uint8_t cm) {
+	return cm * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
