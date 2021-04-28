@@ -12,7 +12,7 @@
 
 #define WHEEL_PERIMETER 13 // [cm]
 #define NSTEP_ONE_TURN 1000 // number of step for 1 turn of the motor
-#define ECART_ROUE 5 ///// a corriger
+#define ECART_ROUE 5.8
 
 static uint8_t POSITION_REACHED = 0;
 static uint8_t obstacle_mode = 0;
@@ -75,94 +75,107 @@ static THD_FUNCTION(PidRegulator, arg) {
     while(1){
         time = chVTGetSystemTime();
 
+//        int ir_front_left = get_prox(Sensor_IR3);
+//        int ir_front_right = get_prox(Sensor_IR4);
+//
+//        if (((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD))){
+//
+////        	//computes the speed to give to the motors
+////        	//distance_cm is modified by the image processing thread
+////        	switch (get_color())
+////        	{
+////        	case 0:
+////        		speed =0;
+////        		break;
+////        	case 1: //RED
+////        		speed = speedcms_to_speedsteps(0);
+////        		break;
+////        	case 2: //GREEN
+////        		speed = speedcms_to_speedsteps(0);
+////        		break;
+////        	case 3: //BLUE
+////        		speed = speedcms_to_speedsteps(0);
+////        		break;
+////        	default:
+////        		speed = speedcms_to_speedsteps(0);
+////        		break;
+////        	}
+////
+////        	speed_correction = pid_regulator(get_middle_line());
+////
+////        	//if the line is nearly in front of the camera, don't rotate
+////        	if(abs(speed_correction) < ROTATION_THRESHOLD){
+////        		speed_correction = 0;
+////        	}
+////
+////        	//applies the speed from the PI regulator and the correction for the rotation
+////        	right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
+////        	left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
+//        }
+//
+//        //Obstacle Avoidance
+//        else {
+//        	chprintf((BaseSequentialStream *)&SD3, "%R ir_front_left =%-7d ir_front_right =%-7d \r\n\n",
+//        			ir_front_left, ir_front_right);
+//
+//        	//Simple PseudoCode to avoid cylindrical shapes with known radius
+//        	//Move backwards 5cm at speed 7cm/s
+//        	//l r
+//        	motor_set_position (4, 4, speedcms_to_speedsteps(1), speedcms_to_speedsteps(1));
+//        	if (ir_front_left > ir_front_right){
+//        		//Rotate CW 90deg
+//        		motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  -speedcms_to_speedsteps(3), speedcms_to_speedsteps(3));
+//
+//        		//Half Circle Trajectory to avoid obstacle
+//        		//Half Circle Trajectory to avoid obstacle = de gauche
+//        		mov_circ_right(speedcms_to_speedsteps(4), 12 ,PI, 1);
+//        		//Rotate CW 90deg
+//        		motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  -speedcms_to_speedsteps(3), speedcms_to_speedsteps(3));
+//
+//        	}
+//        	else {
+//        		//Rotate CCW 90deg
+//        		motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  speedcms_to_speedsteps(3), - speedcms_to_speedsteps(3));
+//
+//        		//Half Circle Trajectory to avoid obstacle
+//        		mov_circ_left(speedcms_to_speedsteps(4), 12 ,PI, 1);
+//
+//        		//Rotate CCW 90deg
+//        		motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  speedcms_to_speedsteps(3), - speedcms_to_speedsteps(3));
+//        		//while(motor_position_reached() != POSITION_REACHED);
+//
+//        	}
+//
+//        	//More Complex PseudoCode to avoid simple shapes like squares and cylinders :
+//        	//If IR3 > IR4
+//        	//Then Rotate robot until IR2 is maximal (remember the angle of rotation)
+//        	//Then advance (if IR2 is diminishing its a circle -> launch circular trajectory, else its a square)
+//        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
+//        	//Rotate by CCW 90deg and advance until finding line
+//        	//When line found, rotate by the angle previously saved
+//        	//Else
+//        	//Then Rotate robot until IR5 is maximal (remember the angle of rotation)
+//        	//Then advance (if IR6 is diminishing its a circle -> launch circular trajectory, else its a square)
+//        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
+//        	//Rotate by CW 90deg and advance until finding line
+//        	//When line found, rotate by the angle previously saved
+//        	//After avoidance finished -> Set obstacle_mode to 0
+//
+//        }
         int ir_front_left = get_prox(Sensor_IR3);
-        int ir_front_right = get_prox(Sensor_IR4);
-
-        if (((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD)) && !obstacle_mode){
-
-        	//computes the speed to give to the motors
-        	//distance_cm is modified by the image processing thread
-        	switch (get_color())
-        	{
-        	case 0:
-        		speed =0;
-        		break;
-        	case 1: //RED
-        		speed = speedcms_to_speedsteps(1);
-        		break;
-        	case 2: //GREEN
-        		speed = speedcms_to_speedsteps(2);
-        		break;
-        	case 3: //BLUE
-        		speed = speedcms_to_speedsteps(3);
-        		break;
-        	default:
-        		speed = speedcms_to_speedsteps(0);
-        		break;
-        	}
-
-        	speed_correction = pid_regulator(get_middle_line());
-
-        	//if the line is nearly in front of the camera, don't rotate
-        	if(abs(speed_correction) < ROTATION_THRESHOLD){
-        		speed_correction = 0;
-        	}
-
-        	//applies the speed from the PI regulator and the correction for the rotation
-        	right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-        	left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
-        }
-
-        //Obstacle Avoidance
-        else {
-        	obstacle_mode = 1;
-
-        	//Simple PseudoCode to avoid cylindrical shapes with known radius
-        	//Move backwards 5cm at speed 7cm/s
-      	motor_set_position(5, 5, 7, 7);
-        	if (ir_front_left > ir_front_right){
-        		//Rotate CW 90deg
-        		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -5, 5);
-
-        		//Half Circle Trajectory to avoid obstacle
-        		//mov_circ_left(5,5,3.14);
-
-        		//Rotate CW 90deg
-        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
-        		//while(motor_position_reached() != POSITION_REACHED);
-        	}
-        	else {
-        		//Rotate CCW 90deg
-        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, vitesse, -vitesse);
-        		//while(motor_position_reached() != POSITION_REACHED);
-
-        		//Half Circle Trajectory to avoid obstacle
-        		//mov_circ_right(vitesse,rayon_obstacle + marge,PI);
-
-        		//Rotate CCW 90deg
-        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, vitesse, -vitesse);
-        		//while(motor_position_reached() != POSITION_REACHED);
-
-        	}
-
-        	//More Complex PseudoCode to avoid simple shapes like squares and cylinders :
-        	//If IR3 > IR4
-        	//Then Rotate robot until IR2 is maximal (remember the angle of rotation)
-        	//Then advance (if IR2 is diminishing its a circle -> launch circular trajectory, else its a square)
-        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
-        	//Rotate by CCW 90deg and advance until finding line
-        	//When line found, rotate by the angle previously saved
-        	//Else
-        	//Then Rotate robot until IR5 is maximal (remember the angle of rotation)
-        	//Then advance (if IR6 is diminishing its a circle -> launch circular trajectory, else its a square)
-        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
-        	//Rotate by CW 90deg and advance until finding line
-        	//When line found, rotate by the angle previously saved
-        	//After avoidance finished -> Set obstacle_mode to 0
-
-        }
-
+       	int ir_front_right = get_prox(Sensor_IR4);
+       	int ir_left = get_prox(Sensor_IR2);
+       	chprintf((BaseSequentialStream *)&SD3, "%R ir_front_left =%-7d ir_front_right =%-7d ir_left=%-7d \r\n\n",
+       			ir_front_left, ir_front_right, ir_left);
         //100Hz
+		float ir_left_ancien =0;
+		float ir_left_nouvau =0;
+		do{
+		ir_left_ancien = get_prox(Sensor_IR2);
+		motor_set_position(PERIMETER_EPUCK/8, PERIMETER_EPUCK/8,  -speedcms_to_speedsteps(3), speedcms_to_speedsteps(3));
+		ir_left_nouvau = get_prox(Sensor_IR2);
+		}
+		while (ir_left_nouvau > ir_left_ancien);
         chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
 }
@@ -190,8 +203,8 @@ void motor_set_position(float position_r, float position_l, float speed_r, float
 		left_motor_set_speed(speed_l);
 		right_motor_set_speed(speed_r);
 		rmp = right_motor_get_pos();
-		chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
-				position_to_reach_left, position_to_reach_right, rmp);
+//		chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
+//				position_to_reach_left, position_to_reach_right, rmp);
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
@@ -201,18 +214,40 @@ void motor_set_position(float position_r, float position_l, float speed_r, float
 }
 // Ancien code utilise pour le TP2, faire un truc semblable pour eviter des cylindres
 //vitesse en cm/s //rayon en cm //angle en radian //mode = 0 cercle par top //mode = 1 cercle par bot
-void mov_circ_right(float vitesse,float rayon,float angle){
+void mov_circ_right(float vitesse,float rayon,float angle, int mode){
 	float dg = (rayon+ECART_ROUE/2)*angle;
 	float dd = (rayon-ECART_ROUE/2)*angle;
 	float vg = vitesse;
 	float vd = dd*vg/dg;
+	if (mode == 1){
+		vd = -vd;
+		vg = -vg;
+	}
 	motor_set_position(dd,dg,vd,vg);
 }
-//
-//void mov_circ_left(float vitesse,float rayon,float angle){
-//	float dg = (rayon-ECART_ROUE/2)*angle;
-//	float dd = (rayon+ECART_ROUE/2)*angle;
-//	float vd = vitesse;
-//	float vg = dg*vd/dd;
-//	motor_set_position(dd,dg,vd,vg);
-//}
+
+void mov_circ_left(float vitesse,float rayon,float angle, int mode){
+	float dg = (rayon-ECART_ROUE/2)*angle;
+	float dd = (rayon+ECART_ROUE/2)*angle;
+	float vd = vitesse;
+	float vg = dg*vd/dd;
+	if (mode == 1){
+		vd = -vd;
+		vg = -vg;
+	}
+	motor_set_position(dd,dg,vd,vg);
+}
+
+//Then Rotate robot until IR2 is maximal (remember the angle of rotation)
+void rotate_until_irmax()
+{
+	float ir_left_ancien =0;
+	float ir_left_nouvau =0;
+	do{
+	ir_left_ancien = get_prox(Sensor_IR2);
+	motor_set_position(PERIMETER_EPUCK/8, PERIMETER_EPUCK/8,  -speedcms_to_speedsteps(3), speedcms_to_speedsteps(3));
+	ir_left_nouvau = get_prox(Sensor_IR2);
+	}
+	while (ir_left_nouvau > ir_left_ancien);
+}
+
