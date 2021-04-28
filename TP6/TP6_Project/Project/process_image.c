@@ -158,7 +158,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	uint8_t *img_buff_ptr;
 
-	//bool send_to_computer = true;
+	bool send_to_computer = true;
 
     while(1){
     	//waits until an image has been captured
@@ -197,15 +197,15 @@ static THD_FUNCTION(ProcessImage, arg) {
 //								              test1,test2,test3);
 
 		//To visualize one image on computer with plotImage.py
-//		if(send_to_computer){
-//			//sends to the computer the image
-//			SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
-//		}
-//
-//		//invert the bool
-//		send_to_computer = !send_to_computer;
+		if(send_to_computer){
+			//sends to the computer the image
+			SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
+		}
 
-		//chThdSleepMilliseconds(100);dans le wait au debut
+		//invert the bool
+		send_to_computer = !send_to_computer;
+
+		chThdSleepMilliseconds(100);//dans le wait au debut
 		}
 
 }

@@ -69,9 +69,9 @@ int main(void)
 
 	//stars the threads for the pid regulator and the processing of the image
 	pid_regulator_start();
-	//process_image_start();
+	process_image_start();
 
-	proximity_start();
+	//proximity_start();
 
     /* Infinite loop. */
     while (1) {

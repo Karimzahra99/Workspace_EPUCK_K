@@ -712,3 +712,9 @@ static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 long switch ca pause probleme ?
 calibrate IR ? 
 Resoudre les problemes d'include
+-------------------------------------------------------------------------------------------------------------
+Karim Epuck 2 monitor :
+/usr/local/bin/dfu-util -d 0483:df11 -a 0 -s 0x08000000 -D /Users/karimzahra/Downloads/e-puck2_main-processor.bin
+Reset avec selector position 8
+/dev/cu.usbmodem3011
+
