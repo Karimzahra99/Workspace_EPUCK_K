@@ -126,15 +126,21 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 	while(1){
 
+		chprintf((BaseSequentialStream *)&SD3, "In the While \r\n\n");
+
 		//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
 		if (alternate_lines == TOP){
 			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 			alternate_lines = BOTTOM;
+			chprintf((BaseSequentialStream *)&SD3, "TOP CASE \r\n\n");
 		}
 		if (alternate_lines == BOTTOM){
 			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 			alternate_lines = TOP;
+			chprintf((BaseSequentialStream *)&SD3, "BOT CASE \r\n\n");
 		}
+
+		chprintf((BaseSequentialStream *)&SD3, "PASSED CASES \r\n\n");
 
 		//Line index 413 detecting colors goes wrong
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
