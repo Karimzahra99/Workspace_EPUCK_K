@@ -183,38 +183,38 @@ float cm_to_steps (uint8_t cm) {
 void set_leds(uint8_t color_index){
 
 	if (color_index == RED_IDX){
-		set_rgb_led(0, 10, 0, 0);
-		set_rgb_led(1, 10, 0, 0);
-		set_rgb_led(2, 10, 0, 0);
-		set_rgb_led(3, 10, 0, 0);
+		set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
+		set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_OFF);
+		set_rgb_led(LED_RGB_6, LED_ON, LED_OFF, LED_OFF);
+		set_rgb_led(LED_RGB_8, LED_ON, LED_OFF, LED_OFF);
 	}
 	else {
 		if (color_index == GREEN_IDX){
-			set_rgb_led(0, 0, 10, 0);
-			set_rgb_led(1, 0, 10, 0);
-			set_rgb_led(2, 0, 10, 0);
-			set_rgb_led(3, 0, 10, 0);
+			set_rgb_led(LED_RGB_2, LED_OFF, LED_ON, LED_OFF);
+			set_rgb_led(LED_RGB_4, LED_OFF, LED_ON, LED_OFF);
+			set_rgb_led(LED_RGB_6, LED_OFF, LED_ON, LED_OFF);
+			set_rgb_led(LED_RGB_8, LED_OFF, LED_ON, LED_OFF);
 		}
 		else {
 			if (color_index == BLUE_IDX){
-				set_rgb_led(0, 0, 0, 10);
-				set_rgb_led(1, 0, 0, 10);
-				set_rgb_led(2, 0, 0, 10);
-				set_rgb_led(3, 0, 0, 10);
+				set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_ON);
+				set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_ON);
+				set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_ON);
+				set_rgb_led(LED_RGB_8, LED_OFF, LED_OFF, LED_ON);
 			}
 			else {
 				if (color_index == YELLOW_IDX){
-					set_rgb_led(0, 10, 10, 0);
-					set_rgb_led(1, 10, 10, 0);
-					set_rgb_led(2, 10, 10, 0);
-					set_rgb_led(3, 10, 10, 0);
+					set_rgb_led(LED_RGB_2, LED_ON, LED_ON, LED_OFF);
+					set_rgb_led(LED_RGB_4, LED_ON, LED_ON, LED_OFF);
+					set_rgb_led(LED_RGB_6, LED_ON, LED_ON, LED_OFF);
+					set_rgb_led(LED_RGB_8, LED_ON, LED_ON, LED_OFF);
 				}
 				else {
 					if (color_index == NO_COLOR_IDX){
-						set_rgb_led(0, 0, 0, 0);
-						set_rgb_led(1, 0, 0, 0);
-						set_rgb_led(2, 0, 0, 0);
-						set_rgb_led(3, 0, 0, 0);
+						set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_OFF);
+						set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_OFF);
+						set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_OFF);
+						set_rgb_led(LED_RGB_8, LED_OFF, LED_OFF, LED_OFF);
 					}
 				}
 			}

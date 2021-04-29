@@ -55,6 +55,14 @@ extern "C" {
 #define YELLOW_IDX					4
 #define NO_COLOR					0
 
+#define LED_RGB_2					0
+#define LED_RGB_4					1
+#define LED_RGB_6					2
+#define LED_RGB_8					3
+#define LED_ON						10
+#define LED_OFF						0
+
+
 /** Robot wide IPC bus. */
 extern messagebus_t bus;
 
