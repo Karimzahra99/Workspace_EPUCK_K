@@ -493,14 +493,14 @@ void find_color(void){
 		}
 	}
 
-//		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-//							              max_red, max_green, max_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//							              mean_red, mean_green, mean_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//								              count_red, count_green, count_blue);
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+							              max_red, max_green, max_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+							              mean_red, mean_green, mean_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+								              count_red, count_green, count_blue);
 
 
 
