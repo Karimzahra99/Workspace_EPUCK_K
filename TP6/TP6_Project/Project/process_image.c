@@ -186,12 +186,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its middle position
 		calc_line_middle();
 
-//		int test1 = get_prox(3);
+		int test1 = get_prox(3);
+		int test2 = get_prox(4);
 //		int test2 = get_calibrated_prox(3);
 //		int test3 = get_ambient_light(3);
 //
-//		chprintf((BaseSequentialStream *)&SD3, "%Prox =%-7d Calibrated Prox =%-7d Ambient =%-7d \r\n\n",
-//								              test1,test2,test3);
+		chprintf((BaseSequentialStream *)&SD3, "IR4 =%-7d IR3 =%-7d IR2 =%-7d IR1 =%-7d  \r\n\n",
+				get_prox(4),get_prox(3),get_prox(2),get_prox(1));
 
 		//To visualize one image on computer with plotImage.py
 //		if(send_to_computer){

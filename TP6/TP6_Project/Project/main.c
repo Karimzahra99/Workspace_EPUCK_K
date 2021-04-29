@@ -68,7 +68,7 @@ int main(void)
 	spi_comm_start();
 
 	//stars the threads for the pid regulator and the processing of the image
-	pid_regulator_start();
+	//pid_regulator_start();
 
 	process_image_start();
 
