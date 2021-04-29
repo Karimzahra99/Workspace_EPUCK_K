@@ -1,10 +1,3 @@
-/*
- * pid_regulator.h
- *
- *  Created on: 15 avr. 2021
- *      Author: Stay Hard
- */
-
 #ifndef PID_REGULATOR_H_
 #define PID_REGULATOR_H_
 
@@ -12,5 +5,12 @@
 //start the PID regulator thread
 void pid_regulator_start(void);
 
+float speedcms_to_speedsteps (uint8_t speed_cms);
+
+void motor_set_position(float position_r, float position_l, float speed_r, float speed_l);
+
+void mov_circ_right(float vitesse,float rayon,float angle, int mode);
+
+void mov_circ_left(float vitesse,float rayon,float angle, int mode);
 
 #endif /* PID_REGULATOR_H_ */

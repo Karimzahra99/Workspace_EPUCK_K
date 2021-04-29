@@ -158,6 +158,7 @@ static const ADCConversionGroup adcgrpcfg2 = {
 static THD_WORKING_AREA(proximity_thd_wa, 256);
 static THD_FUNCTION(proximity_thd, arg)
 {
+
     (void) arg;
     chRegSetThreadName(__FUNCTION__);
 
