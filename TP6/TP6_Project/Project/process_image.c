@@ -138,8 +138,8 @@ static THD_FUNCTION(CaptureImage, arg) {
 //			chprintf((BaseSequentialStream *)&SD3, "AlternatorBOT =%-7d \r\n\n", alternate_lines);
 		}
 
-		chprintf((BaseSequentialStream *)&SD3, "PASSED CASES \r\n\n");
-		chprintf((BaseSequentialStream *)&SD3, "AlternatorPASSED =%-7d \r\n\n", alternate_lines);
+//		chprintf((BaseSequentialStream *)&SD3, "PASSED CASES \r\n\n");
+//		chprintf((BaseSequentialStream *)&SD3, "AlternatorPASSED =%-7d \r\n\n", alternate_lines);
 
 		//Line index 413 detecting colors goes wrong
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
@@ -259,6 +259,9 @@ void calc_line_middle(uint8_t alternator){
 	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
 	               alternator);
 
+	chprintf((BaseSequentialStream *)&SD3, "Couleur =%-7d \r\n\n",
+		               color_idx);
+
 	uint16_t middle = 0;
 
 	if (color_idx == RED_IDX){
@@ -278,8 +281,13 @@ void calc_line_middle(uint8_t alternator){
 
 	if (alternator == TOP){
 		middle_line_top = middle;
+		chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
 	}
 	else middle_line_bot = middle;
+	chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
+
+	chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
+	                get_middle_top(),get_middle_bot());
 }
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
