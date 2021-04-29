@@ -250,6 +250,9 @@ uint16_t get_middle_bot(void) {
 
 void calc_line_middle(uint8_t alternator){
 
+	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
+	               alternator);
+
 	uint16_t middle = 0;
 
 	if (color_idx == RED_IDX){

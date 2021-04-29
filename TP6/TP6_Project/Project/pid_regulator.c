@@ -78,8 +78,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 //        chprintf((BaseSequentialStream *)&SD3, "IR4 =%-7d IR3 =%-7d \r\n\n",
 //        ir_front_right, ir_front_left);
 
-                chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
-                get_middle_top(),get_middle_bot());
+//                chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
+//                get_middle_top(),get_middle_bot());
 
         //if (((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD)) && !obstacle_mode){
         	if ((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD)){
