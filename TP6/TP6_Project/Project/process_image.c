@@ -431,6 +431,7 @@ void find_color(void){
 					set_rgb_led(1, 0, 0, 0);
 					set_rgb_led(2, 0, 0, 0);
 					set_rgb_led(3, 0, 0, 0);
+					color_idx = NO_COLOR;
 			}
 		}
 	}
@@ -481,6 +482,7 @@ void find_color(void){
 					set_rgb_led(1, 0, 0, 0);
 					set_rgb_led(2, 0, 0, 0);
 					set_rgb_led(3, 0, 0, 0);
+					color_idx = NO_COLOR;
 			}
 		}
 	}
@@ -532,6 +534,7 @@ void find_color(void){
 					set_rgb_led(1, 0, 0, 0);
 					set_rgb_led(2, 0, 0, 0);
 					set_rgb_led(3, 0, 0, 0);
+					color_idx = NO_COLOR;
 			}
 		}
 	}
