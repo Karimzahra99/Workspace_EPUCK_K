@@ -5,5 +5,7 @@ void process_image_start(void);
 
 uint8_t get_color(void);
 uint16_t get_middle_diff(void);
+uint16_t get_middle_top(void);
+uint16_t get_middle_bot(void);
 
 #endif /* PROCESS_IMAGE_H */

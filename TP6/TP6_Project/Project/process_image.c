@@ -23,7 +23,7 @@
 //#define PLOT_ON_COMPUTER
 
 //Unomment to send general color data (max, mean, count) to Realterm or Screen
-#define SEND_DATA
+//#define SEND_DATA
 
 #define CONTRAST 			90 //default constrast is 64
 
@@ -238,6 +238,14 @@ uint8_t get_color(void){
 
 uint16_t get_middle_diff(void) {
 	return middle_line_top-middle_line_bot;
+}
+
+uint16_t get_middle_top(void) {
+	return middle_line_top;
+}
+
+uint16_t get_middle_bot(void) {
+	return middle_line_bot;
 }
 
 void calc_line_middle(uint8_t alternator){
