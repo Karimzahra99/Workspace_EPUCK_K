@@ -28,11 +28,14 @@ void max_count(void);
 void calc_line_middle(void);
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
 
-static uint16_t middle_line = IMAGE_BUFFER_SIZE/2; //middle of line
+static uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
+static uint16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
+
+static uint8_t alternate_lines = 0; //0 = top line, 1 = bottom line
+
 static uint8_t color_idx = 0; //0 = NO_COLOR, 1 = RED, 2 = GREEN, 3 = BLUE
 static uint8_t threshold_color = 0;
 
-//mettre dans des structures ?
 static uint16_t count_red  = 0;
 static uint16_t count_green  = 0;
 static uint16_t count_blue = 0;
@@ -56,7 +59,7 @@ static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 * Returns the line's width extracted from the image buffer given
 * Returns 0 if line not found
 */
-void calc_middle(uint8_t *buffer){
+uint16_t calc_middle(uint8_t *buffer){
 
 	uint16_t begin = 0;
 	uint16_t end = 0;
@@ -100,7 +103,7 @@ void calc_middle(uint8_t *buffer){
 		}
 	}
 	//Calculated middle of line
-	middle_line = (begin + end)/2;
+	return (begin + end)/2;
 
 //	chprintf((BaseSequentialStream *)&SD3, "%Middle =%-7d \r\n\n", middle_line);
 
@@ -116,7 +119,14 @@ static THD_FUNCTION(CaptureImage, arg) {
     (void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	if (alternate_lines == TOP){
+    po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+    alternate_lines = BOTTOM;
+	}
+	if (alternate_lines == BOTTOM){
+		po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+		alternate_lines = TOP;
+	}
 
 	//
 	dcmi_enable_double_buffering();
@@ -155,7 +165,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	uint8_t *img_buff_ptr;
 
-	//bool send_to_computer = true;
+	//bool send_to_computer = true; //to use plot_image.py
 
     while(1){
     	//waits until an image has been captured
@@ -184,12 +194,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 		find_color();
 
 		//search for a line in the image and gets its middle position
-		calc_line_middle();
+		calc_line_middle(alternate_lines);
 
 //		int test1 = get_prox(3);
 //		int test2 = get_prox(4);
 //		chprintf((BaseSequentialStream *)&SD3, "IR4 =%-7d IR3 =%-7d IR2 =%-7d IR1 =%-7d  \r\n\n",
 //				get_prox(4),get_prox(3),get_prox(2),get_prox(1));
+
 
 		//To visualize one image on computer with plotImage.py
 //		if(send_to_computer){
@@ -200,7 +211,6 @@ static THD_FUNCTION(ProcessImage, arg) {
 //		//invert the bool
 //		send_to_computer = !send_to_computer;
 
-		//chThdSleepMilliseconds(100);dans le wait au debut
 		}
 
 }
@@ -218,22 +228,33 @@ uint8_t get_color(void){
 	return color_idx;
 }
 
-void calc_line_middle(void){
+uint16_t get_middle_diff(void) {
+	return middle_line_top-middle_line_bot;
+}
+
+void calc_line_middle(uint8_t alternator){
+
+	uint16_t middle = 0;
 
 	if (color_idx == RED_IDX){
-		calc_middle(image_red);
+		middle = calc_middle(image_red);
 	}
 	else {
 		if (color_idx == GREEN_IDX){
-			calc_middle(image_green);
+			middle = calc_middle(image_green);
 		}
 
 		else {
 			if (color_idx == BLUE_IDX){
-				calc_middle(image_blue);
+				middle = calc_middle(image_blue);
 			}
 		}
 	}
+
+	if (alternator == TOP){
+		middle_line_top = middle;
+	}
+	else middle_line_bot = middle;
 }
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
@@ -258,10 +279,10 @@ void set_threshold_color(int selector_pos){
 
 	switch (selector_pos)
 	{
-	case 0:
+	case 0: //No noise filtering
 		threshold_color = 0;
 		break;
-	case 1:
+	case 1: //Minimum noise filtering
 		threshold_color = 5;
 		break;
 	case 2:
@@ -303,7 +324,7 @@ void set_threshold_color(int selector_pos){
 	case 14:
 		threshold_color = 28;
 		break;
-	case 15:
+	case 15: //Maximum noise filtering
 		threshold_color = 29;
 		break;
 	default:

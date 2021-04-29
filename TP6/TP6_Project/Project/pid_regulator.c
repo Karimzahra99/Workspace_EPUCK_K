@@ -181,7 +181,6 @@ float cm_to_steps (uint8_t cm) {
 }
 
 void set_leds(uint8_t color_index){
-
 	if (color_index == RED_IDX){
 		set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
 		set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_OFF);
