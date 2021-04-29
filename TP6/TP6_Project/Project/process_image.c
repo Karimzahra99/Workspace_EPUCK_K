@@ -11,14 +11,19 @@
 //Color detection settings (uncomment only one) :
 
 //Identify color only using max values
-//#define USE_ONLY_MAX
+#define USE_ONLY_MAX
 
 //Identify color only using mean values
-#define USE_ONLY_MEAN
+//#define USE_ONLY_MEAN
 
 //Identify color using max and mean values
 //#define USE_MAX_N_MEAN
 
+//Uncomment to use plot_image.py :
+//#define PLOT_ON_COMPUTER
+
+//Unomment to send data to Realterm or Screen
+#define SEND_DATA
 
 #define CONTRAST 			80 //default constrast is 64
 
@@ -120,14 +125,16 @@ static THD_FUNCTION(CaptureImage, arg) {
     (void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
-	if (alternate_lines == TOP){
-    po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-    alternate_lines = BOTTOM;
-	}
-	if (alternate_lines == BOTTOM){
-		po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-		alternate_lines = TOP;
-	}
+//	if (alternate_lines == TOP){
+//    po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+//    alternate_lines = BOTTOM;
+//	}
+//	if (alternate_lines == BOTTOM){
+//		po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+//		alternate_lines = TOP;
+//	}
+
+	po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
 	//
 	dcmi_enable_double_buffering();
@@ -166,7 +173,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	uint8_t *img_buff_ptr;
 
+#ifdef PLOT_ON_COMPUTER
 	bool send_to_computer = true; //to use plot_image.py
+#endif
 
     while(1){
     	//waits until an image has been captured
@@ -203,7 +212,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 //				get_prox(4),get_prox(3),get_prox(2),get_prox(1));
 
 
-		//To visualize one image on computer with plotImage.py
+#ifdef PLOT_ON_COMPUTER
+		//		To visualize one image on computer with plotImage.py
 		if(send_to_computer){
 			//sends to the computer the image
 			SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
@@ -211,6 +221,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 		//invert the bool
 		send_to_computer = !send_to_computer;
+#endif
 
 		}
 
@@ -445,22 +456,16 @@ void find_color(void){
 		}
 	}
 
-//		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-//							              max_red, max_green, max_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//							              mean_red, mean_green, mean_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//								              count_red, count_green, count_blue);
+#ifdef SEND_DATA
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+							              max_red, max_green, max_blue);
 
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+							              mean_red, mean_green, mean_blue);
 
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-//		              max_red,max_green,max_blue,idx);
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
-//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+								              count_red, count_green, count_blue);
+#endif
 
 }
 #endif
@@ -485,15 +490,16 @@ void find_color(void){
 		}
 	}
 
+#ifdef SEND_DATA
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+							              max_red, max_green, max_blue);
 
-//		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-//							              max_red, max_green, max_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//							              mean_red, mean_green, mean_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//								              count_red, count_green, count_blue);
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+							              mean_red, mean_green, mean_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+								              count_red, count_green, count_blue);
+#endif
 }
 #endif
 
@@ -516,15 +522,16 @@ void find_color(void){
 			}
 		}
 	}
+#ifdef SEND_DATA
+			chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+								              max_red, max_green, max_blue);
 
-//			chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-//								              max_red, max_green, max_blue);
-//
-//			chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//								              mean_red, mean_green, mean_blue);
-//
-//			chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//									              count_red, count_green, count_blue);
+			chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+								              mean_red, mean_green, mean_blue);
+
+			chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+									              count_red, count_green, count_blue);
+#endif
 }
 #endif
 
