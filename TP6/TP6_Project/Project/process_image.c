@@ -123,34 +123,28 @@ static THD_FUNCTION(CaptureImage, arg) {
     //chThdSleepMilliseconds(12);
 
     (void)arg;
-    chprintf((BaseSequentialStream *)&SD3, "SALUT \r\n\n");
-
-	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
-    if (alternate_lines == TOP){
-    	po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-    	alternate_lines = BOTTOM;
-    }
-    if (alternate_lines == BOTTOM){
-    	po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-    	alternate_lines = TOP;
-    }
-
-    //Line index 413 detecting colors goes wrong
-	//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-
-	dcmi_enable_double_buffering();
-	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-	dcmi_prepare();
-	po8030_set_awb(0);
-	//po8030_set_mirror(0, 1);
-	po8030_set_contrast(CONTRAST);
-
-
-	//systime_t time;//utiliser pour calculer le temps d'execution
 
 	while(1){
 
-    	//time = chVTGetSystemTime();
+		//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
+		if (alternate_lines == TOP){
+			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+			alternate_lines = BOTTOM;
+		}
+		if (alternate_lines == BOTTOM){
+			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+			alternate_lines = TOP;
+		}
+
+		//Line index 413 detecting colors goes wrong
+		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+
+		dcmi_enable_double_buffering();
+		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+		dcmi_prepare();
+		po8030_set_awb(0);
+		//po8030_set_mirror(0, 1);
+		po8030_set_contrast(CONTRAST);
 
     	//starts a capture
 		dcmi_capture_start();
@@ -158,9 +152,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 		wait_image_ready(); //fait l'attente dans le while(1)
 		//signals an image has been captured
 		chBSemSignal(&image_ready_sem);
-//		chThdSleepMilliseconds(12); //toujours avoir un sleep dans while(1)
 
-		//chprintf((BaseSequentialStream *)&SDU1, "capture time = %d\n", chVTGetSystemTime()-time);
     }
 
 }
@@ -251,8 +243,8 @@ uint16_t get_middle_bot(void) {
 
 void calc_line_middle(uint8_t alternator){
 
-//	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
-//	               alternator);
+	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
+	               alternator);
 
 	uint16_t middle = 0;
 
