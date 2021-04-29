@@ -112,8 +112,8 @@ static THD_FUNCTION(CaptureImage, arg) {
     (void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-
+	po8030_advanced_config(FORMAT_RGB565, 0, 10, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	//Replace with LINE_INDEX when finished testing
 	//
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
@@ -150,7 +150,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	uint8_t *img_buff_ptr;
 
-	//bool send_to_computer = true;
+	bool send_to_computer = true;
 
     while(1){
     	//waits until an image has been captured
@@ -189,13 +189,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 //								              test1,test2,test3);
 
 		//To visualize one image on computer with plotImage.py
-//		if(send_to_computer){
-//			//sends to the computer the image
-//			SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
-//		}
-//
-//		//invert the bool
-//		send_to_computer = !send_to_computer;
+		if(send_to_computer){
+			//sends to the computer the image
+			SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
+		}
+
+		//invert the bool
+		send_to_computer = !send_to_computer;
 		}
 
 }
