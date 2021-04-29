@@ -3,7 +3,6 @@
 
 void process_image_start(void);
 
-uint16_t get_middle_line(void);
 uint8_t get_color(void);
 uint16_t get_middle_diff(void);
 

@@ -3,7 +3,6 @@
 #include <chprintf.h>
 #include <usbcfg.h>
 #include <string.h>
-#include <leds.h>
 #include <main.h>
 #include <camera/po8030.h>
 #include <process_image.h>
@@ -15,17 +14,19 @@
 //#define USE_ONLY_MAX
 
 //Identify color only using mean values
-//#define USE_ONLY_MEAN
+#define USE_ONLY_MEAN
 
 //Identify color using max and mean values
-#define USE_MAX_N_MEAN
+//#define USE_MAX_N_MEAN
 
+
+#define CONTRAST = 80 //default constrast is 64
 
 void find_color(void);
 void set_threshold_color(int selector_pos);
 void calc_max_mean(void);
 void max_count(void);
-void calc_line_middle(void);
+void calc_line_middle(uint8_t alternator);
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
 
 static uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
@@ -134,7 +135,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 	dcmi_prepare();
 	po8030_set_awb(0);
 	//po8030_set_mirror(0, 1);
-	po8030_set_contrast(90);
+	po8030_set_contrast(CONTRAST);
 
 
 	//systime_t time;//utiliser pour calculer le temps d'execution
@@ -165,7 +166,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	uint8_t *img_buff_ptr;
 
-	//bool send_to_computer = true; //to use plot_image.py
+	bool send_to_computer = true; //to use plot_image.py
 
     while(1){
     	//waits until an image has been captured
@@ -203,13 +204,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 
 		//To visualize one image on computer with plotImage.py
-//		if(send_to_computer){
-//			//sends to the computer the image
-//			SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
-//		}
-//
-//		//invert the bool
-//		send_to_computer = !send_to_computer;
+		if(send_to_computer){
+			//sends to the computer the image
+			SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
+		}
+
+		//invert the bool
+		send_to_computer = !send_to_computer;
 
 		}
 
@@ -218,10 +219,6 @@ static THD_FUNCTION(ProcessImage, arg) {
 void process_image_start(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
-}
-
-uint16_t get_middle_line(void){
-	return middle_line;
 }
 
 uint8_t get_color(void){
@@ -487,6 +484,16 @@ void find_color(void){
 			}
 		}
 	}
+
+
+//		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+//							              max_red, max_green, max_blue);
+//
+//		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+//							              mean_red, mean_green, mean_blue);
+//
+//		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+//								              count_red, count_green, count_blue);
 }
 #endif
 
@@ -509,6 +516,15 @@ void find_color(void){
 			}
 		}
 	}
+
+//			chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+//								              max_red, max_green, max_blue);
+//
+//			chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+//								              mean_red, mean_green, mean_blue);
+//
+//			chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+//									              count_red, count_green, count_blue);
 }
 #endif
 
