@@ -123,6 +123,7 @@ static THD_FUNCTION(CaptureImage, arg) {
     //chThdSleepMilliseconds(12);
 
     (void)arg;
+    chprintf((BaseSequentialStream *)&SD3, "SALUT \r\n\n");
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
     if (alternate_lines == TOP){
@@ -250,8 +251,8 @@ uint16_t get_middle_bot(void) {
 
 void calc_line_middle(uint8_t alternator){
 
-	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
-	               alternator);
+//	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
+//	               alternator);
 
 	uint16_t middle = 0;
 
