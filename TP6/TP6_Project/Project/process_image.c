@@ -186,13 +186,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its middle position
 		calc_line_middle();
 
-		int test1 = get_prox(3);
-		int test2 = get_prox(4);
-//		int test2 = get_calibrated_prox(3);
-//		int test3 = get_ambient_light(3);
-//
-		chprintf((BaseSequentialStream *)&SD3, "IR4 =%-7d IR3 =%-7d IR2 =%-7d IR1 =%-7d  \r\n\n",
-				get_prox(4),get_prox(3),get_prox(2),get_prox(1));
+//		int test1 = get_prox(3);
+//		int test2 = get_prox(4);
+//		chprintf((BaseSequentialStream *)&SD3, "IR4 =%-7d IR3 =%-7d IR2 =%-7d IR1 =%-7d  \r\n\n",
+//				get_prox(4),get_prox(3),get_prox(2),get_prox(1));
 
 		//To visualize one image on computer with plotImage.py
 //		if(send_to_computer){
@@ -411,36 +408,20 @@ void max_count(void){
 void find_color(void){
 
 	if ((((max_red > max_green) && (max_red > max_blue)) || ((mean_red > mean_green) && (mean_red > mean_blue))) && (count_red > MIN_COUNT)){
-		set_rgb_led(0, 10, 0, 0);
-		set_rgb_led(1, 10, 0, 0);
-		set_rgb_led(2, 10, 0, 0);
-		set_rgb_led(3, 10, 0, 0);
 		color_idx = RED_IDX;
 	}
 	else{
 
 		if ((((max_green > max_red) && (max_green > max_blue)) || ((mean_green > mean_red) && (mean_green > mean_blue))) && (count_green > MIN_COUNT)){
-			set_rgb_led(0, 0, 10, 0);
-			set_rgb_led(1, 0, 10, 0);
-			set_rgb_led(2, 0, 10, 0);
-			set_rgb_led(3, 0, 10, 0);
 			color_idx = GREEN_IDX;
 		}
 
 		else {
 			if ((((max_blue > max_red) && (max_blue > max_green)) || ((mean_blue > mean_red) && (mean_blue > mean_green))) && (count_blue > MIN_COUNT)){
-				set_rgb_led(0, 0, 0, 10);
-				set_rgb_led(1, 0, 0, 10);
-				set_rgb_led(2, 0, 0, 10);
-				set_rgb_led(3, 0, 0, 10);
 				color_idx = BLUE_IDX;
 			}
 			else {
 				//chprintf((BaseSequentialStream *)&SD3, "Resetting \n\n");
-					set_rgb_led(0, 0, 0, 0);
-					set_rgb_led(1, 0, 0, 0);
-					set_rgb_led(2, 0, 0, 0);
-					set_rgb_led(3, 0, 0, 0);
 					color_idx = NO_COLOR;
 			}
 		}
@@ -470,58 +451,21 @@ void find_color(void){
 void find_color(void){
 
 	if (((max_red > max_green) && (max_red > max_blue)) && (count_red > MIN_COUNT)){
-		set_rgb_led(0, 10, 0, 0);
-		set_rgb_led(1, 10, 0, 0);
-		set_rgb_led(2, 10, 0, 0);
-		set_rgb_led(3, 10, 0, 0);
 		color_idx = RED_IDX;
 	}
 	else{
-
 		if (((max_green > max_red) && (max_green > max_blue)) && (count_green > MIN_COUNT)){
-			set_rgb_led(0, 0, 10, 0);
-			set_rgb_led(1, 0, 10, 0);
-			set_rgb_led(2, 0, 10, 0);
-			set_rgb_led(3, 0, 10, 0);
 			color_idx = GREEN_IDX;
 		}
-
 		else {
 			if (((max_blue > max_red) && (max_blue > max_green)) && (count_blue > MIN_COUNT)){
-				set_rgb_led(0, 0, 0, 10);
-				set_rgb_led(1, 0, 0, 10);
-				set_rgb_led(2, 0, 0, 10);
-				set_rgb_led(3, 0, 0, 10);
 				color_idx = BLUE_IDX;
 			}
 			else {
-				//chprintf((BaseSequentialStream *)&SD3, "Resetting \n\n");
-					set_rgb_led(0, 0, 0, 0);
-					set_rgb_led(1, 0, 0, 0);
-					set_rgb_led(2, 0, 0, 0);
-					set_rgb_led(3, 0, 0, 0);
 					color_idx = NO_COLOR;
 			}
 		}
 	}
-
-//		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-//							              max_red, max_green, max_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//							              mean_red, mean_green, mean_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//								              count_red, count_green, count_blue);
-
-
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-//		              max_red,max_green,max_blue,idx);
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
-//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
-
 }
 #endif
 
@@ -529,58 +473,21 @@ void find_color(void){
 void find_color(void){
 
 	if (((mean_red > mean_green) && (mean_red > mean_blue)) && (count_red > MIN_COUNT)){
-		set_rgb_led(0, 10, 0, 0);
-		set_rgb_led(1, 10, 0, 0);
-		set_rgb_led(2, 10, 0, 0);
-		set_rgb_led(3, 10, 0, 0);
 		color_idx = RED_IDX;
 	}
 	else{
-
 		if (((mean_green > mean_red) && (mean_green > mean_blue)) && (count_green > MIN_COUNT)){
-			set_rgb_led(0, 0, 10, 0);
-			set_rgb_led(1, 0, 10, 0);
-			set_rgb_led(2, 0, 10, 0);
-			set_rgb_led(3, 0, 10, 0);
 			color_idx = GREEN_IDX;
 		}
-
 		else {
 			if (((mean_blue > mean_red) && (mean_blue > mean_green)) && (count_blue > MIN_COUNT)){
-				set_rgb_led(0, 0, 0, 10);
-				set_rgb_led(1, 0, 0, 10);
-				set_rgb_led(2, 0, 0, 10);
-				set_rgb_led(3, 0, 0, 10);
 				color_idx = BLUE_IDX;
 			}
 			else {
-				//chprintf((BaseSequentialStream *)&SD3, "Resetting \n\n");
-					set_rgb_led(0, 0, 0, 0);
-					set_rgb_led(1, 0, 0, 0);
-					set_rgb_led(2, 0, 0, 0);
-					set_rgb_led(3, 0, 0, 0);
 					color_idx = NO_COLOR;
 			}
 		}
 	}
-
-//		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-//							              max_red, max_green, max_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//							              mean_red, mean_green, mean_blue);
-//
-//		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//								              count_red, count_green, count_blue);
-
-
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-//		              max_red,max_green,max_blue,idx);
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
-//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
-
 }
 #endif
 
