@@ -40,7 +40,7 @@ extern "C" {
 
 //Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
 #define LINE_INDEX_TOP				10
-#define LINE_INDEX_BOT				420
+#define LINE_INDEX_BOT				400
 #define TOP							0
 #define BOTTOM						1
 
