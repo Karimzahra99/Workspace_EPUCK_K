@@ -22,10 +22,10 @@
 //Uncomment to use plot_image.py :
 //#define PLOT_ON_COMPUTER
 
-//Unomment to send data to Realterm or Screen
-#define SEND_DATA
+//Unomment to send general color data (max, mean, count) to Realterm or Screen
+//#define SEND_DATA
 
-#define CONTRAST 			80 //default constrast is 64
+#define CONTRAST 			90 //default constrast is 64
 
 void find_color(void);
 void set_threshold_color(int selector_pos);
