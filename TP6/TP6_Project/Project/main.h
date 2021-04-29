@@ -47,6 +47,9 @@ extern "C" {
 //Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
 #define MIN_COUNT					5
 
+//Pour trouver le milieu de la ligne, condition sur largeur de ligne et "trous" dans une ligne
+#define MIN_WIDTH
+
 //Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
 #define SHIFT_3						3
 #define SHIFT_5						5
