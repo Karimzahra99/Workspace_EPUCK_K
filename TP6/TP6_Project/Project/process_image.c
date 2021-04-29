@@ -23,7 +23,7 @@
 //#define PLOT_ON_COMPUTER
 
 //Unomment to send general color data (max, mean, count) to Realterm or Screen
-//#define SEND_DATA
+#define SEND_DATA
 
 #define CONTRAST 			90 //default constrast is 64
 
@@ -134,9 +134,8 @@ static THD_FUNCTION(CaptureImage, arg) {
 //		alternate_lines = TOP;
 //	}
 
-	po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 401, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
-	//
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
@@ -401,7 +400,7 @@ void calc_max_mean(void){
 	max_green = max_g;
 	max_blue = max_b;
 
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+//	chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
 //						              max_red, max_green, max_blue);
 
 }
