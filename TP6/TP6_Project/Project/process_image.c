@@ -20,7 +20,7 @@
 //#define USE_MAX_N_MEAN
 
 
-#define CONTRAST = 80 //default constrast is 64
+#define CONTRAST 			80 //default constrast is 64
 
 void find_color(void);
 void set_threshold_color(int selector_pos);
