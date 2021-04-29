@@ -14,7 +14,7 @@ extern "C" {
 #define PI                 		3.1415926536f
 
 #define IMAGE_BUFFER_SIZE		640
-#define ROTATION_THRESHOLD		10
+//#define ROTATION_THRESHOLD		30
 #define ROTATION_COEFF			2
 #define LINEWIDTH				100		//en fonction de la ligne imprimmer, a voir si utile
 #define TOLERANCE				3
