@@ -134,7 +134,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 //		alternate_lines = TOP;
 //	}
 
-	po8030_advanced_config(FORMAT_RGB565, 0, 401, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 415, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
