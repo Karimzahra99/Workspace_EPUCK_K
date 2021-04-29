@@ -444,14 +444,6 @@ void find_color(void){
 //		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
 //								              count_red, count_green, count_blue);
 
-
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-//		              max_red,max_green,max_blue,idx);
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
-//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
-
 }
 #endif
 
@@ -503,13 +495,6 @@ void find_color(void){
 								              count_red, count_green, count_blue);
 
 
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-//		              max_red,max_green,max_blue,idx);
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
-//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
-
 }
 #endif
 
@@ -560,13 +545,6 @@ void find_color(void){
 //		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
 //								              count_red, count_green, count_blue);
 
-
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d Idx=%-7d \r\n\n",
-//		              max_red,max_green,max_blue,idx);
-
-//	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max=%-7d R Count =%-7d G Count=%-7d B Count =%-7d\r\n\n",
-//		              max_red,max_green,max_blue,count_red,count_green,count_blue);
 
 }
 #endif
