@@ -53,6 +53,7 @@ static uint8_t image_blue[IMAGE_BUFFER_SIZE] = {0};
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
+static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
 
 
 /*
@@ -142,6 +143,12 @@ static THD_FUNCTION(CaptureImage, arg) {
 		wait_image_ready(); //fait l'attente dans le while(1)
 		//signals an image has been captured
 		chBSemSignal(&image_ready_sem);
+
+
+		dcmi_capture_start();
+		wait_image_ready();
+		chBSemSignal(&image_ready_sem_2);
+
 //		chThdSleepMilliseconds(12); //toujours avoir un sleep dans while(1)
 
 		//chprintf((BaseSequentialStream *)&SDU1, "capture time = %d\n", chVTGetSystemTime()-time);
@@ -206,6 +213,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 //		send_to_computer = !send_to_computer;
 
 		//chThdSleepMilliseconds(100);dans le wait au debut
+
+		chBSemWait(&image_ready_sem_2);
+
 		}
 
 }
