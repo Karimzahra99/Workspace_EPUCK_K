@@ -84,7 +84,7 @@ uint16_t calc_middle(uint8_t *buffer){
 		end = IMAGE_BUFFER_SIZE; //begin + LINEWIDTH dans la for loop ?
 	}
 
-	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; i++){
+	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
 
 		if (!no_begin){
 			if ((buffer[i] > 0) && (start == 0)){
@@ -380,7 +380,7 @@ void calc_max_mean(void){
 	uint8_t max_g = 0;
 	uint8_t max_b = 0;
 
-	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; i++){
+	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
 
 		//MEAN
 		if(image_red[i]> 0){
@@ -437,7 +437,7 @@ void max_count(void){
 	uint16_t count_g = 0;
 	uint16_t count_b = 0;
 
-	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; i++){
+	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
 		if(image_red[i] > max_red - TOLERANCE){
 			count_r = count_r +1;
 		}
