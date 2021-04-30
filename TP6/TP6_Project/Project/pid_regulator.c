@@ -192,18 +192,19 @@ void set_leds(uint8_t color_index){
 	}
 }
 
-//position en cm et vitesse en steps/s
+//position en cm et vitesse en cm/s
 void motor_set_position(int16_t position_r, int16_t position_l, int16_t speed_r, int16_t speed_l){
+
 	POSITION_REACHED = 0;
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 
-	int16_t position_to_reach_left = + position_l * NSTEP_ONE_TURN / WHEEL_PERIMETER;
-	int16_t position_to_reach_right = - position_r * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+	int16_t position_to_reach_left = cm_to_stepsposition_l(position_l);
+	int16_t position_to_reach_right = - cm_to_stepsposition_l(position_r);
 
 	while (!POSITION_REACHED){
-		left_motor_set_speed(speed_l);
-		right_motor_set_speed(speed_r);
+		left_motor_set_speed(cms_to_steps(speed_l));
+		right_motor_set_speed(cms_to_steps(speed_r));
 
 		chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
 				right_motor_get_pos(), left_motor_get_pos());
