@@ -192,7 +192,7 @@ void set_leds(uint8_t color_index){
 	}
 }
 
-//position en cm et vitesse en cm/s
+//position in cm and speed en cm/s
 void motor_set_position(int16_t position_r, int16_t position_l, int16_t speed_r, int16_t speed_l){
 
 	POSITION_REACHED = 0;
