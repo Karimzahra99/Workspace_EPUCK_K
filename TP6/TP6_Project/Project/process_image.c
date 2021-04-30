@@ -145,13 +145,10 @@ static THD_WORKING_AREA(waCaptureImage, 512);
 static THD_FUNCTION(CaptureImage, arg) {
 
     chRegSetThreadName(__FUNCTION__);
-    //chThdSleepMilliseconds(12);
 
     (void)arg;
 
 	while(1){
-
-
 
 		//Line index 413 detecting colors goes wrong
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
@@ -164,16 +161,10 @@ static THD_FUNCTION(CaptureImage, arg) {
 			//po8030_set_mirror(0, 1);
 			po8030_set_contrast(CONTRAST);
 
-			//		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
-			//				alternate_lines);
-
 			//starts a capture
 			dcmi_capture_start();
 			//waits for the capture to be done
 			wait_image_ready(); //fait l'attente dans le while(1)
-
-			//		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
-			//						alternate_lines);
 
 			//signals an image has been captured
 			chBSemSignal(&image_ready_sem);
@@ -186,16 +177,10 @@ static THD_FUNCTION(CaptureImage, arg) {
 			//po8030_set_mirror(0, 1);
 			po8030_set_contrast(CONTRAST);
 
-			//		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
-			//				alternate_lines);
-
 			//starts a capture
 			dcmi_capture_start();
 			//waits for the capture to be done
 			wait_image_ready(); //fait l'attente dans le while(1)
-
-			//		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
-			//						alternate_lines);
 
 			//signals an image has been captured
 			chBSemSignal(&image_ready_sem_2);
@@ -204,7 +189,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 }
 
-static THD_WORKING_AREA(waProcessImage, 2054);
+static THD_WORKING_AREA(waProcessImage, 2048);
 static THD_FUNCTION(ProcessImage, arg) {
 
 
@@ -220,12 +205,6 @@ static THD_FUNCTION(ProcessImage, arg) {
     while(1){
     	//waits until an image has been captured
         chBSemWait(&image_ready_sem);
-
-
-//
-//        chprintf((BaseSequentialStream *)&SD3, "PROCESS1 =%-7d \r\n\n",
-//        	               alternate_lines);
-
 
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
@@ -260,7 +239,6 @@ static THD_FUNCTION(ProcessImage, arg) {
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 			uint8_t c = 0;
 			if (color_idx == RED_IDX){
-				//extracting red 5 bits and shifting them right
 				c = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 			}
 			else {
@@ -273,22 +251,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 					}
 				}
 			}
-
 			image_bot[i/2] = filter_noise_single(i, c);
-
 		}
-
 		calc_line_middle(BOTTOM);
-
-
-//		chprintf((BaseSequentialStream *)&SD3, "PROCESS2 =%-7d \r\n\n",
-//		        	               alternate_lines);
-
-//		int test1 = get_prox(3);
-//		int test2 = get_prox(4);
-//		chprintf((BaseSequentialStream *)&SD3, "IR4 =%-7d IR3 =%-7d IR2 =%-7d IR1 =%-7d  \r\n\n",
-//				get_prox(4),get_prox(3),get_prox(2),get_prox(1));
-
 
 #ifdef PLOT_ON_COMPUTER
 		//		To visualize one image on computer with plotImage.py
@@ -301,8 +266,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		send_to_computer = !send_to_computer;
 #endif
 
-		}
-
+	}
 }
 
 void process_image_start(void){
