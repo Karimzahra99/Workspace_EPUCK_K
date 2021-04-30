@@ -86,8 +86,8 @@ static THD_FUNCTION(PidRegulator, arg) {
         	//distance_cm is modified by the image processing thread
         	uint8_t index_color = get_color();
 
-        	chprintf((BaseSequentialStream *)&SD3, "Couleur =%-7d \r\n\n",
-        	index_color);
+        	chprintf((BaseSequentialStream *)&SD3, "Mid =%-7d \r\n\n",
+        	get_middle_diff());
 
         	switch (index_color)
         	{
@@ -97,7 +97,7 @@ static THD_FUNCTION(PidRegulator, arg) {
         		break;
         	case 1: //RED
         		set_leds(index_color);
-        		speed = speedcms_to_speedsteps(1.3);
+        		speed = speedcms_to_speedsteps(2);
         		break;
         	case 2: //GREEN
         		set_leds(index_color);
@@ -136,8 +136,8 @@ static THD_FUNCTION(PidRegulator, arg) {
         	}
 
 
-        	right_motor_set_speed(speed);
-        	left_motor_set_speed(speed);
+        	right_motor_set_speed(-speed);
+        	left_motor_set_speed(-speed);
 
         //Obstacle Avoidance
 //        else {
