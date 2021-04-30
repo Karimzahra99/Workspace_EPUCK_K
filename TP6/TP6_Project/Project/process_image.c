@@ -282,11 +282,11 @@ uint16_t get_middle_bot(void) {
 
 void calc_line_middle(uint8_t alternator){
 
-	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
-	               alternator);
-
-	chprintf((BaseSequentialStream *)&SD3, "Couleur =%-7d \r\n\n",
-		               color_idx);
+//	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
+//	               alternator);
+//
+//	chprintf((BaseSequentialStream *)&SD3, "Couleur =%-7d \r\n\n",
+//		               color_idx);
 
 	uint16_t middle = 0;
 
@@ -307,11 +307,11 @@ void calc_line_middle(uint8_t alternator){
 
 	if (alternator == TOP){
 		middle_line_top = middle;
-		chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
+//		chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
 	}
 	else {
 		middle_line_bot = middle;
-		chprintf((BaseSequentialStream *)&SD3, "Setting BOT \r\n\n");
+//		chprintf((BaseSequentialStream *)&SD3, "Setting BOT \r\n\n");
 	}
 
 
