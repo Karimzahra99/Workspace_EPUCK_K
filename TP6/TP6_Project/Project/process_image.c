@@ -166,6 +166,8 @@ static THD_FUNCTION(CaptureImage, arg) {
 		//Line index 413 detecting colors goes wrong
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
+		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
+				alternate_lines);
 
 		dcmi_enable_double_buffering();
 		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
