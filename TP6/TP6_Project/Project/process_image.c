@@ -208,6 +208,10 @@ static THD_FUNCTION(ProcessImage, arg) {
         }
         else alternate_lines = TOP;
 
+        chprintf((BaseSequentialStream *)&SD3, "Alternator IN PROCESS THREAD =%-7d \r\n\n",
+        	               alternate_lines);
+
+
 		//gets the pointer to the array filled with the last image in RGB565    
 		img_buff_ptr = dcmi_get_last_image_ptr();
 
@@ -305,8 +309,11 @@ void calc_line_middle(uint8_t alternator){
 		middle_line_top = middle;
 		chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
 	}
-	else middle_line_bot = middle;
-	chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
+	else {
+		middle_line_bot = middle;
+		chprintf((BaseSequentialStream *)&SD3, "Setting BOT \r\n\n");
+	}
+
 
 	chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
 	                get_middle_top(),get_middle_bot());
