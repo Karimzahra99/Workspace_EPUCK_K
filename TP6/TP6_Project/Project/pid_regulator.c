@@ -10,7 +10,8 @@
 #include <pid_regulator.h>
 #include <process_image.h>
 
-static uint8_t obstacle_mode = 0;
+static uint8_t rolling_mode = 0;
+static uint8_t POSITION_REACHED = 0;
 
 void set_leds(uint8_t color_index);
 float speedcms_to_speedsteps (uint8_t speed_cms);
