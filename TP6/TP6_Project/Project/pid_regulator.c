@@ -86,8 +86,12 @@ static THD_FUNCTION(PidRegulator, arg) {
         	//distance_cm is modified by the image processing thread
         	uint8_t index_color = get_color();
 
-        	chprintf((BaseSequentialStream *)&SD3, "Mid =%-7d \r\n\n",
+        	chprintf((BaseSequentialStream *)&SD3, "Dif =%-7d \r\n\n",
         	get_middle_diff());
+
+        	chprintf((BaseSequentialStream *)&SD3, "Top =%-7d Bot =%-7d \r\n\n",
+        			get_middle_top(),get_middle_bot());
+
 
         	switch (index_color)
         	{
