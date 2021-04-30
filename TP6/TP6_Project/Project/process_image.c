@@ -151,23 +151,18 @@ static THD_FUNCTION(CaptureImage, arg) {
 		//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
 		if (alternate_lines == TOP){
 			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-//			chprintf((BaseSequentialStream *)&SD3, "TOP CASE \r\n\n");
 //			chprintf((BaseSequentialStream *)&SD3, "AlternatorTOP =%-7d \r\n\n", alternate_lines);
 		}
 		if (alternate_lines == BOTTOM){
 			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-//			chprintf((BaseSequentialStream *)&SD3, "BOT CASE \r\n\n");
 //			chprintf((BaseSequentialStream *)&SD3, "AlternatorBOT =%-7d \r\n\n", alternate_lines);
 		}
-
-//		chprintf((BaseSequentialStream *)&SD3, "PASSED CASES \r\n\n");
-//		chprintf((BaseSequentialStream *)&SD3, "AlternatorPASSED =%-7d \r\n\n", alternate_lines);
 
 		//Line index 413 detecting colors goes wrong
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
-		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
-				alternate_lines);
+//		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD DEBUT =%-7d \r\n\n",
+//				alternate_lines);
 
 		dcmi_enable_double_buffering();
 		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
@@ -176,10 +171,17 @@ static THD_FUNCTION(CaptureImage, arg) {
 		//po8030_set_mirror(0, 1);
 		po8030_set_contrast(CONTRAST);
 
+		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
+		        	               alternate_lines);
+
     	//starts a capture
 		dcmi_capture_start();
 		//waits for the capture to be done
 		wait_image_ready(); //fait l'attente dans le while(1)
+
+//		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
+//						alternate_lines);
+
 		//signals an image has been captured
 		chBSemSignal(&image_ready_sem);
 
