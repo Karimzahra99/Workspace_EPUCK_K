@@ -10,7 +10,7 @@
 #include <pid_regulator.h>
 #include <process_image.h>
 
-static uint8_t rolling_mode = 0;
+static uint8_t rolling_mode = 0;//0 = rolling backwards in strait line, 1 = rolling frontwards for turns, 2 =
 static uint8_t POSITION_REACHED = 0;
 
 void set_leds(uint8_t color_index);
@@ -113,12 +113,14 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 
         		//rolling backwards in strait line
-        		if (middle_diff < DEATH_ZONE_WIDTH){
+        		if ((middle_diff < DEAD_ZONE_WIDTH) && (rolling_mode == 0)){
+        			rolling_mode = 0;
         			right_motor_set_speed(-speed);
         			left_motor_set_speed(-speed);
         		}
-
+        		//turning mode
         		else {
+        			rolling_mode = 1;
 
         			int16_t speed_correction = pid_regulator(middle_diff);
         		}
@@ -131,62 +133,6 @@ static THD_FUNCTION(PidRegulator, arg) {
         		right_motor_set_speed(speed);
         		left_motor_set_speed(speed);
         	}
-
-
-
-
-
-
-        //Obstacle Avoidance
-//        else {
-//        	obstacle_mode = 1;
-//
-//        	//Simple PseudoCode to avoid cylindrical shapes with known radius
-//        	//Move backwards 5cm at speed 7cm/s
-////        	motor_set_position(5, 5, 7, 7);
-////        	while(motor_position_reached() != POSITION_REACHED);
-//        	if (ir_front_left > ir_front_right){
-//        		//Rotate CW 90deg
-////        		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
-////        		while(motor_position_reached() != POSITION_REACHED);
-//
-//        		//Half Circle Trajectory to avoid obstacle
-//        		//mov_circ_left(vitesse,rayon_obstacle + marge,PI);
-//
-//        		//Rotate CW 90deg
-//        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, -vitesse, vitesse);
-//        		//while(motor_position_reached() != POSITION_REACHED);
-//        	}
-//        	else {
-//        		//Rotate CCW 90deg
-//        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, vitesse, -vitesse);
-//        		//while(motor_position_reached() != POSITION_REACHED);
-//
-//        		//Half Circle Trajectory to avoid obstacle
-//        		//mov_circ_right(vitesse,rayon_obstacle + marge,PI);
-//
-//        		//Rotate CCW 90deg
-//        		//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, vitesse, -vitesse);
-//        		//while(motor_position_reached() != POSITION_REACHED);
-//
-//        	}
-//
-//        	//More Complex PseudoCode to avoid simple shapes like squares and cylinders :
-//        	//If IR3 > IR4
-//        	//Then Rotate robot until IR2 is maximal (remember the angle of rotation)
-//        	//Then advance (if IR2 is diminishing its a circle -> launch circular trajectory, else its a square)
-//        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
-//        	//Rotate by CCW 90deg and advance until finding line
-//        	//When line found, rotate by the angle previously saved
-//        	//Else
-//        	//Then Rotate robot until IR5 is maximal (remember the angle of rotation)
-//        	//Then advance (if IR6 is diminishing its a circle -> launch circular trajectory, else its a square)
-//        	//In the square case, advance until IR1 is small and advance some extra for the camera setup
-//        	//Rotate by CW 90deg and advance until finding line
-//        	//When line found, rotate by the angle previously saved
-//        	//After avoidance finished -> Set obstacle_mode to 0
-
-        //}
 
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
@@ -246,3 +192,30 @@ void set_leds(uint8_t color_index){
 	}
 }
 
+void motor_set_position(float position_r, float position_l, float speed_r, float speed_l){
+	POSITION_REACHED = 0;
+	left_motor_set_pos(0);
+	right_motor_set_pos(0);
+//	int16_t rmp = right_motor_get_pos();
+	int16_t position_to_reach_left = + position_l * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+	int16_t position_to_reach_right = - position_r * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+
+//	chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
+//			position_to_reach_left, position_to_reach_right, rmp);
+	while (!POSITION_REACHED){
+		left_motor_set_speed(speed_l);
+		right_motor_set_speed(speed_r);
+
+		        chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
+		        		right_motor_get_pos(), left_motor_get_pos());
+
+//		rmp = right_motor_get_pos();
+//		chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
+//				position_to_reach_left, position_to_reach_right, rmp);
+		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
+			left_motor_set_speed(0);
+			right_motor_set_speed(0);
+			POSITION_REACHED=1;
+		}
+	}
+}
