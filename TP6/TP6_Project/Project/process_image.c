@@ -323,8 +323,8 @@ void calc_line_middle(uint8_t alternator){
 	}
 
 
-	chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
-	                get_middle_top(),get_middle_bot());
+//	chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
+//	                get_middle_top(),get_middle_bot());
 }
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
