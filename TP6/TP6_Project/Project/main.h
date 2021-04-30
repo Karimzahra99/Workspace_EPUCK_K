@@ -48,7 +48,7 @@ extern "C" {
 #define MIN_COUNT					5
 
 //Pour trouver le milieu de la ligne, condition sur largeur de ligne et "trous" dans une ligne
-#define MIN_LINE_WIDTH				50
+#define MIN_LINE_WIDTH				70
 #define MIN_HOLE_WIDTH				20
 
 //Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
