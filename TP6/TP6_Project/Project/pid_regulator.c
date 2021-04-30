@@ -13,49 +13,40 @@
 static uint8_t obstacle_mode = 0;
 
 void set_leds(uint8_t color_index);
+float speedcms_to_speedsteps (uint8_t speed_cms);
 
 ////simple PI regulator implementation
-//int16_t pid_regulator(float middle){
-//
-//	float goal = 350; //milieu theorique d'une ligne parfaitement centre sur le robot
-//	float error = 0;
-//	float speed = 0;
-//	float derivative = 0;
-//
-//	static float sum_error = 0;
-//	static float last_error = 0;
-//
-//	error = middle - goal;
-//
-//	//get(IR3)
-//	//get(IR1)
-//
-//	//disables the PID regulator if the error is to small
-//	//this avoids to always move as we cannot exactly be where we want and
-//	//the camera is a bit noisy
-//	if(fabs(error) < ERROR_THRESHOLD){ //ERROR_THRESHOLD = 0.1cm definit en float
-//		return 0;
-//	}
-//
-//	sum_error += error;//sum_error = sum_error + error;
-//
-//	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
-//	// Integral anti-windup (Anti-Reset Windup)
-//	//https://www.youtube.com/watch?v=NVLXCwc8HzM&list=PLn8PRpmsu08pQBgjxYFXSsODEF3Jqmm-y&index=2
-//	if(sum_error > MAX_SUM_ERROR){
-//		sum_error = MAX_SUM_ERROR;
-//	}else if(sum_error < -MAX_SUM_ERROR){
-//		sum_error = -MAX_SUM_ERROR;
-//	}
-//
-//	derivative = error - last_error;
-//
-//	last_error = error;
-//
-//	speed = KP * error + KI * sum_error + KD*derivative;
-//
-//    return (int16_t)speed;
-//}
+int16_t pid_regulator(int16_t middle_diff){
+
+	float speed_correction = 0;
+
+	float error = (float)middle_diff;
+
+	float derivative = 0;
+
+	static float sum_error = 0;
+	static float last_error = 0;
+
+	sum_error += error;//sum_error = sum_error + error;
+
+	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
+	// Integral anti-windup (Anti-Reset Windup)
+	if(sum_error > MAX_SUM_ERROR){
+		sum_error = MAX_SUM_ERROR;
+	}else if(sum_error < -MAX_SUM_ERROR){
+		sum_error = -MAX_SUM_ERROR;
+	}
+
+	derivative = error - last_error;
+
+	last_error = error;
+
+	speed_correction = KP * error + KI * sum_error + KD*derivative;
+
+
+
+	return (int16_t)speed_correction;
+}
 
 
 static THD_WORKING_AREA(waPidRegulator, 256);
@@ -82,66 +73,68 @@ static THD_FUNCTION(PidRegulator, arg) {
 
         //if (((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD)) && !obstacle_mode){
         	if ((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD)){
-        	//computes the speed to give to the motors
-        	//distance_cm is modified by the image processing thread
-        	uint8_t index_color = get_color();
+        		//computes the speed to give to the motors
+        		//distance_cm is modified by the image processing thread
+        		uint8_t index_color = get_color();
 
-        	chprintf((BaseSequentialStream *)&SD3, "Dif =%-7d \r\n\n",
-        	get_middle_diff());
+        		chprintf((BaseSequentialStream *)&SD3, "Dif =%-7d \r\n\n",
+        				get_middle_diff());
 
-        	chprintf((BaseSequentialStream *)&SD3, "Top =%-7d Bot =%-7d \r\n\n",
-        			get_middle_top(),get_middle_bot());
+        		chprintf((BaseSequentialStream *)&SD3, "Top =%-7d Bot =%-7d \r\n\n",
+        				get_middle_top(),get_middle_bot());
 
 
-        	switch (index_color)
-        	{
-        	case 0: //NO COLOR
-        		set_leds(index_color);
-        		speed = 0;
-        		break;
-        	case 1: //RED
-        		set_leds(index_color);
-        		speed = speedcms_to_speedsteps(2);
-        		break;
-        	case 2: //GREEN
-        		set_leds(index_color);
-        		//speed = speedcms_to_speedsteps(2);
-        		break;
-        	case 3: //BLUE
-        		set_leds(index_color);
-        		//speed = speedcms_to_speedsteps(3);
-        		break;
-        	default:
-        		speed = speedcms_to_speedsteps(2);
-        		break;
+        		switch (index_color)
+        		{
+        		case 0: //NO COLOR
+        			set_leds(index_color);
+        			speed = 0;
+        			break;
+        		case 1: //RED
+        			set_leds(index_color);
+        			speed = speedcms_to_speedsteps(2);
+        			break;
+        		case 2: //GREEN
+        			set_leds(index_color);
+        			speed = speedcms_to_speedsteps(4);
+        			break;
+        		case 3: //BLUE
+        			set_leds(index_color);
+        			speed = speedcms_to_speedsteps(6);
+        			break;
+        		default:
+        			speed = speedcms_to_speedsteps(1.3);
+        			break;
+        		}
+
+        		int16_t middle_diff = get_middle_diff();
+
+
+
+        		//rolling backwards in strait line
+        		if (middle_diff < DEATH_ZONE_WIDTH){
+        			right_motor_set_speed(-speed);
+        			left_motor_set_speed(-speed);
+        		}
+
+        		else {
+
+        			int16_t speed_correction = pid_regulator(middle_diff);
+        		}
+
+
         	}
-
-
-
-
-//        	speed_correction = pid_regulator(get_middle_line());
-////        	speed_correction = 0;
-//
-////        	chprintf((BaseSequentialStream *)&SD3, "%Speed = %-7d Idx =%-7d \r\n\n",
-////        							              speed,get_color());
-//
-//        	//if the line is nearly in front of the camera, don't rotate
-//        	if(abs(speed_correction) < ROTATION_THRESHOLD){
-//        		speed_correction = 0;
-//        	}
-//
-//        	//applies the speed from the PI regulator and the correction for the rotation
-//        	right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
-//        	left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
-        }
         	else {
         		set_leds(YELLOW_IDX);
         		speed = speedcms_to_speedsteps(0);
+        		right_motor_set_speed(speed);
+        		left_motor_set_speed(speed);
         	}
 
 
-        	right_motor_set_speed(-speed);
-        	left_motor_set_speed(-speed);
+
+
+
 
         //Obstacle Avoidance
 //        else {
