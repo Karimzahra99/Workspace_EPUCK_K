@@ -192,26 +192,22 @@ void set_leds(uint8_t color_index){
 	}
 }
 
-void motor_set_position(float position_r, float position_l, float speed_r, float speed_l){
+//position en cm et vitesse en steps/s
+void motor_set_position(int16_t position_r, int16_t position_l, int16_t speed_r, int16_t speed_l){
 	POSITION_REACHED = 0;
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
-//	int16_t rmp = right_motor_get_pos();
+
 	int16_t position_to_reach_left = + position_l * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 	int16_t position_to_reach_right = - position_r * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 
-//	chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
-//			position_to_reach_left, position_to_reach_right, rmp);
 	while (!POSITION_REACHED){
 		left_motor_set_speed(speed_l);
 		right_motor_set_speed(speed_r);
 
-		        chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
-		        		right_motor_get_pos(), left_motor_get_pos());
+		chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
+				right_motor_get_pos(), left_motor_get_pos());
 
-//		rmp = right_motor_get_pos();
-//		chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
-//				position_to_reach_left, position_to_reach_right, rmp);
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
