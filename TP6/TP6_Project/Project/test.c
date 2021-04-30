@@ -50,29 +50,53 @@ uint16_t calc_middle(uint8_t *buffer){
 
 uint16_t calc_middle(uint8_t *buffer){
 
-	int max_gap = 15;
-	int min_line_width = 55;
+	int max_hole_width = 15;
+	int min_line_width = 50;
 
-	int start_p = 0,
+	int start_p = 0;
 	int end_p = 0;
 	int start_n = 0;
 	int end_n = 0;
 
 	int begin_line = 0;
+	int hole_size = 0;
 
 	for (int i = 0; i < IMAGE_BUFFER_SIZE; ++i){
 
-		if ((begin_line = 0)&&(buffer[i]>0)){
+		if ((begin_line == 0)&&(buffer[i]>0)){
 			begin_line = 1;
-			start_p = i;
+			start_n = i;
+			line_size = 1;
+			continue;
 		}
 
+		else {
+			if ((begin_line == 1)&&(buffer[i] == 0)){
 
+				hole_size = 1;
+				end_n = i;
+
+				for (int j = i+1; j < IMAGE_BUFFER_SIZE; ++j){
+
+					if (buffer[j] == 0){
+
+						hole_size ++;
+
+						if (hole_size > max_hole_width){
+
+							begin_line = 0;
+
+							if ((end_n - start_n > min_line_width) && (end_n - start_n > end_p - start_p)){
+								start_p = start_n;
+								end_p = end_n;
+							}
+							i = j;
+						}
+					}
+				}
+			}
+		}
 	}
-
-
-
-
 }
 
 

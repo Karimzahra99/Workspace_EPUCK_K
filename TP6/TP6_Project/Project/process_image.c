@@ -67,52 +67,74 @@ static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 */
 uint16_t calc_middle(uint8_t *buffer){
 
-	uint16_t begin = 0;
-	uint16_t end = 0;
-	uint8_t start = 0;
-	uint8_t no_begin = 0;
-	uint8_t no_end = 0;
+	uint16_t start_p = 0;
+	uint16_t end_p = 0;
+	uint16_t start_n = 0;
+	uint16_t end_n = 0;
 
-	//Check partial line cases :
-	//Line has already started
-	if (buffer[0] != 0){
-		no_begin = 1;
-	}
-	//Line has no end
-	if (buffer[IMAGE_BUFFER_SIZE] != 0){
-		no_end = 1;
-		end = IMAGE_BUFFER_SIZE; //begin + LINEWIDTH dans la for loop ?
-	}
+	uint16_t begin_line = 0;
+	uint16_t hole_size = 0;
 
 	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
-
-		if (!no_begin){
-			if ((buffer[i] > 0) && (start == 0)){
-				begin = i;
-				start = 1;
-				//If the line dosen't end => quit the loop
-				if (no_end) break;
-			}
-			// Searching for end point
-			if ((buffer[i] == 0) && (start == 1)){
-				end= i-1;
-				break;
-			}
+		if ((begin_line == 0) && (buffer[i] > 0)){
+			begin_line = 1;
+			start_n = i;
+			continue;
 		}
-		//No begin point case :
-		else {
-			// Searching for end point
-			if (buffer[i] == 0){
-				end = i-1;
-				break;
+		else{
+			if (((i == IMAGE_BUFFER_SIZE - 1) && (buffer[i] > 0)) && (begin_line == 1)){
+				end_n = i;
+				if ((end_n - start_n > MIN_LINE_WIDTH) && (end_n - start_n > end_p - start_p)){
+					start_p = start_n;
+					end_p = end_n;
+				}
+			}
+			else{
+				if ((begin_line == 1) && (buffer[i] == 0)){
+					hole_size = 1;
+					end_n = i-1;
+					if (i == IMAGE_BUFFER_SIZE - 1){
+						end_n = i - 1;
+						if ((end_n - start_n > MIN_LINE_WIDTH) && (end_n - start_n > end_p - start_p)){
+							start_p = start_n;
+							end_p = end_n;
+						}
+						break;
+					}
+
+					for (int j = i + 1; j < IMAGE_BUFFER_SIZE; ++j){
+
+						if (buffer[j] == 0){
+
+							hole_size++;
+
+							if (hole_size > MIN_HOLE_WIDTH){
+
+								begin_line = 0;
+
+								if ((end_n - start_n > MIN_LINE_WIDTH) && (end_n - start_n > end_p - start_p)){
+									start_p = start_n;
+									end_p = end_n;
+								}
+								i = j;
+								break;
+							}
+						}
+						else{
+							i = j-1;
+							break;
+						}
+					}
+				}
 			}
 		}
 	}
-	//Calculated middle of line
-	return (begin + end)/2;
+	if (end_n - start_n < end_p - start_p) {
+		start_n = start_p;
+		end_n = end_p;
+	}
 
-//	chprintf((BaseSequentialStream *)&SD3, "%Middle =%-7d \r\n\n", middle_line);
-
+	return (end_n+start_n)/2;
 }
 
 
