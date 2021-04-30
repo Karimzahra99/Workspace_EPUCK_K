@@ -33,12 +33,10 @@ void calc_max_mean(void);
 void max_count(void);
 void calc_line_middle(uint8_t alternator);
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
-uint8_t filter_noise_single(uint16_t index, uint8_t couleur);
+uint8_t filter_noise_single(uint8_t couleur);
 
 static uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
 static uint16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
-
-static uint8_t alternate_lines = 0; //0 = top line, 1 = bottom line
 
 static uint8_t color_idx = 0; //0 = NO_COLOR, 1 = RED, 2 = GREEN, 3 = BLUE
 static uint8_t threshold_color = 0;
@@ -251,7 +249,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 					}
 				}
 			}
-			image_bot[i/2] = filter_noise_single(i, c);
+			image_bot[i/2] = filter_noise_single(c);
 		}
 		calc_line_middle(BOTTOM);
 
@@ -298,7 +296,6 @@ void calc_line_middle(uint8_t alternator){
 //	chprintf((BaseSequentialStream *)&SD3, "Couleur =%-7d \r\n\n",
 //		               color_idx);
 
-	uint16_t middle = 0;
 	if (alternator == TOP){
 	if (color_idx == RED_IDX){
 		middle_line_top = calc_middle(image_red);
@@ -348,7 +345,7 @@ void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_
 	else image_blue[index/2] = 0;
 }
 
-uint8_t filter_noise_single(uint16_t index, uint8_t couleur){
+uint8_t filter_noise_single(uint8_t couleur){
 	if (couleur > threshold_color){
 		return couleur;
 	}

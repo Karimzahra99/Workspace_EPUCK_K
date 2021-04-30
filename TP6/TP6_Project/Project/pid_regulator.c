@@ -94,7 +94,7 @@ static THD_FUNCTION(PidRegulator, arg) {
         		break;
         	case 1: //RED
         		set_leds(index_color);
-        		//speed = speedcms_to_speedsteps(1);
+        		speed = speedcms_to_speedsteps(1.3);
         		break;
         	case 2: //GREEN
         		set_leds(index_color);
@@ -124,7 +124,10 @@ static THD_FUNCTION(PidRegulator, arg) {
 //        	right_motor_set_speed(speed - ROTATION_COEFF * speed_correction);
 //        	left_motor_set_speed(speed + ROTATION_COEFF * speed_correction);
         }
-        	else set_leds(YELLOW_IDX);
+        	else {
+        		set_leds(YELLOW_IDX);
+        		speedcms_to_speedsteps(0);
+        	}
 
         //Obstacle Avoidance
 //        else {
