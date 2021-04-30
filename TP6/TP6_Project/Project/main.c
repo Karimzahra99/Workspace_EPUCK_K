@@ -75,13 +75,10 @@ int main(void)
 //	proximity_start();
 
 	//motor_set_position(1000, 1000, 500, 500);
-	int i = 999999;
     /* Infinite loop. */
     while (1) {
     	//waits 1 second
-        //chThdSleepMilliseconds(1000);
-        ++i;
-        chprintf((BaseSequentialStream *)&SD3, "i =%-7d  \r\n\n",i);
+        chThdSleepMilliseconds(1000);
     }
 }
 
