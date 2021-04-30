@@ -33,6 +33,7 @@ void calc_max_mean(void);
 void max_count(void);
 void calc_line_middle(uint8_t alternator);
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
+uint8_t filter_noise_single(uint16_t index, uint8_t couleur);
 
 static uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
 static uint16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
@@ -57,9 +58,11 @@ static uint8_t image_red[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_green[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_blue[IMAGE_BUFFER_SIZE] = {0};
 
+static uint8_t image_bot[IMAGE_BUFFER_SIZE] = {0};
+
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
-
+static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
 
 /*
 * Returns the line's width extracted from the image buffer given
@@ -138,7 +141,7 @@ uint16_t calc_middle(uint8_t *buffer){
 }
 
 
-static THD_WORKING_AREA(waCaptureImage, 1024);
+static THD_WORKING_AREA(waCaptureImage, 512);
 static THD_FUNCTION(CaptureImage, arg) {
 
     chRegSetThreadName(__FUNCTION__);
@@ -172,11 +175,8 @@ static THD_FUNCTION(CaptureImage, arg) {
 			//		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
 			//						alternate_lines);
 
-					chprintf((BaseSequentialStream *)&SD3, "Wait TOP \r\n\n");
 			//signals an image has been captured
 			chBSemSignal(&image_ready_sem);
-
-			chprintf((BaseSequentialStream *)&SD3, "Send TOP \r\n\n");
 
 			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 			dcmi_enable_double_buffering();
@@ -193,22 +193,18 @@ static THD_FUNCTION(CaptureImage, arg) {
 			dcmi_capture_start();
 			//waits for the capture to be done
 			wait_image_ready(); //fait l'attente dans le while(1)
-			chprintf((BaseSequentialStream *)&SD3, "Wait BOT \r\n\n");
 
 			//		chprintf((BaseSequentialStream *)&SD3, "Alternator IN CAPTURE THREAD =%-7d \r\n\n",
 			//						alternate_lines);
 
 			//signals an image has been captured
-			chBSemSignal(&image_ready_sem);
-
-			cprintf((BaseSequentialStream *)&SD3, "Send BOT \r\n\n");
-
+			chBSemSignal(&image_ready_sem_2);
 
 	}
 
 }
 
-static THD_WORKING_AREA(waProcessImage, 1024);
+static THD_WORKING_AREA(waProcessImage, 2054);
 static THD_FUNCTION(ProcessImage, arg) {
 
 
@@ -256,6 +252,34 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 		//search for a line in the image and gets its middle position
 		calc_line_middle(TOP);
+
+		chBSemWait(&image_ready_sem_2);
+
+		img_buff_ptr = dcmi_get_last_image_ptr();
+
+		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
+			uint8_t c = 0;
+			if (color_idx == RED_IDX){
+				//extracting red 5 bits and shifting them right
+				c = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
+			}
+			else {
+				if (color_idx == GREEN_IDX){
+					c = (((uint8_t)img_buff_ptr[i]&0x07) << 2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> 6);
+				}
+				else {
+					if (color_idx == BLUE_IDX){
+						c = (uint8_t)img_buff_ptr[i+1]&0x1F;
+					}
+				}
+			}
+
+			image_bot[i/2] = filter_noise_single(i, c);
+
+		}
+
+		calc_line_middle(BOTTOM);
+
 
 //		chprintf((BaseSequentialStream *)&SD3, "PROCESS2 =%-7d \r\n\n",
 //		        	               alternate_lines);
@@ -311,34 +335,35 @@ void calc_line_middle(uint8_t alternator){
 //		               color_idx);
 
 	uint16_t middle = 0;
-
+	if (alternator == TOP){
 	if (color_idx == RED_IDX){
-		middle = calc_middle(image_red);
+		middle_line_top = calc_middle(image_red);
 	}
 	else {
 		if (color_idx == GREEN_IDX){
-			middle = calc_middle(image_green);
+			middle_line_top = calc_middle(image_green);
 		}
 
 		else {
 			if (color_idx == BLUE_IDX){
-				middle = calc_middle(image_blue);
+				middle_line_top = calc_middle(image_blue);
 			}
 		}
 	}
 
-	if (alternator == TOP){
-		middle_line_top = middle;
+
+
 //		chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
 	}
 	else {
-		middle_line_bot = middle;
+		middle_line_bot = calc_middle(image_bot);
+
 //		chprintf((BaseSequentialStream *)&SD3, "Setting BOT \r\n\n");
 	}
 
 
-//	chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
-//	                get_middle_top(),get_middle_bot());
+	chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
+	                get_middle_top(),get_middle_bot());
 }
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
@@ -357,6 +382,13 @@ void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_
 		image_blue[index/2] = blue_value;
 	}
 	else image_blue[index/2] = 0;
+}
+
+uint8_t filter_noise_single(uint16_t index, uint8_t couleur){
+	if (couleur > threshold_color){
+		return couleur;
+	}
+	else return 0;
 }
 
 void set_threshold_color(int selector_pos){
