@@ -276,7 +276,7 @@ uint8_t get_color(void){
 	return color_idx;
 }
 
-uint16_t get_middle_diff(void) {
+int16_t get_middle_diff(void) {
 	return middle_line_top-middle_line_bot;
 }
 
