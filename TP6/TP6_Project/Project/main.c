@@ -76,12 +76,14 @@ int main(void)
 
 	//motor_set_position(1000, 1000, 500, 500);
 
+	left_motor_set_pos(1500000);
+	right_motor_set_pos(1500000);
+
 	/* Infinite loop. */
     while (1) {
     	//waits 1 second
 
-    	left_motor_set_pos(50000);
-    		right_motor_set_pos(50000);
+
 
 
     	//2,147,483,647
