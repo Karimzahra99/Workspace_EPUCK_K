@@ -80,8 +80,8 @@ int main(void)
     while (1) {
     	//waits 1 second
 
-    	left_motor_set_speed(500);
-    	right_motor_set_speed(500);
+    	left_motor_set_speed(1000);
+    	right_motor_set_speed(1000);
 
     	chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
     			right_motor_get_pos(), left_motor_get_pos());
