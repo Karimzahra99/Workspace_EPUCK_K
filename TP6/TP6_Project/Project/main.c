@@ -17,6 +17,11 @@
 #include <process_image.h>
 
 
+
+static 	int ir_left_ancien =0;
+static 	int ir_avant_ancien =0;
+static 	float ir_left_nouvau =0;
+static 	float ir_avant_nouvau =0;
 //Functions for communication and visualization
 void SendUint8ToComputer(uint8_t* data, uint16_t size) 
 {
@@ -68,10 +73,11 @@ int main(void)
 	spi_comm_start();
 
 	//stars the threads for the pid regulator and the processing of the image
-	pid_regulator_start();
-	process_image_start();
+//	pid_regulator_start();
+//	process_image_start();
 
-	//proximity_start();
+	proximity_start();
+	rotate_until_irmax();
 
     /* Infinite loop. */
     while (1) {
@@ -86,4 +92,20 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 void __stack_chk_fail(void)
 {
     chSysHalt("Stack smashing detected");
+}
+
+
+void rotate_until_irmax()
+{
+//	if ()
+		do{
+			ir_left_ancien = get_prox(Sensor_IR2);
+			ir_avant_ancien = get_prox(Sensor_IR3);
+			motor_set_position(PERIMETER_EPUCK/8, PERIMETER_EPUCK/8,  -speedcms_to_speedsteps(1), speedcms_to_speedsteps(1));
+			ir_left_nouvau = get_prox(Sensor_IR2);
+			ir_avant_nouvau = get_prox(Sensor_IR3);
+			chprintf((BaseSequentialStream *)&SD3, "ir2_ancien =%-7d ir3_ancien =%-7d \r\n\n",
+					ir_left_ancien, ir_avant_ancien);
+		}
+		while (1);//ir_left_nouvau > ir_left_ancien + 10 || ir_avant_nouvau < ir_avant_ancien - 10 );
 }

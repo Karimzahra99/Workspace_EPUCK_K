@@ -17,48 +17,48 @@
 static uint8_t POSITION_REACHED = 0;
 //static uint8_t obstacle_mode = 0;
 
-//simple PI regulator implementation
-int16_t pid_regulator(float middle){
-
-	float goal = 320; //milieu theorique d'une ligne parfaitement centre sur le robot ou 350 ?
-	float error = 0;
-	float speed = 0;
-	float derivative = 0;
-
-	static float sum_error = 0;
-	static float last_error = 0;
-
-	error = middle - goal;
-
-	//get(IR3)
-	//get(IR1)
-
-	//disables the PID regulator if the error is to small
-	//this avoids to always move as we cannot exactly be where we want and
-	//the camera is a bit noisy
-//	if(fabs(error) < ERROR_THRESHOLD){ //ERROR_THRESHOLD = 0.1cm definit en float
-//		return 0;
+////simple PI regulator implementation
+//int16_t pid_regulator(float middle){
+//
+//	float goal = 320; //milieu theorique d'une ligne parfaitement centre sur le robot ou 350 ?
+//	float error = 0;
+//	float speed = 0;
+//	float derivative = 0;
+//
+//	static float sum_error = 0;
+//	static float last_error = 0;
+//
+//	error = middle - goal;
+//
+//	//get(IR3)
+//	//get(IR1)
+//
+//	//disables the PID regulator if the error is to small
+//	//this avoids to always move as we cannot exactly be where we want and
+//	//the camera is a bit noisy
+////	if(fabs(error) < ERROR_THRESHOLD){ //ERROR_THRESHOLD = 0.1cm definit en float
+////		return 0;
+////	}
+//
+//	sum_error += error;//sum_error = sum_error + error;
+//
+//	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
+//	// Integral anti-windup (Anti-Reset Windup)
+//	//https://www.youtube.com/watch?v=NVLXCwc8HzM&list=PLn8PRpmsu08pQBgjxYFXSsODEF3Jqmm-y&index=2
+//	if(sum_error > MAX_SUM_ERROR){
+//		sum_error = MAX_SUM_ERROR;
+//	}else if(sum_error < -MAX_SUM_ERROR){
+//		sum_error = -MAX_SUM_ERROR;
 //	}
-
-	sum_error += error;//sum_error = sum_error + error;
-
-	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
-	// Integral anti-windup (Anti-Reset Windup)
-	//https://www.youtube.com/watch?v=NVLXCwc8HzM&list=PLn8PRpmsu08pQBgjxYFXSsODEF3Jqmm-y&index=2
-	if(sum_error > MAX_SUM_ERROR){
-		sum_error = MAX_SUM_ERROR;
-	}else if(sum_error < -MAX_SUM_ERROR){
-		sum_error = -MAX_SUM_ERROR;
-	}
-
-	derivative = error - last_error;
-
-	last_error = error;
-
-	speed = 2 * error + 0.01 * sum_error; //+ KD * derivative;
-
-    return (int16_t)speed;
-}
+//
+//	derivative = error - last_error;
+//
+//	last_error = error;
+//
+//	speed = 2 * error + 0.01 * sum_error; //+ KD * derivative;
+//
+//    return (int16_t)speed;
+//}
 
 
 static THD_WORKING_AREA(waPidRegulator, 256);
@@ -69,11 +69,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 
     systime_t time;
 
-    int16_t speed = 0;
-    int16_t speed_correction = 0;
+//    int16_t speed = 0;
+//    int16_t speed_correction = 0;
 
     while(1){
     	time = chVTGetSystemTime();
+
+    	rotate_until_irmax();
 
 //    	int ir_front_left = get_prox(Sensor_IR3);
 //    	int ir_front_right = get_prox(Sensor_IR4);
@@ -82,26 +84,26 @@ static THD_FUNCTION(PidRegulator, arg) {
 
     	//computes the speed to give to the motors
     	//distance_cm is modified by the image processing thread
-    	switch (get_color())
-    	{
-    	case 0:
-    		speed =speedcms_to_speedsteps(0);
-    		break;
-    	case 1: //RED
-    		speed = speedcms_to_speedsteps(0);
-    		break;
-    	case 2: //GREEN
-    		speed = speedcms_to_speedsteps(0);
-    		break;
-    	case 3: //BLUE
-    		speed = speedcms_to_speedsteps(2);
-    		break;
-    	default:
-    		speed = speedcms_to_speedsteps(0);
-    		break;
-    	}
-
-    	speed_correction = pid_regulator(get_middle_line());
+//    	switch (get_color())
+//    	{
+//    	case 0:
+//    		speed =speedcms_to_speedsteps(0);
+//    		break;
+//    	case 1: //RED
+//    		speed = speedcms_to_speedsteps(0);
+//    		break;
+//    	case 2: //GREEN
+//    		speed = speedcms_to_speedsteps(0);
+//    		break;
+//    	case 3: //BLUE
+//    		speed = speedcms_to_speedsteps(2);
+//    		break;
+//    	default:
+//    		speed = speedcms_to_speedsteps(0);
+//    		break;
+//    	}
+//
+//    	speed_correction = pid_regulator(get_middle_line());
 
 //    	// if the line is nearly in front of the camera, don't rotate
 //    	if(abs(speed_correction) < 5){
@@ -110,8 +112,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 
     	//applies the speed from the PI regulator and the correction for the rotation
     	//?
-    	left_motor_set_speed(-speed + speed_correction);
-    	right_motor_set_speed(-speed - speed_correction);
+//    	left_motor_set_speed(-speed + speed_correction);
+//    	right_motor_set_speed(-speed - speed_correction);
 //    }
 
     //Obstacle Avoidance
@@ -223,13 +225,4 @@ void mov_circ_left(float vitesse,float rayon,float angle, int mode){
 }
 
 //Then Rotate robot until IR2 is maximal (remember the angle of rotation)
-//void rotate_until_irmax()
-//{
-//	float ir_left_nouvau =0;
-//	do{
-//	motor_set_position(PERIMETER_EPUCK/8, PERIMETER_EPUCK/8,  -speedcms_to_speedsteps(3), speedcms_to_speedsteps(3));
-//	ir_left_nouvau = get_prox(Sensor_IR2);
-//	}
-//	while (ir_left_nouvau < IR_THRESHOLD);
-//}
-//
+
