@@ -74,11 +74,19 @@ int main(void)
 //
 //	proximity_start();
 
-	motor_set_position(1000, 1000, 500, 500);
-    /* Infinite loop. */
+	//motor_set_position(1000, 1000, 500, 500);
+
+	/* Infinite loop. */
     while (1) {
     	//waits 1 second
-        chThdSleepMilliseconds(1000);
+
+    	left_motor_set_speed(cms_to_steps(5));
+    	right_motor_set_speed(cms_to_steps(5));
+
+    	chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
+    			right_motor_get_pos(), left_motor_get_pos());
+
+        //chThdSleepMilliseconds(1000);
     }
 }
 
