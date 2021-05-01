@@ -80,6 +80,11 @@ int main(void)
     while (1) {
     	//waits 1 second
 
+    	left_motor_set_pos(50000);
+    		right_motor_set_pos(50000);
+
+
+    	//2,147,483,647
     	left_motor_set_speed(1000);
     	right_motor_set_speed(1000);
 
