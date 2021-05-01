@@ -14,7 +14,11 @@ static uint8_t rolling_mode = 0;//0 = rolling backwards in strait line, 1 = roll
 static uint8_t POSITION_REACHED = 0;
 
 void set_leds(uint8_t color_index);
-float speedcms_to_speedsteps (uint8_t speed_cms);
+
+int16_t cms_to_steps (int16_t speed_cms);
+int16_t cm_to_step (int16_t cm);
+
+void motor_set_position(int16_t position_r, int16_t position_l, int16_t speed_r, int16_t speed_l);
 
 ////simple PI regulator implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -93,18 +97,18 @@ static THD_FUNCTION(PidRegulator, arg) {
         			break;
         		case 1: //RED
         			set_leds(index_color);
-        			speed = speedcms_to_speedsteps(2);
+        			speed = cms_to_steps(2);
         			break;
         		case 2: //GREEN
         			set_leds(index_color);
-        			speed = speedcms_to_speedsteps(4);
+        			speed = cms_to_steps(4);
         			break;
         		case 3: //BLUE
         			set_leds(index_color);
-        			speed = speedcms_to_speedsteps(6);
+        			speed = cms_to_steps(6);
         			break;
         		default:
-        			speed = speedcms_to_speedsteps(1.3);
+        			speed = cms_to_steps(1.3);
         			break;
         		}
 
@@ -129,7 +133,7 @@ static THD_FUNCTION(PidRegulator, arg) {
         	}
         	else {
         		set_leds(YELLOW_IDX);
-        		speed = speedcms_to_speedsteps(0);
+        		speed = cms_to_steps(0);
         		right_motor_set_speed(speed);
         		left_motor_set_speed(speed);
         	}
@@ -143,11 +147,11 @@ void pid_regulator_start(void){
 	chThdCreateStatic(waPidRegulator, sizeof(waPidRegulator), NORMALPRIO, PidRegulator, NULL);
 }
 
-float speedcms_to_speedsteps (uint8_t speed_cms) {
+int16_t cms_to_speeds (int16_t speed_cms) {
 	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
-float cm_to_steps (uint8_t cm) {
+int16_t cm_to_step (int16_t cm) {
 	return cm * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
@@ -199,8 +203,8 @@ void motor_set_position(int16_t position_r, int16_t position_l, int16_t speed_r,
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 
-	int16_t position_to_reach_left = cm_to_stepsposition_l(position_l);
-	int16_t position_to_reach_right = - cm_to_stepsposition_l(position_r);
+	int16_t position_to_reach_left = cm_to_step(position_l);
+	int16_t position_to_reach_right = - cm_to_step(position_r);
 
 	while (!POSITION_REACHED){
 		left_motor_set_speed(cms_to_steps(speed_l));
