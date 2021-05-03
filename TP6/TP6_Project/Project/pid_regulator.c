@@ -14,6 +14,10 @@
 #define NSTEP_ONE_TURN 1000 // number of step for 1 turn of the motor
 #define ECART_ROUE 5.8
 
+int16_t cms_to_steps (int16_t speed_cms);
+float cm_to_step (float cm);
+void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
+
 static uint8_t POSITION_REACHED = 0;
 //static uint8_t obstacle_mode = 0;
 
@@ -168,33 +172,35 @@ void pid_regulator_start(void){
 	chThdCreateStatic(waPidRegulator, sizeof(waPidRegulator), NORMALPRIO, PidRegulator, NULL);
 }
 
-float speedcms_to_speedsteps (uint8_t speed_cms) {
+int16_t cms_to_steps (int16_t speed_cms) {
 	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
+float cm_to_step (float cm) {
+	return cm * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+}
+
 //karim
-void motor_set_position(float position_r, float position_l, float speed_r, float speed_l){
+void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
+
 	POSITION_REACHED = 0;
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
-//	int16_t rmp = right_motor_get_pos();
-	int16_t position_to_reach_left = + position_l * NSTEP_ONE_TURN / WHEEL_PERIMETER;
-	int16_t position_to_reach_right = - position_r * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 
-//	chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
-//			position_to_reach_left, position_to_reach_right, rmp);
+	int position_to_reach_left = cm_to_step(position_l);
+	int position_to_reach_right = - cm_to_step(position_r);
+
 	while (!POSITION_REACHED){
-		left_motor_set_speed(speed_l);
-		right_motor_set_speed(speed_r);
-//		rmp = right_motor_get_pos();
-//		chprintf((BaseSequentialStream *)&SD3, "%R position_to_reach_left =%-7d position_to_reach_right =%-7d B rmp =%-7d \r\n\n",
-//				position_to_reach_left, position_to_reach_right, rmp);
+		left_motor_set_speed(cms_to_steps(speed_l));
+		right_motor_set_speed(cms_to_steps(speed_r));
+
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
 			POSITION_REACHED=1;
 		}
 	}
+
 }
 // Ancien code utilise pour le TP2, faire un truc semblable pour eviter des cylindres
 //vitesse en cm/s //rayon en cm //angle en radian //mode = 0 cercle par top //mode = 1 cercle par bot
