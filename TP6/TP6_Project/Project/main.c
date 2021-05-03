@@ -76,7 +76,6 @@ int main(void)
 
     while (1) {
     	//waits 1 second
-
         chThdSleepMilliseconds(1000);
     }
 }
