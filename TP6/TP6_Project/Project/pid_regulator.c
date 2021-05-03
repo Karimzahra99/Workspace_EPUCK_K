@@ -16,9 +16,9 @@ static uint8_t POSITION_REACHED = 0;
 void set_leds(uint8_t color_index);
 
 int16_t cms_to_steps (int16_t speed_cms);
-int16_t cm_to_step (int16_t cm);
+float cm_to_step (float cm);
 
-void motor_set_position(int16_t position_r, int16_t position_l, int16_t speed_r, int16_t speed_l);
+void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 
 ////simple PI regulator implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -151,7 +151,7 @@ int16_t cms_to_steps (int16_t speed_cms) {
 	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
-int16_t cm_to_step (int16_t cm) {
+float cm_to_step (float cm) {
 	return cm * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
@@ -205,8 +205,8 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 
-	int16_t position_to_reach_left = cm_to_step(position_l);
-	int16_t position_to_reach_right = - cm_to_step(position_r);
+	int position_to_reach_left = cm_to_step(position_l);
+	int position_to_reach_right = - cm_to_step(position_r);
 
 	while (!POSITION_REACHED){
 		left_motor_set_speed(cms_to_steps(speed_l));

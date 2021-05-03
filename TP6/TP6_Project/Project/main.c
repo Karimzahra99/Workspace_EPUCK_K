@@ -68,16 +68,11 @@ int main(void)
 	spi_comm_start();
 
 	//stars the threads for the pid regulator and the processing of the image
-//	pid_regulator_start();
-//
-//	process_image_start();
-//
-//	proximity_start();
+	pid_regulator_start();
 
+	process_image_start();
 
-	/* Infinite loop. */
-
-	motor_set_position(PERIMETER_EPUCK/2,PERIMETER_EPUCK/2, 5, -5);
+	proximity_start();
 
     while (1) {
     	//waits 1 second
