@@ -119,8 +119,8 @@ static THD_FUNCTION(PidRegulator, arg) {
         		//rolling backwards in strait line
         		if ((middle_diff < DEAD_ZONE_WIDTH) && (rolling_mode == 0)){
         			rolling_mode = 0;
-        			right_motor_set_speed(-speed);
-        			left_motor_set_speed(-speed);
+//        			right_motor_set_speed(-speed);
+//        			left_motor_set_speed(-speed);
         		}
         		//turning mode
         		else {
@@ -197,6 +197,8 @@ void set_leds(uint8_t color_index){
 }
 
 //position in cm and speed en cm/s
+//int : -2^32/2 to 2^32/2-1
+//motor set position -2^31/2 to 2^31/2-1
 void motor_set_position(int16_t position_r, int16_t position_l, int16_t speed_r, int16_t speed_l){
 
 	POSITION_REACHED = 0;

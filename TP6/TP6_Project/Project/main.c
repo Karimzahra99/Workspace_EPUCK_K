@@ -74,26 +74,12 @@ int main(void)
 //
 //	proximity_start();
 
-	//motor_set_position(1000, 1000, 500, 500);
-
-	left_motor_set_pos(1500000);
-	right_motor_set_pos(1500000);
 
 	/* Infinite loop. */
     while (1) {
     	//waits 1 second
 
-
-
-
-    	//2,147,483,647
-    	left_motor_set_speed(1000);
-    	right_motor_set_speed(1000);
-
-    	chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
-    			right_motor_get_pos(), left_motor_get_pos());
-
-        //chThdSleepMilliseconds(1000);
+        chThdSleepMilliseconds(1000);
     }
 }
 
