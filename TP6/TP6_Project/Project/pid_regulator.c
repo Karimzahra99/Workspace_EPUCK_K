@@ -89,19 +89,19 @@ static THD_FUNCTION(PidRegulator, arg) {
     	switch (get_color())
     	{
     	case 0:
-    		speed =speedcms_to_speedsteps(0);
+    		speed = cms_to_steps(0);
     		break;
     	case 1: //RED
-    		speed = speedcms_to_speedsteps(0);
+    		speed = cms_to_steps(1);
     		break;
     	case 2: //GREEN
-    		speed = speedcms_to_speedsteps(0);
+    		speed = cms_to_steps(3);
     		break;
     	case 3: //BLUE
-    		speed = speedcms_to_speedsteps(2);
+    		speed = cms_to_steps(5);
     		break;
     	default:
-    		speed = speedcms_to_speedsteps(0);
+    		speed = cms_to_steps(2);
     		break;
     	}
 
