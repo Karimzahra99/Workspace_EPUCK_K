@@ -76,9 +76,12 @@ int main(void)
 
 
 	/* Infinite loop. */
+
+	motor_set_position(PERIMETER_EPUCK/2,PERIMETER_EPUCK/2, 5, -5);
+
     while (1) {
     	//waits 1 second
-    	motor_set_position(5, 5, 3, 3);
+
         chThdSleepMilliseconds(1000);
     }
 }

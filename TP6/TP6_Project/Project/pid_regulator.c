@@ -199,7 +199,7 @@ void set_leds(uint8_t color_index){
 //position in cm and speed en cm/s
 //int : -2^32/2 to 2^32/2-1
 //motor set position -2^31/2 to 2^31/2-1
-void motor_set_position(int16_t position_r, int16_t position_l, int16_t speed_r, int16_t speed_l){
+void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
 
 	POSITION_REACHED = 0;
 	left_motor_set_pos(0);
