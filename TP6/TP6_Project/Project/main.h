@@ -36,7 +36,7 @@ extern "C" {
 #define Sensor_IR4				4
 #define Sensor_IR5				5
 #define Sensor_IR6				6
-#define	IR_THRESHOLD			200
+#define	IR_THRESHOLD			300
 
 //Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
 #define LINE_INDEX					25
