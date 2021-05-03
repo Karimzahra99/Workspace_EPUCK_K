@@ -117,10 +117,10 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 
         		//rolling backwards in strait line
-        		if ((middle_diff < DEAD_ZONE_WIDTH) && (rolling_mode == 0)){
+        		if ((abs(middle_diff) < DEAD_ZONE_WIDTH) && (rolling_mode == 0)){
         			rolling_mode = 0;
-//        			right_motor_set_speed(-speed);
-//        			left_motor_set_speed(-speed);
+        			right_motor_set_speed(-speed);
+        			left_motor_set_speed(-speed);
         		}
         		//turning mode
         		else {
@@ -147,7 +147,7 @@ void pid_regulator_start(void){
 	chThdCreateStatic(waPidRegulator, sizeof(waPidRegulator), NORMALPRIO, PidRegulator, NULL);
 }
 
-int16_t cms_to_speeds (int16_t speed_cms) {
+int16_t cms_to_steps (int16_t speed_cms) {
 	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
