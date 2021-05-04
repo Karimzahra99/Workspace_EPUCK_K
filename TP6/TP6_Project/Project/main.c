@@ -73,9 +73,9 @@ int main(void)
 
 	proximity_start();
 //	while(1){
-//	int ir_left_ancien = get_prox(Sensor_IR2);
-//	chprintf((BaseSequentialStream *)&SD3, "ir2_a =%-7d \r\n\n",
-//						ir_left_ancien );
+//	int ir_left_ancien = get_prox(Sensor_IR3);
+//	chprintf((BaseSequentialStream *)&SD3, "ir3 =%-7d \r\n\n",
+//					ir_left_ancien );
 //	}
 //	rotate_until_irmax();
 

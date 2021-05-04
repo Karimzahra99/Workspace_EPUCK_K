@@ -162,15 +162,19 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 				//use ir1 ir3 to get speed correction sign
 //				if (ir1_new > ir1_old +20){
-				// plus de chance de tourner a gauche que de tourner a droite
-					if (ir3_new < ir3_old -5 || ir3_old < 50 ){
+				// plus de chance de tourner a gauche que de tourner a droite 5 bruit 50 vide
+				if (ir3_new < 60){
+					left_motor_set_speed(-cms_to_steps(2) + speed_correction);
+					right_motor_set_speed(-cms_to_steps(2) - speed_correction);
+				}
+				else if (ir3_new < ir3_old - 7 && ir3_new > 60){
 //						chprintf((BaseSequentialStream *)&SD3, "ir1new =%-7d ir3new =%-7d ir1old =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", ir1_new,ir3_new, ir1_old,ir3_old, speed_correction);
 				left_motor_set_speed(-cms_to_steps(2) + speed_correction);
 				right_motor_set_speed(-cms_to_steps(2) - speed_correction);
 					}
 //				}
 //				else if (ir1_new < ir1_old -20 ){
-					else if ( ir3_new > ir3_old + 10 ){
+					else if ( ir3_new > ir3_old + 7 ){
 					left_motor_set_speed(-cms_to_steps(2)- speed_correction);
 					right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
 					}
