@@ -10,7 +10,7 @@
 #include <pid_regulator.h>
 #include <process_image.h>
 
-static uint8_t rolling_mode = 0;//0 = rolling backwards in strait line, 1 = rolling frontwards for turns, 2 =
+static uint8_t rolling_mode = 0;//0 = rolling backwards in strait line, 1 = rolling frontwards for turns, 2 = obstacle mode
 static uint8_t POSITION_REACHED = 0;
 
 void set_leds(uint8_t color_index);
