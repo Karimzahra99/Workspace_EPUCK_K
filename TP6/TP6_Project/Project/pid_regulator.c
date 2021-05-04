@@ -18,7 +18,11 @@ int16_t cms_to_steps (int16_t speed_cms);
 float cm_to_step (float cm);
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 
-
+static int ir1_old = 0;
+static int ir3_old = 0;
+static int ir1_new = 0;
+static int ir2_new = 0;
+static int ir3_new = 0;
 static uint8_t  adjust = 0;
 static int ir_left_max=0;
 static uint8_t POSITION_REACHED = 0;
@@ -77,8 +81,9 @@ int16_t pid_regulator_S(int middle){
 
 	static float sum_error = 0;
 	static float last_error = 0;
+	ir2_new = get_prox(Sensor_IR2);
 
-	error = get_prox(Sensor_IR2) - goal;
+	error =  ir2_new - goal;
 
 	//get(IR3)
 	//get(IR1)
@@ -117,7 +122,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 	systime_t time;
 
-	int16_t speed = 0;
+//	int16_t speed = 0;
 	int16_t speed_correction = 0;
 
 
@@ -126,6 +131,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 		time = chVTGetSystemTime();
 		int ir_front_left = get_prox(Sensor_IR3);
 		int ir_front_right = get_prox(Sensor_IR4);
+
 
 		if (((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD) && !obstacle_mode)){
 			left_motor_set_speed(-cms_to_steps(2));
@@ -137,18 +143,41 @@ static THD_FUNCTION(PidRegulator, arg) {
 				adjust = 1;
 				ir_left_max = rotate_until_irmax();
 				motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
+				ir1_old = get_prox(Sensor_IR1);
+				ir3_old = get_prox(Sensor_IR3);
+//				chprintf((BaseSequentialStream *)&SD3, "ir1old =%-7d ir3old =%-7d\r\n\n", ir1_old,ir3_old);
+
 			}
 			else{
-//				speed_correction = pid_regulator_S(ir_left_max);
-//					chprintf((BaseSequentialStream *)&SD3, "ir2_a =%-7d \r\n\n", speed_correction);
-				if( get_prox(Sensor_IR2) < 50){
-					motor_set_position(2,2,-3,-3);
-					motor_set_position(PERIMETER_EPUCK/4,PERIMETER_EPUCK/4,3,-3);
-					motor_set_position(5,5,-2,-2);
+				speed_correction = pid_regulator_S(ir_left_max);
+				ir1_new = get_prox(Sensor_IR1);
+				ir3_new = get_prox(Sensor_IR3);
+//				chprintf((BaseSequentialStream *)&SD3, "ir1new =%-7d ir3new =%-7d ir1old =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", ir1_new,ir3_new, ir1_old,ir3_old, speed_correction);
+//				if( get_prox(Sensor_IR2) < 50){
+////					motor_set_position(2,2,-3,-3);
+////					motor_set_position(PERIMETER_EPUCK/4,PERIMETER_EPUCK/4,3,-3);
+////					motor_set_position(5,5,-2,-2);
+////
+////				}
 
+				//use ir1 ir3 to get speed correction sign
+//				if (ir1_new > ir1_old +20){
+					if (ir3_new < ir3_old - 5){
+						chprintf((BaseSequentialStream *)&SD3, "ir1new =%-7d ir3new =%-7d ir1old =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", ir1_new,ir3_new, ir1_old,ir3_old, speed_correction);
+				left_motor_set_speed(-cms_to_steps(2) + speed_correction);
+				right_motor_set_speed(-cms_to_steps(2) - speed_correction);
+					}
+//				}
+//				else if (ir1_new < ir1_old -20 ){
+					else if ( ir3_new > ir3_old + 5  ){
+					left_motor_set_speed(-cms_to_steps(2)- speed_correction);
+					right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
+					}
+//				}
+				else {
+					left_motor_set_speed(-cms_to_steps(2));
+					right_motor_set_speed(-cms_to_steps(2));
 				}
-				left_motor_set_speed(-cms_to_steps(3)); //+ speed_correction);
-				right_motor_set_speed(-cms_to_steps(3)); //- speed_correction);
 
 			}
 
@@ -314,7 +343,7 @@ int rotate_until_irmax(void)
 	int	ir_left_nouvau =0;
 //	int	ir_avant_nouvau =0;
 	int start = 0;
-	while ((ir_left_nouvau > ir_left_ancien ) || start==0){
+	while ((ir_left_nouvau > ir_left_ancien + 5 ) || start==0){
 			start =1;
 			ir_left_ancien = get_prox(Sensor_IR2);
 //			ir_avant_ancien = get_prox(Sensor_IR3);
