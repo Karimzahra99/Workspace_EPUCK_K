@@ -132,59 +132,61 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		}
 		else {
-		if (rolling_mode == 1){
+			if (rolling_mode == 1){
 
-			set_leds(PURPLE_IDX);
+				set_leds(PURPLE_IDX);
 
-			//if robot dosen't start on a line
-			if (speed == 0){
-				speed = 2;
-			}
+				//if robot dosen't start on a line
+				if (speed == 0){
+					speed = 2;
+				}
 
-			// CCW 180deg
-			middle_diff = get_middle_diff();
-			if (middle_diff > DEAD_ZONE_WIDTH){
-				if (start_move == 0){
-					motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
-					right_motor_set_speed(0);
-					left_motor_set_speed(0);
-					start_move = 1;
+				// CCW 180deg
+				middle_diff = get_middle_diff();
+				if (middle_diff > DEAD_ZONE_WIDTH){
+					if (start_move == 0){
+						motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+						motor_set_position(10, 10, -speed, -speed);
+						right_motor_set_speed(0);
+						left_motor_set_speed(0);
+						start_move = 1;
+					}
+				}
+				//			if (middle_diff > DEAD_ZONE_WIDTH ){
+				//				speed_correction = pid_regulator(middle_diff);
+				//				right_motor_set_speed(speed);
+				//				left_motor_set_speed(speed_correction);
+				//				right_motor_set_speed(- speed_correction);
+				//				// maybe remove
+				//				start_count = 0;
+				//			}
+				//			else {
+				//				if (start_count == 0){
+				//					left_motor_set_pos(0);
+				//					right_motor_set_pos(0);
+				//					left_motor_set_speed(cms_to_steps(speed));
+				//					right_motor_set_speed(cms_to_steps(speed));
+				//					start_count = 1;
+				//				}
+				//				else {
+				//					if ((left_motor_get_pos() >= 1000) && (right_motor_get_pos() >= 1000)){
+				//						motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+				//						start_count = 0;
+				//						start_move = 0;
+				//						rolling_mode = 0;
+				//
+				//					}
+				//				}
+				//
+				//			}
+			}else {
+
+				if (rolling_mode == 2){
+					set_leds(YELLOW_IDX);
+					right_motor_set_speed(cms_to_steps(0));
+					left_motor_set_speed(cms_to_steps(0));
 				}
 			}
-//			if (middle_diff > DEAD_ZONE_WIDTH ){
-//				speed_correction = pid_regulator(middle_diff);
-//				right_motor_set_speed(speed);
-//				left_motor_set_speed(speed_correction);
-//				right_motor_set_speed(- speed_correction);
-//				// maybe remove
-//				start_count = 0;
-//			}
-//			else {
-//				if (start_count == 0){
-//					left_motor_set_pos(0);
-//					right_motor_set_pos(0);
-//					left_motor_set_speed(cms_to_steps(speed));
-//					right_motor_set_speed(cms_to_steps(speed));
-//					start_count = 1;
-//				}
-//				else {
-//					if ((left_motor_get_pos() >= 1000) && (right_motor_get_pos() >= 1000)){
-//						motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
-//						start_count = 0;
-//						start_move = 0;
-//						rolling_mode = 0;
-//
-//					}
-//				}
-//
-//			}
-		}
-
-		if (rolling_mode == 2){
-			set_leds(YELLOW_IDX);
-			right_motor_set_speed(cms_to_steps(0));
-			left_motor_set_speed(cms_to_steps(0));
-		}
 		}
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
