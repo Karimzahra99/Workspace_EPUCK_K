@@ -83,9 +83,10 @@ static THD_FUNCTION(PidRegulator, arg) {
     			get_middle_diff(), rolling_mode);
 
     	// Neglecting obstacles in rolling_mode 1
-		if (((ir_front_left > IR_THRESHOLD) && (ir_front_right > IR_THRESHOLD)) && rolling_mode == 0){
+		if ((ir_front_left > IR_THRESHOLD) && (ir_front_right > IR_THRESHOLD)) {
 			rolling_mode = 2;
 		}
+		else rolling_mode = 0;
 
 		if (rolling_mode == 0) {
 			middle_diff = get_middle_diff();
