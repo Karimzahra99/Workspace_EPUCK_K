@@ -197,15 +197,17 @@ void set_leds(uint8_t color_index){
 //motor set position -2^31/2 to 2^31/2-1
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
 
+	int position_to_reach_left = cm_to_step(position_l);
+	int position_to_reach_right = - cm_to_step(position_r);
+
 	if (start_move_int == 0){
+
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 
-		int position_to_reach_left = cm_to_step(position_l);
-		int position_to_reach_right = - cm_to_step(position_r);
-
 		left_motor_set_speed(cms_to_steps(speed_l));
 		right_motor_set_speed(cms_to_steps(speed_r));
+
 		start_move_int = 1;
 	}
 
