@@ -56,7 +56,7 @@ int16_t pid_regulator(int16_t middle_diff){
 }
 
 
-static THD_WORKING_AREA(waPidRegulator, 256);
+static THD_WORKING_AREA(waPidRegulator, 512);
 static THD_FUNCTION(PidRegulator, arg) {
 
 	chRegSetThreadName(__FUNCTION__);
@@ -76,6 +76,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		int ir_front_left = get_prox(Sensor_IR3);
 		int ir_front_right = get_prox(Sensor_IR4);
+
+		chprintf((BaseSequentialStream *)&SD3, "IRL =%-7d IRR =%-7d \r\n\n",
+				get_prox(Sensor_IR3), get_prox(Sensor_IR4));
+
+		chprintf((BaseSequentialStream *)&SD3, "rolling_mode =%-7d  =%-7d \r\n\n",
+						rolling_mode, get_color());
+
 
 		//Neglecting obstacles in rolling_mode 1
 		if (((ir_front_left > IR_THRESHOLD) && (ir_front_right > IR_THRESHOLD)) && rolling_mode == 0){
@@ -239,8 +246,8 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 		left_motor_set_speed(cms_to_steps(speed_l));
 		right_motor_set_speed(cms_to_steps(speed_r));
 
-		chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
-				right_motor_get_pos(), left_motor_get_pos());
+//		chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
+//				right_motor_get_pos(), left_motor_get_pos());
 
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);
