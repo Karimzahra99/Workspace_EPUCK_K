@@ -82,15 +82,12 @@ static THD_FUNCTION(PidRegulator, arg) {
     	chprintf((BaseSequentialStream *)&SD3, "rolling_mode =%-7d  =%-7d \r\n\n",
     			rolling_mode, get_color());
 
+    	Neglecting obstacles in rolling_mode 1
+		if (((ir_front_left > IR_THRESHOLD) && (ir_front_right > IR_THRESHOLD)) && rolling_mode == 0){
+			rolling_mode = 2;
+		}
 
-
-
-        int ir_front_left = get_prox(Sensor_IR3);
-        int ir_front_right = get_prox(Sensor_IR4);
-//        chprintf((BaseSequentialStream *)&SD3, "IR4 =%-7d IR3 =%-7d \r\n\n",
-//        ir_front_right, ir_front_left);
-        //if (((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD)) && !obstacle_mode){
-        	if ((ir_front_left < IR_THRESHOLD) && (ir_front_right < IR_THRESHOLD)){
+    	if (rolling_mode == 0) {
         		//computes the speed to give to the motors
         		//distance_cm is modified by the image processing thread
         		uint8_t index_color = get_color();
