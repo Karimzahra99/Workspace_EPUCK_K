@@ -131,6 +131,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 			left_motor_set_speed(-speed);
 
 		}
+		else {
 		if (rolling_mode == 1){
 
 			set_leds(PURPLE_IDX);
@@ -183,6 +184,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 			set_leds(YELLOW_IDX);
 			right_motor_set_speed(cms_to_steps(0));
 			left_motor_set_speed(cms_to_steps(0));
+		}
 		}
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
