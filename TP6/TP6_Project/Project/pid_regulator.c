@@ -95,47 +95,42 @@ static THD_FUNCTION(PidRegulator, arg) {
 			}
 		}
 
-    	if (rolling_mode == 0) {
-        		//computes the speed to give to the motors
-        		//distance_cm is modified by the image processing thread
-        		uint8_t index_color = get_color();
-        		switch (index_color)
-        		{
-        		case 0: //NO COLOR
-        			set_leds(index_color);
-        			speed = 0;
-        			break;
-        		case 1: //RED
-        			set_leds(index_color);
-        			speed = cms_to_steps(2);
-        			break;
-        		case 2: //GREEN
-        			set_leds(index_color);
-        			speed = cms_to_steps(4);
-        			break;
-        		case 3: //BLUE
-        			set_leds(index_color);
-        			speed = cms_to_steps(6);
-        			break;
-        		default:
-        			speed = cms_to_steps(1.3);
-        			break;
-        		}
-        		int16_t middle_diff = get_middle_diff();
-        		//rolling backwards in strait line
-        		if ((abs(middle_diff) < DEAD_ZONE_WIDTH) && (rolling_mode == 0)){
-        			rolling_mode = 0;
-        			right_motor_set_speed(-speed);
-        			left_motor_set_speed(-speed);
-        		}
+		if (rolling_mode == 0){
 
-        	}
-        	else {
-        		set_leds(YELLOW_IDX);
-        		speed = cms_to_steps(0);
-        		right_motor_set_speed(speed);
-        		left_motor_set_speed(speed);
-        	}
+			uint8_t index_color = get_color();
+			switch (index_color)
+			{
+			case 0: //NO COLOR
+				set_leds(index_color);
+				speed = 0;
+				break;
+			case 1: //RED
+				set_leds(index_color);
+				speed = cms_to_steps(2);
+				break;
+			case 2: //GREEN
+				set_leds(index_color);
+				speed = cms_to_steps(4);
+				break;
+			case 3: //BLUE
+				set_leds(index_color);
+				speed = cms_to_steps(6);
+				break;
+			default:
+				speed = cms_to_steps(1.3);
+				break;
+			}
+
+			right_motor_set_speed(-speed);
+			left_motor_set_speed(-speed);
+
+		}
+		else {
+			set_leds(YELLOW_IDX);
+			speed = cms_to_steps(0);
+			right_motor_set_speed(speed);
+			left_motor_set_speed(speed);
+		}
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
