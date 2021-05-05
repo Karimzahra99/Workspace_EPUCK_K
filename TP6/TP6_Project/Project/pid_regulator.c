@@ -64,6 +64,9 @@ static THD_FUNCTION(PidRegulator, arg) {
     //waits 2s
     chThdSleepMilliseconds(2000);
 
+    rolling_mode = 0;
+    start_move = 0;
+
     systime_t time;
     //maybe put in static
     int16_t speed = 0;
@@ -142,6 +145,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 			if (middle_diff > DEAD_ZONE_WIDTH){
 				if (start_move == 0){
 					motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+					right_motor_set_speed(0);
+					left_motor_set_speed(0);
 					start_move = 1;
 				}
 			}
