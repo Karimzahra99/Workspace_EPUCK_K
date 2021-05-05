@@ -126,9 +126,11 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		}
 		if (rolling_mode == 1){
+			chprintf((BaseSequentialStream *)&SD3, "Stucked \r\n\n");
 			if (start_move == 0){
-				motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
-				chprintf((BaseSequentialStream *)&SD3, "Stucked \r\n\n");
+
+				//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+
 				start_move = 1;
 			}
 		}
