@@ -56,7 +56,7 @@ int16_t pid_regulator(int16_t middle_diff){
 }
 
 
-static THD_WORKING_AREA(waPidRegulator, 256);
+static THD_WORKING_AREA(waPidRegulator, 512);
 static THD_FUNCTION(PidRegulator, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
@@ -79,22 +79,25 @@ static THD_FUNCTION(PidRegulator, arg) {
     	chprintf((BaseSequentialStream *)&SD3, "IRL =%-7d IRR =%-7d \r\n\n",
     			get_prox(Sensor_IR3), get_prox(Sensor_IR4));
 
-    	chprintf((BaseSequentialStream *)&SD3, "rolling_mode =%-7d  =%-7d \r\n\n",
-    			rolling_mode, get_color());
+    	chprintf((BaseSequentialStream *)&SD3, "MidDif =%-7d Rolling Mode =%-7d \r\n\n",
+    			get_middle_diff(), rolling_mode);
 
     	// Neglecting obstacles in rolling_mode 1
 		if (((ir_front_left > IR_THRESHOLD) && (ir_front_right > IR_THRESHOLD)) && rolling_mode == 0){
 			rolling_mode = 2;
 		}
 
+		if (rolling_mode == 0) {
+			middle_diff = get_middle_diff();
+			if (abs(middle_diff) > DEAD_ZONE_WIDTH){
+				rolling_mode = 1;
+			}
+		}
+
     	if (rolling_mode == 0) {
         		//computes the speed to give to the motors
         		//distance_cm is modified by the image processing thread
         		uint8_t index_color = get_color();
-        		chprintf((BaseSequentialStream *)&SD3, "Dif =%-7d \r\n\n",
-        				get_middle_diff());
-        		chprintf((BaseSequentialStream *)&SD3, "Top =%-7d Bot =%-7d \r\n\n",
-        				get_middle_top(),get_middle_bot());
         		switch (index_color)
         		{
         		case 0: //NO COLOR
@@ -124,11 +127,7 @@ static THD_FUNCTION(PidRegulator, arg) {
         			right_motor_set_speed(-speed);
         			left_motor_set_speed(-speed);
         		}
-        		//turning mode
-        		else {
-        			rolling_mode = 1;
-        			int16_t speed_correction = pid_regulator(middle_diff);
-        		}
+
         	}
         	else {
         		set_leds(YELLOW_IDX);
