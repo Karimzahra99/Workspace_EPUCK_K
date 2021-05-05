@@ -151,7 +151,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 						left_motor_set_speed(0);
 						start_move = 1;
 					}
-				}
+
 				//			if (middle_diff > DEAD_ZONE_WIDTH ){
 				//				speed_correction = pid_regulator(middle_diff);
 				//				right_motor_set_speed(speed);
