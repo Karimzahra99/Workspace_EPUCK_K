@@ -82,7 +82,7 @@ static THD_FUNCTION(PidRegulator, arg) {
     	chprintf((BaseSequentialStream *)&SD3, "rolling_mode =%-7d  =%-7d \r\n\n",
     			rolling_mode, get_color());
 
-    	Neglecting obstacles in rolling_mode 1
+    	// Neglecting obstacles in rolling_mode 1
 		if (((ir_front_left > IR_THRESHOLD) && (ir_front_right > IR_THRESHOLD)) && rolling_mode == 0){
 			rolling_mode = 2;
 		}
