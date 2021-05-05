@@ -11,9 +11,9 @@
 #include <process_image.h>
 
 static uint8_t rolling_mode = 0;//0 = rolling backwards in strait line, 1 = rolling frontwards for turns, 2 = obstacle mode
-// remove caps its not a define
-static uint8_t POSITION_REACHED = 0;
+
 static uint8_t start_move = 0;
+static uint8_t start_move_int = 0;
 
 void set_leds(uint8_t color_index);
 
@@ -126,10 +126,10 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		}
 		if (rolling_mode == 1){
-			chprintf((BaseSequentialStream *)&SD3, "Stucked \r\n\n");
+
 			if (start_move == 0){
 
-				//motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+				motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
 
 				start_move = 1;
 			}
@@ -197,24 +197,22 @@ void set_leds(uint8_t color_index){
 //motor set position -2^31/2 to 2^31/2-1
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
 
-	POSITION_REACHED = 0;
-	left_motor_set_pos(0);
-	right_motor_set_pos(0);
+	if (start_move_int == 0){
+		left_motor_set_pos(0);
+		right_motor_set_pos(0);
 
-	int position_to_reach_left = cm_to_step(position_l);
-	int position_to_reach_right = - cm_to_step(position_r);
+		int position_to_reach_left = cm_to_step(position_l);
+		int position_to_reach_right = - cm_to_step(position_r);
 
-	while (!POSITION_REACHED){
 		left_motor_set_speed(cms_to_steps(speed_l));
 		right_motor_set_speed(cms_to_steps(speed_r));
-
-//		chprintf((BaseSequentialStream *)&SD3, "R =%-7d L =%-7d \r\n\n",
-//				right_motor_get_pos(), left_motor_get_pos());
-
-		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
-			left_motor_set_speed(0);
-			right_motor_set_speed(0);
-			POSITION_REACHED=1;
-		}
+		start_move_int = 1;
 	}
+
+	if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
+		left_motor_set_speed(0);
+		right_motor_set_speed(0);
+		start_move_int = 0;
+	}
+
 }
