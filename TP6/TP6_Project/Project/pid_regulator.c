@@ -126,7 +126,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		}
 		if (rolling_mode == 1){
-
+			chprintf((BaseSequentialStream *)&SD3, "Stuck =%-7d \r\n\n");
 			if (start_move == 0){
 
 				motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
