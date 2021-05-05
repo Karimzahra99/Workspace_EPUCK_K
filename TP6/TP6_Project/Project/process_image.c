@@ -191,7 +191,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//To visualize one image on computer with plotImage.py
 		if(send_to_computer){
 			//sends to the computer the image
-			SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
+			SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
 		}
 
 		//invert the bool
