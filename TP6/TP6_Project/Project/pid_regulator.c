@@ -127,6 +127,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 		}
 		if (rolling_mode == 1){
 
+			set_leds(PURPLE_IDX);
+
 			//if robot dosen't start on a line
 			if (speed == 0){
 				speed = 2;
@@ -165,6 +167,12 @@ static THD_FUNCTION(PidRegulator, arg) {
 				}
 
 			}
+		}
+
+		if (rolling_mode == 2){
+			set_leds(YELLOW_IDX);
+			right_motor_set_speed(cms_to_steps(0));
+			left_motor_set_speed(cms_to_steps(0));
 		}
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
