@@ -61,6 +61,9 @@ static THD_FUNCTION(PidRegulator, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
+    //waits 2s
+    chThdSleepMilliseconds(2000);
+
     systime_t time;
     //maybe put in static
     int16_t speed = 0;
