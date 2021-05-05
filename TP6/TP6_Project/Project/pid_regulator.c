@@ -163,7 +163,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 			}
 		}
         //100Hz
-        chThdSleepUntilWindowed(time, time + MS2ST(10));
+        chThdSleepUntilWindowed(time, time + MS2ST(100));
     }
 }
 
