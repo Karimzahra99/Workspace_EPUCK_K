@@ -143,14 +143,14 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 				// CCW 180deg
 				middle_diff = get_middle_diff();
-				if (middle_diff > DEAD_ZONE_WIDTH){
-					if (start_move == 0){
-						motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
-						motor_set_position(10, 10, -speed, -speed);
-						right_motor_set_speed(0);
-						left_motor_set_speed(0);
-						start_move = 1;
-					}
+
+				if (start_move == 0){
+					motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+					motor_set_position(10, 10, -speed, -speed);
+					right_motor_set_speed(0);
+					left_motor_set_speed(0);
+					start_move = 1;
+				}
 
 				//			if (middle_diff > DEAD_ZONE_WIDTH ){
 				//				speed_correction = pid_regulator(middle_diff);
