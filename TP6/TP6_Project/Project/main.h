@@ -19,9 +19,9 @@ extern "C" {
 #define LINEWIDTH					100		//en fonction de la ligne imprimmer, a voir si utile
 #define TOLERANCE					3
 #define ERROR_THRESHOLD				0.1f	//[cm] because of the noise of the camera
-#define KP							800.0f
+#define KP							100.0f
 #define KI 							3.5f	//must not be zero
-#define KD							25.0f	//a tuner -> utiliser deuxieme methode de ZN avec Ku et Pu
+#define KD							0.0f	//a tuner -> utiliser deuxieme methode de ZN avec Ku et Pu
 #define MAX_SUM_ERROR 				(MOTOR_SPEED_LIMIT/KI)
 
 
@@ -60,6 +60,7 @@ extern "C" {
 #define GREEN_IDX					2
 #define BLUE_IDX					3
 #define YELLOW_IDX					4
+#define PURPLE_IDX					5
 #define NO_COLOR					0
 
 #define LED_RGB_2					0
