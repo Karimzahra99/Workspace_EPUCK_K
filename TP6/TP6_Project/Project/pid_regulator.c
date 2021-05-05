@@ -60,11 +60,31 @@ static THD_WORKING_AREA(waPidRegulator, 256);
 static THD_FUNCTION(PidRegulator, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
+
     systime_t time;
+    //maybe put in static
     int16_t speed = 0;
     int16_t speed_correction = 0;
+    //maybe put in static
+    int16_t middle_diff = 0;
+
+    uint8_t start_count = 0;
+
     while(1){
-        time = chVTGetSystemTime();
+    	time = chVTGetSystemTime();
+
+    	int ir_front_left = get_prox(Sensor_IR3);
+    	int ir_front_right = get_prox(Sensor_IR4);
+
+    	chprintf((BaseSequentialStream *)&SD3, "IRL =%-7d IRR =%-7d \r\n\n",
+    			get_prox(Sensor_IR3), get_prox(Sensor_IR4));
+
+    	chprintf((BaseSequentialStream *)&SD3, "rolling_mode =%-7d  =%-7d \r\n\n",
+    			rolling_mode, get_color());
+
+
+
+
         int ir_front_left = get_prox(Sensor_IR3);
         int ir_front_right = get_prox(Sensor_IR4);
 //        chprintf((BaseSequentialStream *)&SD3, "IR4 =%-7d IR3 =%-7d \r\n\n",
