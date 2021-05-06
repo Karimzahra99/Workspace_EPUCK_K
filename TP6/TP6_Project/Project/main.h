@@ -55,8 +55,9 @@ extern "C" {
 #define DEAD_ZONE_WIDTH				100
 
 //Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
+#define SHIFT_2						2
 #define SHIFT_3						3
-#define SHIFT_5						5
+#define SHIFT_6						6
 
 //Level des leds
 #define LED_ON						10

@@ -105,7 +105,7 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 
 			//Extract G6G5G4G3G2
-			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << 2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> 6);
+			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
 
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
@@ -346,7 +346,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 
 			//Extract G6G5G4G3G2
-			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << 2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> 6);
+			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
 
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
@@ -372,7 +372,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 			}
 			else {
 				if (color_idx == GREEN_IDX){
-					c = (((uint8_t)img_buff_ptr[i]&0x07) << 2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> 6);
+					c = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
 				}
 				else {
 					if (color_idx == BLUE_IDX){
