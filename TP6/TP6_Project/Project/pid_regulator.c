@@ -71,9 +71,9 @@ typedef struct {
 
 static CONTEXT_t rolling_context;
 
-
-
 static uint8_t POSITION_REACHED = 0;
+
+static int16_t speed = 2;
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
@@ -130,7 +130,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 
     	switch(rolling_context.mode){
     	case STRAIGHT_LINE :
-    		//dosmth();
+    		move_straight_backwards();
     		break;
     	case GO_BACK_10cm :
     		//dosmth();
@@ -187,7 +187,6 @@ void move_straight_backwards(void){
 			rolling_context.mode = GO_BACK_10cm;
 		}
 		else {
-			int16_t speed = 0;
 			color_index_t color = get_color();
 			switch (color)
 			{
@@ -220,6 +219,10 @@ void move_straight_backwards(void){
 
 }
 
+void prepare_to_follow_line(void){
+	motor_set_position(10, 10, speed, speed);
+	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+}
 
 void pid_regulator_start(void){
 	init_context();
@@ -306,3 +309,28 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 		}
 	}
 }
+
+
+//void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
+//
+	// start_move as static
+//	if (start_move == 0){
+//	left_motor_set_pos(0);
+//	right_motor_set_pos(0);
+//
+//	int position_to_reach_left = cm_to_step(position_l);
+//	int position_to_reach_right = - cm_to_step(position_r);
+//
+//
+//	left_motor_set_speed(cms_to_steps(speed_l));
+//	right_motor_set_speed(cms_to_steps(speed_r));
+//	start_move = 1;
+//
+//	}
+//
+//	if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
+//		left_motor_set_speed(0);
+//		right_motor_set_speed(0);
+//	}
+//
+//}
