@@ -11,12 +11,6 @@ extern "C" {
 
 #define TUNE
 
-//Adjust Color detection settings after tuning (uncomment only one) :
-//#define USE_ONLY_MAX
-#define USE_ONLY_MEAN
-//#define USE_MAX_N_MEAN
-
-
 //constants for the differents parts of the project
 #define PI                 			3.1415926536f
 

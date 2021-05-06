@@ -9,8 +9,11 @@
 #include <camera/po8030.h>
 #include <selector.h>
 
-static visualize_mode_t send_data = NO_VISUALIZE_PARAMS;
+//After tuning adjust to the desired detection mode
 static detect_mode_t detection = MAX_ONLY;
+//To visualize maxs, means and counts for each color
+static visualize_mode_t send_data = NO_VISUALIZE_PARAMS;
+
 
 static color_index_t color_idx = 0;
 static uint8_t threshold_color = 0;
