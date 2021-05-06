@@ -63,7 +63,7 @@ int main(void)
 
 #ifdef TUNNING_MODE
 	//Contrast level, camera line index, detect_mode, send_data_to_computer
-	struct tunning_config tunning = {85, 400, MEAN_ONLY, false};
+	struct tunning_config tunning = {CONTRAST, LINE_IDX_TOP, MEAN_ONLY, false};
 	tune_image_start(tunning);
 #else
 	//inits the motors

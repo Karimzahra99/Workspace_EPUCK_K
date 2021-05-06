@@ -57,6 +57,9 @@ struct tunning_config {
 #define TOP							0
 #define BOTTOM						1
 
+//Contrast of camera
+#define CONTRAST					85
+
 //Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
 #define MIN_COUNT					5
 
