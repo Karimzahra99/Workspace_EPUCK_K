@@ -59,7 +59,7 @@ int16_t pid_regulator(float middle){
 
 	last_error = error;
 
-	speed = 2 * error + 0.01 * sum_error; //+ KD * derivative;
+	speed = 0.2 * error + 0.02 * sum_error; //+ 0.01 * derivative;//+ 0.08 * derivative; ; //+ 0.01* sum_error ; //+ 0.1 * derivative; + 0.01* sum_error +
 
     return (int16_t)speed;
 }
@@ -89,33 +89,33 @@ static THD_FUNCTION(PidRegulator, arg) {
     	switch (get_color())
     	{
     	case 0:
-    		speed = cms_to_steps(0);
+    		speed = 0;
     		break;
     	case 1: //RED
-    		speed = cms_to_steps(1);
+    		speed = 200;
     		break;
     	case 2: //GREEN
-    		speed = cms_to_steps(3);
+    		speed = 0;
     		break;
     	case 3: //BLUE
-    		speed = cms_to_steps(5);
+    		speed = 500;
     		break;
     	default:
-    		speed = cms_to_steps(2);
+    		speed = 0;
     		break;
     	}
 
     	speed_correction = pid_regulator(get_middle_line());
 
 //    	// if the line is nearly in front of the camera, don't rotate
-//    	if(abs(speed_correction) < 5){
+//    	if(abs(speed_correction) < 10){
 //    		speed_correction = 0;
 //    	}
 
-    	//applies the speed from the PI regulator and the correction for the rotation
-    	//?
-    	left_motor_set_speed(-speed + speed_correction);
-    	right_motor_set_speed(-speed - speed_correction);
+        //applies the speed from the PI regulator and the correction for the rotation
+		right_motor_set_speed(speed - 2*speed_correction);
+		left_motor_set_speed(speed + 2*speed_correction);
+
 //    }
 
     //Obstacle Avoidance

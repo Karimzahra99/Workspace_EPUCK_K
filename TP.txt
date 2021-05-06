@@ -1,4 +1,4 @@
-Github branching : https://idratherbewriting.com/learnapidoc/pubapis_github_desktop_client.html
+cGithub branching : https://idratherbewriting.com/learnapidoc/pubapis_github_desktop_client.html
 https://git-scm.com/book/en/v2
 https://the-turing-way.netlify.app/reproducible-research/vcs/vcs-workflow.html
 https://education.github.com/git-cheat-sheet-education.pdf
@@ -717,4 +717,7 @@ Karim Epuck 2 monitor :
 /usr/local/bin/dfu-util -d 0483:df11 -a 0 -s 0x08000000 -D /Users/karimzahra/Downloads/e-puck2_main-processor.bin
 Reset avec selector position 8
 /dev/cu.usbmodem3011
+Blutoth
+/dev/cu.e-puck2_04099-GDB
+
 
