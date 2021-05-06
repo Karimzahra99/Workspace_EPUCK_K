@@ -11,10 +11,10 @@
 //Color detection settings (uncomment only one) :
 
 //Identify color only using max values
-#define USE_ONLY_MAX
+//#define USE_ONLY_MAX
 
 //Identify color only using mean values
-//#define USE_ONLY_MEAN
+#define USE_ONLY_MEAN
 
 //Identify color using max and mean values
 //#define USE_MAX_N_MEAN
@@ -25,7 +25,7 @@
 //Unomment to send general color data (max, mean, count) to Realterm or Screen
 //#define SEND_DATA
 
-#define CONTRAST 			90 //default constrast is 64
+#define CONTRAST 			85 //default constrast is 64
 
 void find_color(void);
 void set_threshold_color(int selector_pos);
