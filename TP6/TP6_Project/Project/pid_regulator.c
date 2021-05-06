@@ -88,6 +88,9 @@ static THD_FUNCTION(PidRegulator, arg) {
     	chprintf((BaseSequentialStream *)&SD3, "MidDif =%-7d Rolling Mode =%-7d \r\n\n",
     			get_middle_diff(), rolling_mode);
 
+    	chprintf((BaseSequentialStream *)&SD3, "MidTop =%-7d MidBot =%-7d \r\n\n",
+    			get_middle_top(),get_middle_top());
+
     	// Removed rolling_mode == 0 as condition
 		if ((ir_front_left > IR_THRESHOLD) && (ir_front_right > IR_THRESHOLD)) {
 			rolling_mode = 2;
@@ -146,7 +149,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 				if (start_move == 0){
 					motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
-					motor_set_position(20, 20, -speed, -speed);
+					motor_set_position(10, 10, -speed, -speed);
 					right_motor_set_speed(0);
 					left_motor_set_speed(0);
 					start_move = 1;
