@@ -23,7 +23,6 @@
 //Pour trouver le milieu de la ligne, condition sur largeur de ligne et "trous" dans une ligne
 #define MIN_LINE_WIDTH				70
 #define MIN_HOLE_WIDTH				20
-#define DEAD_ZONE_WIDTH				100
 
 //Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
 #define SHIFT_2						2

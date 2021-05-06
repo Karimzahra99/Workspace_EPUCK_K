@@ -31,6 +31,11 @@
 #define LED_ON						10
 #define LED_OFF						0
 
+//Color speeds
+#define LOW_SPEED					2
+#define MEDIUM_SPEED				4
+#define HIGH_SPEED 					6
+
 typedef enum {
 	LED_RGB_2 = 0,
 	LED_RGB_4,
@@ -178,10 +183,11 @@ void move_straight_backwards(void){
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
-		if (midd_diff){
-
+		if (get_middle_diff()>DEAD_ZONE_WIDTH){
+			rolling_context.mode = GO_BACK_10cm;
 		}
 		else {
+			int16_t speed = 0;
 			color_index_t color = get_color();
 			switch (color)
 			{
@@ -191,21 +197,21 @@ void move_straight_backwards(void){
 				break;
 			case 1: //RED
 				set_leds(color);
-				speed = cms_to_steps(2);
+				speed = cms_to_steps(LOW_SPEED);
 				break;
 			case 2: //GREEN
 				set_leds(color);
-				speed = cms_to_steps(4);
+				speed = cms_to_steps(MEDIUM_SPEED);
 				break;
 			case 3: //BLUE
 				set_leds(color);
-				speed = cms_to_steps(6);
+				speed = cms_to_steps(HIGH_SPEED);
 				break;
 			default:
-				speed = cms_to_steps(1.3);
+				speed = cms_to_steps(MEDIUM_SPEED);
 				break;
 			}
-
+			//rolling backwards
 			right_motor_set_speed(-speed);
 			left_motor_set_speed(-speed);
 

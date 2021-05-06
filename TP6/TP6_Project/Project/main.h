@@ -21,6 +21,9 @@ extern "C" {
 //Contrast of camera
 #define CONTRAST					85
 
+//Difference between middle top and bottom line neglected
+#define DEAD_ZONE_WIDTH				100
+
 
 typedef enum {
 	MAX_ONLY = 0,
