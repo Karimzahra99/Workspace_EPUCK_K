@@ -10,17 +10,8 @@
 #include <tune_camera.h>
 #include <selector.h>
 
-//	Color detection settings (uncomment only one) :
-//Identify color only using max values
-
-//Identify color only using mean values
-//#define USE_MEAN
-//Identify color using max and mean values
-//#define USE_MAX_N_MEAN
-
 static uint8_t threshold_color = 0;
 
-//mettre dans des structures ?
 static uint16_t count_red  = 0;
 static uint16_t count_green  = 0;
 static uint16_t count_blue = 0;
@@ -32,6 +23,7 @@ static uint8_t max_blue = 0;
 static uint8_t mean_red  = 0;
 static uint8_t mean_green  = 0;
 static uint8_t mean_blue = 0;
+
 static uint8_t image_red[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_green[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_blue[IMAGE_BUFFER_SIZE] = {0};
@@ -450,23 +442,19 @@ void tune_find_color(void){
 
 void set_detect_mode(detect_mode_t detection_mode){
 	if (detection_mode == MAX_ONLY){
-#define USE_MAX
+		#define USE_MAX
 	}
 	else {
 		if (detection_mode == MEAN_ONLY){
-#define USE_MEAN
+			#define USE_MEAN
 		}
 		else {
-#define USE_MAX_N_MEAN
+			#define USE_MAX_N_MEAN
 		}
 	}
-
-
 }
 void set_data_bool(bool send_data){
-
 	if (send_data) {
-#define SEND_DATA
+		#define SEND_DATA
 	}
-
 }

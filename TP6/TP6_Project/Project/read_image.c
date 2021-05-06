@@ -63,9 +63,9 @@ static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
 
 /*
-* Returns the line's width extracted from the image buffer given
-* Returns 0 if line not found
-*/
+ * Returns the line's width extracted from the image buffer given
+ * Returns 0 if line not found
+ */
 uint16_t calc_middle(uint8_t *buffer){
 
 	uint16_t start_p = 0;
@@ -142,46 +142,46 @@ uint16_t calc_middle(uint8_t *buffer){
 static THD_WORKING_AREA(waCaptureImage, 512);
 static THD_FUNCTION(CaptureImage, arg) {
 
-    chRegSetThreadName(__FUNCTION__);
+	chRegSetThreadName(__FUNCTION__);
 
-    (void)arg;
+	(void)arg;
 
 	while(1){
 
 		//Line index 413 detecting colors goes wrong
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
-			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-			dcmi_enable_double_buffering();
-			dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-			dcmi_prepare();
-			po8030_set_awb(0);
-			//po8030_set_mirror(0, 1);
-			po8030_set_contrast(CONTRAST);
+		po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+		dcmi_enable_double_buffering();
+		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+		dcmi_prepare();
+		po8030_set_awb(0);
+		//po8030_set_mirror(0, 1);
+		po8030_set_contrast(CONTRAST);
 
-			//starts a capture
-			dcmi_capture_start();
-			//waits for the capture to be done
-			wait_image_ready(); //fait l'attente dans le while(1)
+		//starts a capture
+		dcmi_capture_start();
+		//waits for the capture to be done
+		wait_image_ready(); //fait l'attente dans le while(1)
 
-			//signals an image has been captured
-			chBSemSignal(&image_ready_sem);
+		//signals an image has been captured
+		chBSemSignal(&image_ready_sem);
 
-			po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-			dcmi_enable_double_buffering();
-			dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-			dcmi_prepare();
-			po8030_set_awb(0);
-			//po8030_set_mirror(0, 1);
-			po8030_set_contrast(CONTRAST);
+		po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+		dcmi_enable_double_buffering();
+		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+		dcmi_prepare();
+		po8030_set_awb(0);
+		//po8030_set_mirror(0, 1);
+		po8030_set_contrast(CONTRAST);
 
-			//starts a capture
-			dcmi_capture_start();
-			//waits for the capture to be done
-			wait_image_ready(); //fait l'attente dans le while(1)
+		//starts a capture
+		dcmi_capture_start();
+		//waits for the capture to be done
+		wait_image_ready(); //fait l'attente dans le while(1)
 
-			//signals an image has been captured
-			chBSemSignal(&image_ready_sem_2);
+		//signals an image has been captured
+		chBSemSignal(&image_ready_sem_2);
 
 	}
 
@@ -192,7 +192,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 
 	chRegSetThreadName(__FUNCTION__);
-    (void)arg;
+	(void)arg;
 
 	uint8_t *img_buff_ptr;
 
@@ -200,9 +200,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 	bool send_to_computer = true; //to use plot_image.py
 #endif
 
-    while(1){
-    	//waits until an image has been captured
-        chBSemWait(&image_ready_sem);
+	while(1){
+		//waits until an image has been captured
+		chBSemWait(&image_ready_sem);
 
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
@@ -291,41 +291,35 @@ uint16_t get_middle_bot(void) {
 
 void calc_line_middle(uint8_t alternator){
 
-//	chprintf((BaseSequentialStream *)&SD3, "Alternator =%-7d \r\n\n",
-//	               alternator);
-//
-//	chprintf((BaseSequentialStream *)&SD3, "Couleur =%-7d \r\n\n",
-//		               color_idx);
-
 	if (alternator == TOP){
-	if (color_idx == RED_IDX){
-		middle_line_top = calc_middle(image_red);
-	}
-	else {
-		if (color_idx == GREEN_IDX){
-			middle_line_top = calc_middle(image_green);
+		if (color_idx == RED_IDX){
+			middle_line_top = calc_middle(image_red);
 		}
-
 		else {
-			if (color_idx == BLUE_IDX){
-				middle_line_top = calc_middle(image_blue);
+			if (color_idx == GREEN_IDX){
+				middle_line_top = calc_middle(image_green);
+			}
+
+			else {
+				if (color_idx == BLUE_IDX){
+					middle_line_top = calc_middle(image_blue);
+				}
 			}
 		}
-	}
 
 
 
-//		chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
+		//		chprintf((BaseSequentialStream *)&SD3, "Setting TOP \r\n\n");
 	}
 	else {
 		middle_line_bot = calc_middle(image_bot);
 
-//		chprintf((BaseSequentialStream *)&SD3, "Setting BOT \r\n\n");
+		//		chprintf((BaseSequentialStream *)&SD3, "Setting BOT \r\n\n");
 	}
 
 
-//	chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
-//	                get_middle_top(),get_middle_bot());
+	//	chprintf((BaseSequentialStream *)&SD3, "Middle TOP =%-7d Middle BOT =%-7d \r\n\n",
+	//	                get_middle_top(),get_middle_bot());
 }
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
@@ -457,22 +451,14 @@ void calc_max_mean(void){
 		}
 	}
 
-//	chprintf((BaseSequentialStream *)&SD3, "%R Temp =%-7d G Temp =%-7d B Temp =%-7d %R C =%-7d G C =%-7d B C =%-7d \r\n\n",
-//						              temp_r,temp_g,temp_b,count_r,count_g,count_b);
 
 	mean_red = temp_r / count_r;
 	mean_green = temp_g / count_g;
 	mean_blue = temp_b / count_b;
 
-//	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-//					              mean_red, mean_green, mean_blue);
-
 	max_red = max_r;
 	max_green = max_g;
 	max_blue = max_b;
-
-//	chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-//						              max_red, max_green, max_blue);
 
 }
 
@@ -498,9 +484,6 @@ void max_count(void){
 	count_green = count_g;
 	count_blue = count_b;
 
-//	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-//						              count_red, count_green, count_blue);
-
 }
 
 #ifdef USE_MAX_N_MEAN
@@ -521,20 +504,20 @@ void find_color(void){
 			}
 			else {
 				//chprintf((BaseSequentialStream *)&SD3, "Resetting \n\n");
-					color_idx = NO_COLOR;
+				color_idx = NO_COLOR;
 			}
 		}
 	}
 
 #ifdef SEND_DATA
-		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-							              max_red, max_green, max_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+			max_red, max_green, max_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-							              mean_red, mean_green, mean_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+			mean_red, mean_green, mean_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-								              count_red, count_green, count_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+			count_red, count_green, count_blue);
 #endif
 
 }
@@ -555,20 +538,20 @@ void find_color(void){
 				color_idx = BLUE_IDX;
 			}
 			else {
-					color_idx = NO_COLOR;
+				color_idx = NO_COLOR;
 			}
 		}
 	}
 
 #ifdef SEND_DATA
-		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-							              max_red, max_green, max_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+			max_red, max_green, max_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-							              mean_red, mean_green, mean_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+			mean_red, mean_green, mean_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-								              count_red, count_green, count_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+			count_red, count_green, count_blue);
 #endif
 }
 #endif
@@ -588,19 +571,19 @@ void find_color(void){
 				color_idx = BLUE_IDX;
 			}
 			else {
-					color_idx = NO_COLOR;
+				color_idx = NO_COLOR;
 			}
 		}
 	}
 #ifdef SEND_DATA
-			chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-								              max_red, max_green, max_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+			max_red, max_green, max_blue);
 
-			chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-								              mean_red, mean_green, mean_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+			mean_red, mean_green, mean_blue);
 
-			chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-									              count_red, count_green, count_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+			count_red, count_green, count_blue);
 #endif
 }
 #endif

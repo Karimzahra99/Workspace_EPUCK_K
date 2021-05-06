@@ -18,16 +18,11 @@
 #include <tune_camera.h>
 #include "read_image.h"
 
-// uncomment to tune the camera settings : detection method and contrast
-#define TUNNING_MODE
 
-//Functions for communication and visualization
-void SendUint8ToComputer(uint8_t* data, uint16_t size) 
-{
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
-}
+messagebus_t bus;
+MUTEX_DECL(bus_lock);
+CONDVAR_DECL(bus_condvar);
+
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = {
@@ -40,9 +35,8 @@ static void serial_start(void)
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
 
-messagebus_t bus;
-MUTEX_DECL(bus_lock);
-CONDVAR_DECL(bus_condvar);
+// uncomment to tune the camera settings : detection method and contrast
+#define TUNNING_MODE
 
 int main(void)
 {
@@ -98,4 +92,12 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 void __stack_chk_fail(void)
 {
 	chSysHalt("Stack smashing detected");
+}
+
+//Functions for communication and visualization
+void SendUint8ToComputer(uint8_t* data, uint16_t size)
+{
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
 }

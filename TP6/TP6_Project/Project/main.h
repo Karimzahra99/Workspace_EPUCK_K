@@ -10,9 +10,9 @@ extern "C" {
 #include "parameter/parameter.h"
 
 typedef enum {
-    MAX_ONLY = 0,
-    MEAN_ONLY,
-    MAX_N_MEAN
+	MAX_ONLY = 0,
+	MEAN_ONLY,
+	MAX_N_MEAN
 } detect_mode_t;
 
 struct tunning_config {
