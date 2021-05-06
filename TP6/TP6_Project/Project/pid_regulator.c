@@ -11,6 +11,19 @@
 
 #include "read_image.h"
 
+typedef enum {
+	STRAIGHT_LINE = 0,
+	GO_BACK_10cm,
+	TURN_180deg,
+	TURNING_PID,
+	OBS_AVOIDANCE,
+	GO_BACK_5cm,
+	TURN_ANGLE,
+} STATE_t;
+
+
+
+
 static uint8_t rolling_mode = 0;//0 = rolling backwards in strait line, 1 = rolling frontwards for turns, 2 = obstacle mode
 // remove caps its not a define
 static uint8_t POSITION_REACHED = 0;
