@@ -21,8 +21,12 @@ typedef enum {
 	TURN_ANGLE,
 } STATE_t;
 
+typedef struct {
+	STATE_t mode;
+	uint32_t counter;
+}CONTEXT_t;
 
-
+static CONTEXT_t rolling_context;
 
 static uint8_t rolling_mode = 0;//0 = rolling backwards in strait line, 1 = rolling frontwards for turns, 2 = obstacle mode
 // remove caps its not a define

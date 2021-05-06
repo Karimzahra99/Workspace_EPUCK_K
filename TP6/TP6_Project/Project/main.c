@@ -63,6 +63,7 @@ int main(void)
 
 #ifdef TUNNING_MODE
 	//Contrast level, camera line index, detect_mode, send_data_to_computer
+	//Adjust Contrast and Line_Idx in Main.h, for detection_mode adjust in read_image.c directly
 	struct tunning_config tunning = {CONTRAST, LINE_IDX_TOP, MEAN_ONLY, false};
 	tune_image_start(tunning);
 #else
