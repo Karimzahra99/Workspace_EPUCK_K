@@ -154,14 +154,9 @@ static THD_FUNCTION(PidRegulator, arg) {
     		break;
     	}
 
-        //100Hz
-        chThdSleepUntilWindowed(time, time + MS2ST(10));
+    	//100Hz
+    	chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
-}
-
-void move_straight_backwards(CONTEXT_t rolling_situation){
-
-
 }
 
 bool check_ir_front(void){
@@ -177,6 +172,48 @@ void init_context(void){
 	rolling_context.mode = STRAIGHT_LINE;
 	rolling_context.counter = 0;
 }
+
+void move_straight_backwards(void){
+	if (check_ir_front()){
+		rolling_context.mode = OBS_AVOIDANCE;
+	}
+	else {
+		if (midd_diff){
+
+		}
+		else {
+			color_index_t color = get_color();
+			switch (color)
+			{
+			case 0: //NO COLOR
+				set_leds(color);
+				speed = 0;
+				break;
+			case 1: //RED
+				set_leds(color);
+				speed = cms_to_steps(2);
+				break;
+			case 2: //GREEN
+				set_leds(color);
+				speed = cms_to_steps(4);
+				break;
+			case 3: //BLUE
+				set_leds(color);
+				speed = cms_to_steps(6);
+				break;
+			default:
+				speed = cms_to_steps(1.3);
+				break;
+			}
+
+			right_motor_set_speed(-speed);
+			left_motor_set_speed(-speed);
+
+		}
+	}
+
+}
+
 
 void pid_regulator_start(void){
 	init_context();
