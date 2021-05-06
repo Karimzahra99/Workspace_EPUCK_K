@@ -16,12 +16,6 @@ extern "C" {
 #define USE_ONLY_MEAN
 //#define USE_MAX_N_MEAN
 
-//Uncomment to use plot_image.py :
-//#define PLOT_ON_COMPUTER
-
-//Unomment to send general color data (max, mean, count) to Realterm or Screen from read_image.c
-//#define SEND_DATA
-
 
 //constants for the differents parts of the project
 #define PI                 			3.1415926536f
@@ -114,7 +108,7 @@ struct tunning_config {
 	uint8_t contrast;
 	uint16_t line_idx;
 	detect_mode_t detection_mode;
-	image_color_t image_col;
+	color_index_t color_idx;
 	visualize_mode_t send_data_terminal;
 };
 

@@ -4,12 +4,15 @@
 #include <chprintf.h>
 #include <usbcfg.h>
 #include <string.h>
+#include <stdbool.h>
 #include <main.h>
 #include <camera/po8030.h>
 #include <selector.h>
 
+static visualize_mode_t send_data = NO_VISUALIZE_PARAMS;
+static detect_mode_t detection = MAX_ONLY;
 
-static color_idx_t color_idx = 0;
+static color_index_t color_idx = 0;
 static uint8_t threshold_color = 0;
 
 static uint16_t count_red  = 0;
@@ -41,7 +44,7 @@ uint8_t get_color(void);
 //semaphore
 static BSEMAPHORE_DECL(tune_image_ready_sem, TRUE);
 
-// Tunning threads and functions
+// Tuning threads and functions
 static THD_WORKING_AREA(waTuneCaptureImage, 256);
 static THD_FUNCTION(TuneCaptureImage, arg) {
 
@@ -83,7 +86,7 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 	bool send_to_computer = true;
 
 	struct tunning_config *tune = (struct tunning_config *)arg;
-	image_color_t color_index = tune->image_col;
+	color_index_t color_index = tune->color_idx;
 
 	while(1){
 		//waits until an image has been captured
@@ -110,13 +113,14 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 		calc_max_mean();
 		max_count();
+		find_color();
 
 		//To visualize one image on computer with plotImage.py
 		if(send_to_computer){
 			//sends to the computer the image
-			if (color_index == RED_IMAGE) SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
-			if (color_index == GREEN_IMAGE) SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
-			if (color_index == BLUE_IMAGE) SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
+			if (color_index == RED_IDX) SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
+			if (color_index == GREEN_IDX) SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
+			if (color_index == BLUE_IDX) SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
 		}
 
 		//invert the bool
@@ -129,9 +133,14 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 void tune_image_start(struct tunning_config arg_tune_settings){
 	chThdCreateStatic(waTuneProcessImage, sizeof(waTuneProcessImage), NORMALPRIO, TuneProcessImage, &arg_tune_settings);
 	chThdCreateStatic(waTuneCaptureImage, sizeof(waTuneCaptureImage), NORMALPRIO, TuneCaptureImage, &arg_tune_settings);
+	send_data = arg_tune_settings.send_data_terminal;
+	detection = arg_tune_settings.detection_mode;
 }
 
 #else
+//Uncomment to use plot_image.py for debug
+//#define PLOT_ON_COMPUTER
+
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
@@ -395,21 +404,6 @@ void read_image_start(void){
 #endif
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
 	//filtering noise for each color
 	if (red_value > threshold_color){
@@ -569,8 +563,11 @@ void max_count(void){
 
 }
 
-#ifdef USE_MAX_N_MEAN
-void find_color(void){
+uint8_t get_color(void){
+	return color_idx;
+}
+
+void find_color_mean(void){
 
 	if ((((max_red > max_green) && (max_red > max_blue)) || ((mean_red > mean_green) && (mean_red > mean_blue))) && (count_red > MIN_COUNT)){
 		color_idx = RED_IDX;
@@ -591,22 +588,20 @@ void find_color(void){
 		}
 	}
 
-#ifdef SEND_DATA
-	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-			max_red, max_green, max_blue);
+	if(send_data){
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+				max_red, max_green, max_blue);
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-			mean_red, mean_green, mean_blue);
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+				mean_red, mean_green, mean_blue);
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-			count_red, count_green, count_blue);
-#endif
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+				count_red, count_green, count_blue);
+	}
 
 }
-#endif
 
-#ifdef USE_ONLY_MAX
-void find_color(void){
+void find_color_max(void){
 
 	if (((max_red > max_green) && (max_red > max_blue)) && (count_red > MIN_COUNT)){
 		color_idx = RED_IDX;
@@ -625,21 +620,20 @@ void find_color(void){
 		}
 	}
 
-#ifdef SEND_DATA
-	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-			max_red, max_green, max_blue);
+	if(send_data){
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+				max_red, max_green, max_blue);
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-			mean_red, mean_green, mean_blue);
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+				mean_red, mean_green, mean_blue);
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-			count_red, count_green, count_blue);
-#endif
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+				count_red, count_green, count_blue);
+	}
 }
-#endif
 
-#ifdef USE_ONLY_MEAN
-void find_color(void){
+
+void find_color_max_n_mean(void){
 
 	if (((mean_red > mean_green) && (mean_red > mean_blue)) && (count_red > MIN_COUNT)){
 		color_idx = RED_IDX;
@@ -657,21 +651,34 @@ void find_color(void){
 			}
 		}
 	}
-#ifdef SEND_DATA
-	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-			max_red, max_green, max_blue);
+	if(send_data){
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+				max_red, max_green, max_blue);
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-			mean_red, mean_green, mean_blue);
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+				mean_red, mean_green, mean_blue);
 
-	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-			count_red, count_green, count_blue);
-#endif
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+				count_red, count_green, count_blue);
+	}
+
 }
-#endif
 
-
-uint8_t get_color(void){
-	return color_idx;
+void find_color(void){
+	switch(detection){
+	case MAX_ONLY:
+		find_color_max();
+		break;
+	case MEAN_ONLY:
+		find_color_mean();
+		break;
+	case MAX_N_MEAN:
+		find_color_max_n_mean();
+		break;
+	default:
+		find_color_max();
+		break;
+	}
 }
+
 

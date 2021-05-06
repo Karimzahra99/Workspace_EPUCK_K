@@ -57,17 +57,18 @@ int main(void)
 	dcmi_start();
 	po8030_start();
 
-#ifdef TUNE //TUNE is defined in main.h
+	//TUNE is defined in main.h
+#ifdef TUNE
 	//Contrast level, camera line index, detect_mode, image color, visualize parameters such as means, maxs, counts on terminal
 	//Adjust Contrast, Line_Idx and detection mode  in Main.h
-	struct tunning_config tunning = {CONTRAST, LINE_INDEX_TOP, MEAN_ONLY, RED_IMAGE, NO_VISUALIZE_PARAMS};
+	struct tunning_config tunning = {CONTRAST, LINE_INDEX_TOP, MEAN_ONLY, RED_IDX, NO_VISUALIZE_PARAMS};
 	tune_image_start(tunning);
+
 #else
 	//inits the motors
 	motors_init();
 	//For RGB LEDS
 	spi_comm_start();
-
 
 	//stars the threads for the pid regulator and the processing of the image
 	pid_regulator_start();

@@ -97,11 +97,11 @@ static THD_FUNCTION(PidRegulator, arg) {
     while(1){
     	time = chVTGetSystemTime();
 
-    	int ir_front_left = get_prox(Sensor_IR3);
-    	int ir_front_right = get_prox(Sensor_IR4);
+    	int ir_front_left = get_prox(SENSOR_IR3);
+    	int ir_front_right = get_prox(SENSOR_IR4);
 
     	chprintf((BaseSequentialStream *)&SD3, "IRL =%-7d IRR =%-7d \r\n\n",
-    			get_prox(Sensor_IR3), get_prox(Sensor_IR4));
+    			get_prox(SENSOR_IR3), get_prox(SENSOR_IR4));
 
     	chprintf((BaseSequentialStream *)&SD3, "MidDif =%-7d Rolling Mode =%-7d \r\n\n",
     			get_middle_diff(), rolling_mode);
@@ -226,7 +226,7 @@ float cm_to_step (float cm) {
 	return cm * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
-void set_leds(uint8_t color_index){
+void set_leds(color_index_t color_index){
 	if (color_index == RED_IDX){
 		set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
 		set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_OFF);
