@@ -8,36 +8,8 @@
 #include <camera/po8030.h>
 #include <selector.h>
 
-//Color detection settings (uncomment only one) :
 
-//Identify color only using max values
-//#define USE_ONLY_MAX
-
-//Identify color only using mean values
-#define USE_ONLY_MEAN
-
-//Identify color using max and mean values
-//#define USE_MAX_N_MEAN
-
-//Uncomment to use plot_image.py :
-//#define PLOT_ON_COMPUTER
-
-//Unomment to send general color data (max, mean, count) to Realterm or Screen
-//#define SEND_DATA
-
-
-void find_color(void);
-void set_threshold_color(int selector_pos);
-void calc_max_mean(void);
-void max_count(void);
-void calc_line_middle(uint8_t alternator);
-void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
-uint8_t filter_noise_single(uint8_t couleur);
-
-static uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
-static uint16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
-
-static uint8_t color_idx = 0; //0 = NO_COLOR, 1 = RED, 2 = GREEN, 3 = BLUE
+static color_idx_t color_idx = 0;
 static uint8_t threshold_color = 0;
 
 static uint16_t count_red  = 0;
@@ -51,20 +23,127 @@ static uint8_t max_blue = 0;
 static uint8_t mean_red  = 0;
 static uint8_t mean_green  = 0;
 static uint8_t mean_blue = 0;
+
 static uint8_t image_red[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_green[IMAGE_BUFFER_SIZE] = {0};
 static uint8_t image_blue[IMAGE_BUFFER_SIZE] = {0};
 
-static uint8_t image_bot[IMAGE_BUFFER_SIZE] = {0};
 
+void find_color(void);
+void set_threshold_color(int selector_pos);
+void calc_max_mean(void);
+void max_count(void);
+void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
+uint8_t get_color(void);
+
+
+#ifdef TUNE
+//semaphore
+static BSEMAPHORE_DECL(tune_image_ready_sem, TRUE);
+
+// Tunning threads and functions
+static THD_WORKING_AREA(waTuneCaptureImage, 256);
+static THD_FUNCTION(TuneCaptureImage, arg) {
+
+	chRegSetThreadName(__FUNCTION__);
+
+	struct tunning_config *tune = (struct tunning_config *)arg;
+	uint8_t contr = tune->contrast;
+	uint16_t idx = tune->line_idx;
+
+	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
+	po8030_advanced_config(FORMAT_RGB565, 0, idx, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+
+	dcmi_enable_double_buffering();
+	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+	dcmi_prepare();
+	po8030_set_awb(0);
+	po8030_set_contrast(contr);
+
+	while(1){
+		//starts a capture
+		dcmi_capture_start();
+		//waits for the capture to be done
+		wait_image_ready();
+		//signals an image has been captured
+		chBSemSignal(&tune_image_ready_sem);
+	}
+
+}
+
+static THD_WORKING_AREA(waTuneProcessImage, 1024);
+static THD_FUNCTION(TuneProcessImage, arg) {
+
+
+	chRegSetThreadName(__FUNCTION__);
+	(void)arg;
+
+	uint8_t *img_buff_ptr;
+
+	bool send_to_computer = true;
+
+	struct tunning_config *tune = (struct tunning_config *)arg;
+	image_color_t color_index = tune->image_col;
+
+	while(1){
+		//waits until an image has been captured
+		chBSemWait(&tune_image_ready_sem);
+		//gets the pointer to the array filled with the last image in RGB565
+		img_buff_ptr = dcmi_get_last_image_ptr();
+
+		set_threshold_color(get_selector());
+
+		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
+
+			//extracting red 5 bits and shifting them right
+			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
+
+			//Extract G6G5G4G3G2
+			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << 2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> 6);
+
+			//extracting blue 5 bits
+			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
+
+			filter_noise(i, r, g, b);
+
+		}
+
+		calc_max_mean();
+		max_count();
+
+		//To visualize one image on computer with plotImage.py
+		if(send_to_computer){
+			//sends to the computer the image
+			if (color_index == RED_IMAGE) SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
+			if (color_index == GREEN_IMAGE) SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
+			if (color_index == BLUE_IMAGE) SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
+		}
+
+		//invert the bool
+		send_to_computer = !send_to_computer;
+
+	}
+
+}
+
+void tune_image_start(struct tunning_config arg_tune_settings){
+	chThdCreateStatic(waTuneProcessImage, sizeof(waTuneProcessImage), NORMALPRIO, TuneProcessImage, &arg_tune_settings);
+	chThdCreateStatic(waTuneCaptureImage, sizeof(waTuneCaptureImage), NORMALPRIO, TuneCaptureImage, &arg_tune_settings);
+}
+
+#else
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
 
-/*
- * Returns the line's width extracted from the image buffer given
- * Returns 0 if line not found
- */
+void calc_line_middle(uint8_t alternator);
+uint8_t filter_noise_single(uint8_t couleur);
+
+static uint8_t image_bot[IMAGE_BUFFER_SIZE] = {0};
+static uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
+static uint16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
+
+
 uint16_t calc_middle(uint8_t *buffer){
 
 	uint16_t start_p = 0;
@@ -137,6 +216,49 @@ uint16_t calc_middle(uint8_t *buffer){
 	return (end_n+start_n)/2;
 }
 
+
+void calc_line_middle(uint8_t alternator){
+
+	if (alternator == TOP){
+		if (color_idx == RED_IDX){
+			middle_line_top = calc_middle(image_red);
+		}
+		else {
+			if (color_idx == GREEN_IDX){
+				middle_line_top = calc_middle(image_green);
+			}
+
+			else {
+				if (color_idx == BLUE_IDX){
+					middle_line_top = calc_middle(image_blue);
+				}
+			}
+		}
+
+	}
+	else {
+		middle_line_bot = calc_middle(image_bot);
+	}
+}
+
+uint8_t filter_noise_single(uint8_t couleur){
+	if (couleur > threshold_color){
+		return couleur;
+	}
+	else return 0;
+}
+
+int16_t get_middle_diff(void) {
+	return middle_line_top-middle_line_bot;
+}
+
+uint16_t get_middle_top(void) {
+	return middle_line_top;
+}
+
+uint16_t get_middle_bot(void) {
+	return middle_line_bot;
+}
 
 static THD_WORKING_AREA(waCaptureImage, 512);
 static THD_FUNCTION(CaptureImage, arg) {
@@ -270,45 +392,23 @@ void read_image_start(void){
 
 }
 
-uint8_t get_color(void){
-	return color_idx;
-}
+#endif
 
-int16_t get_middle_diff(void) {
-	return middle_line_top-middle_line_bot;
-}
 
-uint16_t get_middle_top(void) {
-	return middle_line_top;
-}
 
-uint16_t get_middle_bot(void) {
-	return middle_line_bot;
-}
 
-void calc_line_middle(uint8_t alternator){
 
-	if (alternator == TOP){
-		if (color_idx == RED_IDX){
-			middle_line_top = calc_middle(image_red);
-		}
-		else {
-			if (color_idx == GREEN_IDX){
-				middle_line_top = calc_middle(image_green);
-			}
 
-			else {
-				if (color_idx == BLUE_IDX){
-					middle_line_top = calc_middle(image_blue);
-				}
-			}
-		}
 
-	}
-	else {
-		middle_line_bot = calc_middle(image_bot);
-	}
-}
+
+
+
+
+
+
+
+
+
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
 	//filtering noise for each color
@@ -328,12 +428,7 @@ void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_
 	else image_blue[index/2] = 0;
 }
 
-uint8_t filter_noise_single(uint8_t couleur){
-	if (couleur > threshold_color){
-		return couleur;
-	}
-	else return 0;
-}
+
 
 void set_threshold_color(int selector_pos){
 
@@ -574,4 +669,9 @@ void find_color(void){
 #endif
 }
 #endif
+
+
+uint8_t get_color(void){
+	return color_idx;
+}
 

@@ -9,18 +9,18 @@ extern "C" {
 #include "msgbus/messagebus.h"
 #include "parameter/parameter.h"
 
-typedef enum {
-	MAX_ONLY = 0,
-	MEAN_ONLY,
-	MAX_N_MEAN
-} detect_mode_t;
+#define TUNE
 
-struct tunning_config {
-	uint8_t contrast;
-	uint16_t line_idx;
-	detect_mode_t detection_mode;
-	bool send_data_terminal;
-};
+//Adjust Color detection settings after tuning (uncomment only one) :
+//#define USE_ONLY_MAX
+#define USE_ONLY_MEAN
+//#define USE_MAX_N_MEAN
+
+//Uncomment to use plot_image.py :
+//#define PLOT_ON_COMPUTER
+
+//Unomment to send general color data (max, mean, count) to Realterm or Screen from read_image.c
+//#define SEND_DATA
 
 
 //constants for the differents parts of the project
@@ -31,24 +31,21 @@ struct tunning_config {
 #define ROTATION_COEFF				2
 #define LINEWIDTH					100		//en fonction de la ligne imprimmer, a voir si utile
 #define TOLERANCE					3
+
+//PID Parameters
 #define ERROR_THRESHOLD				0.1f	//[cm] because of the noise of the camera
 #define KP							100.0f
 #define KI 							3.5f	//must not be zero
 #define KD							0.0f	//a tuner -> utiliser deuxieme methode de ZN avec Ku et Pu
 #define MAX_SUM_ERROR 				(MOTOR_SPEED_LIMIT/KI)
 
-
+//Distances parameters
 #define WHEEL_PERIMETER     		13 		//[cm]
 #define NSTEP_ONE_TURN      		1000	// number of step for 1 turn of the motor
 #define WHEEL_DISTANCE      		5.30f    //cm
 #define PERIMETER_EPUCK     		(PI * WHEEL_DISTANCE)
 
-#define Sensor_IR1					1
-#define Sensor_IR2					2
-#define Sensor_IR3					3
-#define Sensor_IR4					4
-#define Sensor_IR5					5
-#define Sensor_IR6					6
+//Threshold des IR
 #define	IR_THRESHOLD				250
 
 //Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
@@ -67,24 +64,59 @@ struct tunning_config {
 #define MIN_LINE_WIDTH				70
 #define MIN_HOLE_WIDTH				20
 #define DEAD_ZONE_WIDTH				100
+
 //Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
 #define SHIFT_3						3
 #define SHIFT_5						5
 
-//Index des couleurs / utiliser enum ?
-#define RED_IDX						1
-#define GREEN_IDX					2
-#define BLUE_IDX					3
-#define YELLOW_IDX					4
-#define PURPLE_IDX					5
-#define NO_COLOR					0
-
-#define LED_RGB_2					0
-#define LED_RGB_4					1
-#define LED_RGB_6					2
-#define LED_RGB_8					3
+//Level des leds
 #define LED_ON						10
 #define LED_OFF						0
+
+
+typedef enum {
+	MAX_ONLY = 0,
+	MEAN_ONLY,
+	MAX_N_MEAN
+} detect_mode_t;
+
+typedef enum {
+	NO_COLOR = 0,
+	RED_IDX,
+	GREEN_IDX,
+	BLUE_IDX,
+	YELLOW_IDX,
+	PURPLE_IDX
+} color_index_t;
+
+typedef enum {
+	SENSOR_IR1 = 1,
+	SENSOR_IR2,
+	SENSOR_IR3,
+	SENSOR_IR4,
+	SENSOR_IR5,
+	SENSOR_IR6
+} ir_sensors_index_t;
+
+typedef enum {
+	LED_RGB_2 = 0,
+	LED_RGB_4,
+	LED_RGB_6,
+	LED_RGB_8
+} rgb_leds_index_t;
+
+typedef enum {
+	NO_VISUALIZE_PARAMS = 0,
+	YES_VISUALIZE_PARAMS,
+} visualize_mode_t;
+
+struct tunning_config {
+	uint8_t contrast;
+	uint16_t line_idx;
+	detect_mode_t detection_mode;
+	image_color_t image_col;
+	visualize_mode_t send_data_terminal;
+};
 
 
 /** Robot wide IPC bus. */

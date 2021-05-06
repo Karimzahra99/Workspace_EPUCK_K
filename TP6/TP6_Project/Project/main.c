@@ -15,7 +15,6 @@
 #include <leds.h>
 #include <spi_comm.h>
 #include <pid_regulator.h>
-#include <tune_camera.h>
 #include "read_image.h"
 
 
@@ -34,9 +33,6 @@ static void serial_start(void)
 
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
-
-// uncomment to tune the camera settings : detection method and contrast
-#define TUNNING_MODE
 
 int main(void)
 {
@@ -61,10 +57,10 @@ int main(void)
 	dcmi_start();
 	po8030_start();
 
-#ifdef TUNNING_MODE
-	//Contrast level, camera line index, detect_mode, send_data_to_computer
-	//Adjust Contrast and Line_Idx in Main.h, for detection_mode adjust in read_image.c directly
-	struct tunning_config tunning = {CONTRAST, LINE_IDX_TOP, MEAN_ONLY, false};
+#ifdef TUNE //TUNE is defined in main.h
+	//Contrast level, camera line index, detect_mode, image color, visualize parameters such as means, maxs, counts on terminal
+	//Adjust Contrast, Line_Idx and detection mode  in Main.h
+	struct tunning_config tunning = {CONTRAST, LINE_INDEX_TOP, MEAN_ONLY, RED_IMAGE, NO_VISUALIZE_PARAMS};
 	tune_image_start(tunning);
 #else
 	//inits the motors
