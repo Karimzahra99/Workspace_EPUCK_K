@@ -1,3 +1,4 @@
+#include "read_image.h"
 #include "ch.h"
 #include "hal.h"
 #include <chprintf.h>
@@ -5,7 +6,6 @@
 #include <string.h>
 #include <main.h>
 #include <camera/po8030.h>
-#include <process_image.h>
 #include <selector.h>
 
 //Color detection settings (uncomment only one) :
@@ -267,9 +267,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 	}
 }
 
-void process_image_start(void){
+void read_image_start(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
+
 }
 
 uint8_t get_color(void){

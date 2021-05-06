@@ -8,7 +8,8 @@
 #include <main.h>
 #include <motors.h>
 #include <pid_regulator.h>
-#include <process_image.h>
+
+#include "read_image.h"
 
 static uint8_t rolling_mode = 0;//0 = rolling backwards in strait line, 1 = rolling frontwards for turns, 2 = obstacle mode
 // remove caps its not a define

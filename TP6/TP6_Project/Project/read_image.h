@@ -1,11 +1,13 @@
-#ifndef PROCESS_IMAGE_H
-#define PROCESS_IMAGE_H
+#ifndef READ_IMAGE_H_
+#define READ_IMAGE_H_
 
-void process_image_start(void);
+#include <stdint.h>
+
+void read_image_start(void);
 
 uint8_t get_color(void);
 int16_t get_middle_diff(void);
 uint16_t get_middle_top(void);
 uint16_t get_middle_bot(void);
 
-#endif /* PROCESS_IMAGE_H */
+#endif /* READ_IMAGE_H_ */

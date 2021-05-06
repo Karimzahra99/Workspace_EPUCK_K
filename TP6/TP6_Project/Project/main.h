@@ -9,6 +9,19 @@ extern "C" {
 #include "msgbus/messagebus.h"
 #include "parameter/parameter.h"
 
+typedef enum {
+    MAX_ONLY = 0,
+    MEAN_ONLY,
+    MAX_N_MEAN
+} detect_mode_t;
+
+struct tunning_config {
+	uint8_t contrast;
+	uint16_t line_idx;
+	detect_mode_t detection_mode;
+	bool send_data_terminal;
+};
+
 
 //constants for the differents parts of the project
 #define PI                 			3.1415926536f

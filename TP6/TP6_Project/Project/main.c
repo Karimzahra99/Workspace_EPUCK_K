@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <math.h>
 #include "ch.h"
@@ -14,8 +15,11 @@
 #include <leds.h>
 #include <spi_comm.h>
 #include <pid_regulator.h>
-#include <process_image.h>
+#include <tune_camera.h>
+#include "read_image.h"
 
+// uncomment to tune the camera settings : detection method and contrast
+#define TUNNING_MODE
 
 //Functions for communication and visualization
 void SendUint8ToComputer(uint8_t* data, uint16_t size) 
@@ -27,10 +31,10 @@ void SendUint8ToComputer(uint8_t* data, uint16_t size)
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = {
-	    115200,
-	    0,
-	    0,
-	    0,
+			115200,
+			0,
+			0,
+			0,
 	};
 
 	sdStart(&SD3, &ser_cfg); // UART3.
@@ -43,11 +47,11 @@ CONDVAR_DECL(bus_condvar);
 int main(void)
 {
 
-    halInit();
-    chSysInit();
-    mpu_init();
+	halInit();
+	chSysInit();
+	mpu_init();
 
-    //Initialisation bus
+	//Initialisation bus
 	messagebus_init(&bus, &bus_lock, &bus_condvar);
 
 	// Init the peripherals.
@@ -55,29 +59,37 @@ int main(void)
 	set_body_led(0);
 	set_front_led(0);
 
-    //starts the serial communication / can be removed if communication not needed
-    serial_start();
-    //start the USB communication / can be removed if communication not needed
-    usb_start();
-    //starts the camera
-    dcmi_start();
+	//starts the serial communication / can be removed if communication not needed
+	serial_start();
+	//start the USB communication / can be removed if communication not needed
+	usb_start();
+	//starts the camera
+	dcmi_start();
 	po8030_start();
+
+#ifdef TUNNING_MODE
+	//Contrast level, camera line index, detect_mode, send_data_to_computer
+	struct tunning_config tunning = {85, 400, MEAN_ONLY, false};
+	tune_image_start(tunning);
+#else
 	//inits the motors
 	motors_init();
 	//For RGB LEDS
 	spi_comm_start();
 
+
 	//stars the threads for the pid regulator and the processing of the image
 	pid_regulator_start();
 
-	process_image_start();
+	read_image_start();
 
 	proximity_start();
+#endif
 
-    while (1) {
-    	//waits 1 second
-        chThdSleepMilliseconds(1000);
-    }
+	while (1) {
+		//waits 1 second
+		chThdSleepMilliseconds(1000);
+	}
 }
 
 #define STACK_CHK_GUARD 0xe2dee396
@@ -85,5 +97,5 @@ uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
 void __stack_chk_fail(void)
 {
-    chSysHalt("Stack smashing detected");
+	chSysHalt("Stack smashing detected");
 }
