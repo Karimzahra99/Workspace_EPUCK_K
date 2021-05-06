@@ -59,7 +59,7 @@ int16_t pid_regulator(float middle){
 
 	last_error = error;
 
-	speed = 0.2 * error + 0.02 * sum_error; //+ 0.01 * derivative;//+ 0.08 * derivative; ; //+ 0.01* sum_error ; //+ 0.1 * derivative; + 0.01* sum_error +
+	speed = 0.2f * error + 0.02f * sum_error + 0.01 * derivative;//+ 0.08 * derivative; ; //+ 0.01* sum_error ; //+ 0.1 * derivative; + 0.01* sum_error +
 
     return (int16_t)speed;
 }
@@ -92,7 +92,7 @@ static THD_FUNCTION(PidRegulator, arg) {
     		speed = 0;
     		break;
     	case 1: //RED
-    		speed = 200;
+    		speed = 400;
     		break;
     	case 2: //GREEN
     		speed = 0;
@@ -113,8 +113,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 //    	}
 
         //applies the speed from the PI regulator and the correction for the rotation
-		right_motor_set_speed(speed - 2*speed_correction);
-		left_motor_set_speed(speed + 2*speed_correction);
+		right_motor_set_speed(speed - 4*speed_correction);
+		left_motor_set_speed(speed + 4*speed_correction);
 
 //    }
 
