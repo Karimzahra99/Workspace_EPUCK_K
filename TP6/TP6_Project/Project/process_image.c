@@ -35,8 +35,8 @@ void calc_line_middle(uint8_t alternator);
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
 uint8_t filter_noise_single(uint8_t couleur);
 
-static uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
-static uint16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
+static volatile uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
+static volatile uint16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
 
 static uint8_t color_idx = 0; //0 = NO_COLOR, 1 = RED, 2 = GREEN, 3 = BLUE
 static uint8_t threshold_color = 0;

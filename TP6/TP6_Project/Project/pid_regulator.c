@@ -95,7 +95,6 @@ static THD_FUNCTION(PidRegulator, arg) {
 		if ((ir_front_left > IR_THRESHOLD) && (ir_front_right > IR_THRESHOLD)) {
 			rolling_mode = 2;
 		}
-		else rolling_mode = 0;
 
 		if (rolling_mode == 0) {
 			middle_diff = get_middle_diff();
@@ -148,8 +147,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 				middle_diff = get_middle_diff();
 
 				if (start_move == 0){
-					motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
-					motor_set_position(8, 8, -speed, -speed);
+					motor_set_position(PERIMETER_EPUCK/2.0, PERIMETER_EPUCK/2, speed, -speed);
+					motor_set_position(15, 15, -speed, -speed);
 					right_motor_set_speed(0);
 					left_motor_set_speed(0);
 					start_move = 1;
