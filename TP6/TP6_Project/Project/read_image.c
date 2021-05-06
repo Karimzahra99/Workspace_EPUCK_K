@@ -9,6 +9,29 @@
 #include <camera/po8030.h>
 #include <selector.h>
 
+//Longeur d'une ligne de pixels de la camera et tolerance pour les comptages du nombre de pixels egaux a l'intensite maximal
+#define IMAGE_BUFFER_SIZE			640
+#define TOLERANCE					3
+
+//Pour alterner lors du traitement des deux lignes de la camera
+#define TOP							0
+#define BOTTOM						1
+
+//Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
+#define MIN_COUNT					5
+
+//Pour trouver le milieu de la ligne, condition sur largeur de ligne et "trous" dans une ligne
+#define MIN_LINE_WIDTH				70
+#define MIN_HOLE_WIDTH				20
+#define DEAD_ZONE_WIDTH				100
+
+//Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
+#define SHIFT_2						2
+#define SHIFT_3						3
+#define SHIFT_6						6
+
+
+
 //After tuning adjust to the desired detection mode
 static detect_mode_t detection = MAX_ONLY;
 //To visualize maxs, means and counts for each color
@@ -53,6 +76,7 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 
 	chRegSetThreadName(__FUNCTION__);
 
+	//dereferencing structure from void *
 	struct tunning_config *tune = (struct tunning_config *)arg;
 	uint8_t contr = tune->contrast;
 	uint16_t idx = tune->line_idx;
