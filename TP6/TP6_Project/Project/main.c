@@ -70,12 +70,12 @@ int main(void)
 	//stars the threads for the pid regulator and the processing of the image
 	pid_regulator_start();
 //	process_image_start();
-
 	proximity_start();
+	calibrate_ir();
 //	while(1){
 //	int ir_left_ancien = get_prox(Sensor_IR3);
-//	chprintf((BaseSequentialStream *)&SD3, "ir3 =%-7d \r\n\n",
-//					ir_left_ancien );
+//	chprintf((BaseSequentialStream *)&SD3, "ir3prox =%-7d \r\n\n ir3cprox =%-7d \r\n\n ir3amb =%-7d \r\n\n",
+//			get_prox(Sensor_IR3), get_calibrated_prox(Sensor_IR3), get_ambient_light(Sensor_IR3) );
 //	}
 //	rotate_until_irmax();
 
