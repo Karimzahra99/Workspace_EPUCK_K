@@ -77,7 +77,7 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 
 	//dereferencing structure from void *
-	struct tunning_config *tune = (struct tunning_config *)arg;
+	tuning_config_t *tune = (tuning_config_t *)arg;
 	uint8_t contr = tune->contrast;
 	uint16_t idx = tune->line_idx;
 
@@ -155,7 +155,7 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 }
 
-void tune_image_start(struct tunning_config arg_tune_settings){
+void tune_image_start(tuning_config_t arg_tune_settings){
 	chThdCreateStatic(waTuneProcessImage, sizeof(waTuneProcessImage), NORMALPRIO, TuneProcessImage, &arg_tune_settings);
 	chThdCreateStatic(waTuneCaptureImage, sizeof(waTuneCaptureImage), NORMALPRIO, TuneCaptureImage, &(arg_tune_settings.color_idx));
 	send_data = arg_tune_settings.send_data_terminal;

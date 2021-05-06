@@ -3,6 +3,7 @@
 #include <math.h>
 #include <usbcfg.h>
 #include <chprintf.h>
+#include<stdbool.h>
 #include <sensors/proximity.h>
 #include <leds.h>
 #include <main.h>
@@ -158,7 +159,27 @@ static THD_FUNCTION(PidRegulator, arg) {
     }
 }
 
+void move_straight_backwards(CONTEXT_t rolling_situation){
+
+
+}
+
+bool check_ir_front(void){
+
+	if ((get_prox(SENSOR_IR3) > IR_THRESHOLD) && (get_prox(SENSOR_IR4) > IR_THRESHOLD)){
+		return true;
+	}
+	else return false;
+
+}
+
+void init_context(void){
+	rolling_context.mode = STRAIGHT_LINE;
+	rolling_context.counter = 0;
+}
+
 void pid_regulator_start(void){
+	init_context();
 	chThdCreateStatic(waPidRegulator, sizeof(waPidRegulator), NORMALPRIO, PidRegulator, NULL);
 }
 

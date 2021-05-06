@@ -61,7 +61,7 @@ int main(void)
 #ifdef TUNE
 	//Contrast level, camera line index, detect_mode, image color, visualize parameters such as means, maxs, counts on terminal
 	//Adjust Contrast, Line_Idx and detection mode  in Main.h
-	struct tunning_config tunning = {CONTRAST, LINE_INDEX_TOP, MEAN_ONLY, RED_IDX, NO_VISUALIZE_PARAMS};
+	tuning_config_t tunning = {CONTRAST, LINE_INDEX_TOP, MEAN_ONLY, RED_IDX, NO_VISUALIZE_PARAMS};
 	tune_image_start(tunning);
 
 #else

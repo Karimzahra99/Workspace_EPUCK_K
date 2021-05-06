@@ -11,7 +11,7 @@ extern "C" {
 
 
 //Comment after tuning the color detection parameters in read_image.c
-//#define TUNE
+#define TUNE
 
 
 //Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
@@ -42,13 +42,13 @@ typedef enum {
 	YES_VISUALIZE_PARAMS,
 } visualize_mode_t;
 
-struct tunning_config {
+typedef struct {
 	uint8_t contrast;
 	uint16_t line_idx;
 	detect_mode_t detection_mode;
 	color_index_t color_idx;
 	visualize_mode_t send_data_terminal;
-};
+} tuning_config_t;
 
 
 /** Robot wide IPC bus. */
