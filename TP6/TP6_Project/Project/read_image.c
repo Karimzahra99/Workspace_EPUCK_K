@@ -87,9 +87,6 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 	bool send_to_computer = true;
 
-//	struct tunning_config *tune = (struct tunning_config *)arg;
-//	color_index_t color_index = tune->color_idx;
-
 	color_index_t color_index = *((color_index_t *)arg);
 
 	while(1){
