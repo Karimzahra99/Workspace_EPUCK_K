@@ -49,19 +49,19 @@ static BSEMAPHORE_DECL(tune_image_ready_sem, TRUE);
 static THD_WORKING_AREA(waTuneCaptureImage, 256);
 static THD_FUNCTION(TuneCaptureImage, arg) {
 
-    chRegSetThreadName(__FUNCTION__);
+	chRegSetThreadName(__FUNCTION__);
 
-    uint8_t start = 0;
-    uint8_t contr = 0;
-    uint16_t idx = 0;
-    if (start == 0){
-    	struct tunning_config *tune = (struct tunning_config *)arg;
-    	contr = tune->contrast;
-    	idx = tune->line_idx;
-    	set_detect_mode(tune->detection_mode);
-    	set_data_bool(tune->send_data_terminal);
-    	start = 1;
-    }
+	uint8_t start = 0;
+	uint8_t contr = 0;
+	uint16_t idx = 0;
+	if (start == 0){
+		struct tunning_config *tune = (struct tunning_config *)arg;
+		contr = tune->contrast;
+		idx = tune->line_idx;
+		set_detect_mode(tune->detection_mode);
+		set_data_bool(tune->send_data_terminal);
+		start = 1;
+	}
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
 	po8030_advanced_config(FORMAT_RGB565, 0, idx, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
@@ -73,18 +73,13 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 	po8030_set_contrast(contr);
 
 	while(1){
-
-    	//time = chVTGetSystemTime();
-
-    	//starts a capture
+		//starts a capture
 		dcmi_capture_start();
 		//waits for the capture to be done
 		wait_image_ready();
 		//signals an image has been captured
 		chBSemSignal(&tune_image_ready_sem);
-		//chThdSleepMilliseconds(12);
-		//chprintf((BaseSequentialStream *)&SDU1, "capture time = %d\n", chVTGetSystemTime()-time);
-    }
+	}
 
 }
 
@@ -93,15 +88,15 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 
 	chRegSetThreadName(__FUNCTION__);
-    (void)arg;
+	(void)arg;
 
 	uint8_t *img_buff_ptr;
 
 	bool send_to_computer = true;
 
-    while(1){
-    	//waits until an image has been captured
-        chBSemWait(&tune_image_ready_sem);
+	while(1){
+		//waits until an image has been captured
+		chBSemWait(&tune_image_ready_sem);
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
 
@@ -132,7 +127,7 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 		//invert the bool
 		send_to_computer = !send_to_computer;
-		}
+	}
 
 }
 
@@ -324,23 +319,23 @@ void tune_find_color(void){
 			}
 			else {
 				//chprintf((BaseSequentialStream *)&SD3, "Resetting \n\n");
-					set_rgb_led(0, 0, 0, 0);
-					set_rgb_led(1, 0, 0, 0);
-					set_rgb_led(2, 0, 0, 0);
-					set_rgb_led(3, 0, 0, 0);
-					color_idx = NO_COLOR;
+				set_rgb_led(0, 0, 0, 0);
+				set_rgb_led(1, 0, 0, 0);
+				set_rgb_led(2, 0, 0, 0);
+				set_rgb_led(3, 0, 0, 0);
+				color_idx = NO_COLOR;
 			}
 		}
 	}
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-							              max_red, max_green, max_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+			max_red, max_green, max_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-							              mean_red, mean_green, mean_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+			mean_red, mean_green, mean_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-								              count_red, count_green, count_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+			count_red, count_green, count_blue);
 
 }
 #endif
@@ -375,24 +370,24 @@ void tune_find_color(void){
 			}
 			else {
 				//chprintf((BaseSequentialStream *)&SD3, "Resetting \n\n");
-					set_rgb_led(0, 0, 0, 0);
-					set_rgb_led(1, 0, 0, 0);
-					set_rgb_led(2, 0, 0, 0);
-					set_rgb_led(3, 0, 0, 0);
-					color_idx = NO_COLOR;
+				set_rgb_led(0, 0, 0, 0);
+				set_rgb_led(1, 0, 0, 0);
+				set_rgb_led(2, 0, 0, 0);
+				set_rgb_led(3, 0, 0, 0);
+				color_idx = NO_COLOR;
 			}
 		}
 	}
 
 #ifdef SEND_DATA
-		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-							              max_red, max_green, max_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+			max_red, max_green, max_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-							              mean_red, mean_green, mean_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+			mean_red, mean_green, mean_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-								              count_red, count_green, count_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+			count_red, count_green, count_blue);
 #endif
 
 
@@ -429,24 +424,24 @@ void tune_find_color(void){
 			}
 			else {
 				//chprintf((BaseSequentialStream *)&SD3, "Resetting \n\n");
-					set_rgb_led(0, 0, 0, 0);
-					set_rgb_led(1, 0, 0, 0);
-					set_rgb_led(2, 0, 0, 0);
-					set_rgb_led(3, 0, 0, 0);
-					color_idx = NO_COLOR;
+				set_rgb_led(0, 0, 0, 0);
+				set_rgb_led(1, 0, 0, 0);
+				set_rgb_led(2, 0, 0, 0);
+				set_rgb_led(3, 0, 0, 0);
+				color_idx = NO_COLOR;
 			}
 		}
 	}
 
 #ifdef SEND_DATA
-		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-							              max_red, max_green, max_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+			max_red, max_green, max_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-							              mean_red, mean_green, mean_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+			mean_red, mean_green, mean_blue);
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-								              count_red, count_green, count_blue);
+	chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+			count_red, count_green, count_blue);
 #endif
 
 
@@ -455,14 +450,14 @@ void tune_find_color(void){
 
 void set_detect_mode(detect_mode_t detection_mode){
 	if (detection_mode == MAX_ONLY){
-			#define USE_MAX
+#define USE_MAX
 	}
 	else {
 		if (detection_mode == MEAN_ONLY){
-			#define USE_MEAN
+#define USE_MEAN
 		}
 		else {
-			#define USE_MAX_N_MEAN
+#define USE_MAX_N_MEAN
 		}
 	}
 
@@ -471,7 +466,7 @@ void set_detect_mode(detect_mode_t detection_mode){
 void set_data_bool(bool send_data){
 
 	if (send_data) {
-		#define SEND_DATA
+#define SEND_DATA
 	}
 
 }
