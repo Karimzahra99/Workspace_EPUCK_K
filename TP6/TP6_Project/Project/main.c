@@ -76,6 +76,7 @@ int main(void)
 	read_image_start();
 
 	proximity_start();
+
 #endif
 
 	while (1) {

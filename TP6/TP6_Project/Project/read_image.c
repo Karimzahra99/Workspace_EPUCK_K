@@ -82,14 +82,15 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 
 	chRegSetThreadName(__FUNCTION__);
-	(void)arg;
 
 	uint8_t *img_buff_ptr;
 
 	bool send_to_computer = true;
 
-	struct tunning_config *tune = (struct tunning_config *)arg;
-	color_index_t color_index = tune->color_idx;
+//	struct tunning_config *tune = (struct tunning_config *)arg;
+//	color_index_t color_index = tune->color_idx;
+
+	color_index_t color_index = *((color_index_t *)arg);
 
 	while(1){
 		//waits until an image has been captured
@@ -135,7 +136,7 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 void tune_image_start(struct tunning_config arg_tune_settings){
 	chThdCreateStatic(waTuneProcessImage, sizeof(waTuneProcessImage), NORMALPRIO, TuneProcessImage, &arg_tune_settings);
-	chThdCreateStatic(waTuneCaptureImage, sizeof(waTuneCaptureImage), NORMALPRIO, TuneCaptureImage, &arg_tune_settings);
+	chThdCreateStatic(waTuneCaptureImage, sizeof(waTuneCaptureImage), NORMALPRIO, TuneCaptureImage, &(arg_tune_settings.color_idx));
 	send_data = arg_tune_settings.send_data_terminal;
 	detection = arg_tune_settings.detection_mode;
 }

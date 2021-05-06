@@ -10,7 +10,7 @@ extern "C" {
 #include "parameter/parameter.h"
 
 //Comment after tuning the color detection parameters in read_image.c
-//#define TUNE
+#define TUNE
 
 //constants for the differents parts of the project
 #define PI                 			3.1415926536f
