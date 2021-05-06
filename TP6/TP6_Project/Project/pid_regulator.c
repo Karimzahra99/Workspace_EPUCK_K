@@ -149,7 +149,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 				if (start_move == 0){
 					motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
-					motor_set_position(10, 10, -speed, -speed);
+					motor_set_position(8, 8, -speed, -speed);
 					right_motor_set_speed(0);
 					left_motor_set_speed(0);
 					start_move = 1;
@@ -188,6 +188,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 					set_leds(YELLOW_IDX);
 					right_motor_set_speed(cms_to_steps(0));
 					left_motor_set_speed(cms_to_steps(0));
+
 				}
 			}
 		}
