@@ -61,6 +61,11 @@ typedef enum {
 } ir_sensors_index_t;
 
 typedef enum {
+	NOT_REACHED = 0,
+	REACHED
+} position_status_t;
+
+typedef enum {
 	STRAIGHT_LINE_BACKWARDS = 0,
 	PID_FRONTWARDS,
 	TURNING_PID,
@@ -74,14 +79,11 @@ typedef struct {
 	STATE_t mode;
 	uint32_t counter;
 	color_index_t color;
+	int16_t speed;
+	position_status_t position_reached;
 }CONTEXT_t;
 
-
 static CONTEXT_t rolling_context;
-
-static uint8_t POSITION_REACHED = 0;
-
-static int16_t speed = 2;
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
@@ -90,7 +92,7 @@ int cm_to_step (float cm);
 void move_straight_backwards(void);
 void pid_front(void);
 void init_context(void);
-void prepare_to_follow_line(void);
+void prepare_pid_front(void);
 
 //PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -207,6 +209,8 @@ void init_context(void){
 	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	rolling_context.counter = 0;
 	rolling_context.color = NO_COLOR;
+	rolling_context.speed = 2;
+	rolling_context.position_reached = NOT_REACHED;
 }
 
 void move_straight_backwards(void){
@@ -217,7 +221,7 @@ void move_straight_backwards(void){
 	else {
 		if (get_middle_diff()>DEAD_ZONE_WIDTH){
 			rolling_context.color = get_color();
-			prepare_to_follow_line();
+			prepare_pid_front();
 			rolling_context.mode = PID_FRONTWARDS;
 		}
 		else {
@@ -226,39 +230,44 @@ void move_straight_backwards(void){
 			{
 			case 0: //NO COLOR
 				set_leds(color);
-				speed = 0;
+				rolling_context.speed = 0;
 				break;
 			case 1: //RED
 				set_leds(color);
-				speed = cms_to_steps(LOW_SPEED);
+				rolling_context.speed = cms_to_steps(LOW_SPEED);
 				break;
 			case 2: //GREEN
 				set_leds(color);
-				speed = cms_to_steps(MEDIUM_SPEED);
+				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
 				break;
 			case 3: //BLUE
 				set_leds(color);
-				speed = cms_to_steps(HIGH_SPEED);
+				rolling_context.speed = cms_to_steps(HIGH_SPEED);
 				break;
 			default:
-				speed = cms_to_steps(MEDIUM_SPEED);
+				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
 				break;
 			}
 			//rolling backwards
-			right_motor_set_speed(-speed);
-			left_motor_set_speed(-speed);
+			right_motor_set_speed(-rolling_context.speed);
+			left_motor_set_speed(-rolling_context.speed);
 		}
 	}
 }
 
+void prepare_pid_front(void){
+	motor_set_position(10, 10, rolling_context.speed, srolling_context.speed);
+	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
+}
+
 void prepare_to_follow_line(void){
-	motor_set_position(10, 10, speed, speed);
-	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
 }
 
 void pid_front(void){
 	int16_t speed_corr = pid_regulator(get_middle_diff());
-
+	right_motor_set_speed(rolling_context.speed - speed_corr);
+	left_motor_set_speed(rolling_context.speed + speed_corr);
 }
 
 void pid_regulator_start(void){
@@ -328,7 +337,7 @@ void set_leds(color_index_t color_index){
 //motor set position -2^31/2 to 2^31/2-1
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
 
-	POSITION_REACHED = 0;
+	rolling_context.position_reached = NOT_REACHED;
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 
@@ -338,12 +347,12 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 	left_motor_set_speed(cms_to_steps(speed_l));
 	right_motor_set_speed(cms_to_steps(speed_r));
 
-	while (!POSITION_REACHED){
+	while (!rolling_context.position_reached){
 
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
-			POSITION_REACHED=1;
+			rolling_context.position_reached = REACHED;
 		}
 	}
 }
