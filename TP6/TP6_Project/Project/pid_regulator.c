@@ -19,10 +19,18 @@
 #define PERIMETER_EPUCK     		(PI * WHEEL_DISTANCE)
 
 //PID Parameters
-#define KP							100.0f
-#define KI 							3.5f	//must not be zero
-#define KD							0.0f	//a tuner -> utiliser deuxieme methode de ZN avec Ku et Pu
-#define MAX_SUM_ERROR 				(MOTOR_SPEED_LIMIT/KI)
+#define KP_R						100.0f
+#define KI_R						3.5f
+#define KD_R						0.0f
+#define KP_G						100.0f
+#define KI_G						3.5f
+#define KD_G						0.0f
+#define KP_B						100.0f
+#define KI_B						3.5f
+#define KD_B						0.0f
+#define MAX_SUM_ERROR_R 			(MOTOR_SPEED_LIMIT/KI_R)
+#define MAX_SUM_ERROR_G 			(MOTOR_SPEED_LIMIT/KI_G)
+#define MAX_SUM_ERROR_B 			(MOTOR_SPEED_LIMIT/KI_B)
 
 //Threshold des IR
 #define	IR_THRESHOLD				250
@@ -53,9 +61,8 @@ typedef enum {
 } ir_sensors_index_t;
 
 typedef enum {
-	STRAIGHT_LINE = 0,
-	GO_BACK_10cm,
-	TURN_180deg,
+	STRAIGHT_LINE_BACKWARDS = 0,
+	PID_FRONTWARDS,
 	TURNING_PID,
 	OBS_AVOIDANCE,
 	GO_BACK_5cm,
@@ -66,6 +73,7 @@ typedef enum {
 typedef struct {
 	STATE_t mode;
 	uint32_t counter;
+	color_index_t color;
 }CONTEXT_t;
 
 
@@ -81,7 +89,7 @@ int16_t cms_to_steps (int16_t speed_cms);
 float cm_to_step (float cm);
 
 
-////simple PI regulator implementation
+//PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
 
 	float speed_correction = 0;
@@ -93,23 +101,47 @@ int16_t pid_regulator(int16_t middle_diff){
 	static float sum_error = 0;
 	static float last_error = 0;
 
-	sum_error += error;//sum_error = sum_error + error;
+	sum_error += error;
 
-	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
-	// Integral anti-windup (Anti-Reset Windup)
-	if(sum_error > MAX_SUM_ERROR){
-		sum_error = MAX_SUM_ERROR;
-	}else if(sum_error < -MAX_SUM_ERROR){
-		sum_error = -MAX_SUM_ERROR;
+	if (rolling_context.color == RED_IDX){
+		if(sum_error > MAX_SUM_ERROR_R){
+			sum_error = MAX_SUM_ERROR_R;
+		}else if(sum_error < -MAX_SUM_ERROR_R){
+			sum_error = -MAX_SUM_ERROR_R;
+		}
+	}
+
+	if (rolling_context.color == GREEN_IDX){
+		if(sum_error > MAX_SUM_ERROR_G){
+			sum_error = MAX_SUM_ERROR_G;
+		}else if(sum_error < -MAX_SUM_ERROR_G){
+			sum_error = -MAX_SUM_ERROR_G;
+		}
+	}
+
+	if (rolling_context.color == BLUE_IDX){
+		if(sum_error > MAX_SUM_ERROR_B){
+			sum_error = MAX_SUM_ERROR_B;
+		}else if(sum_error < -MAX_SUM_ERROR_B){
+			sum_error = -MAX_SUM_ERROR_B;
+		}
 	}
 
 	derivative = error - last_error;
 
 	last_error = error;
 
-	speed_correction = KP * error + KI * sum_error + KD*derivative;
+	if (rolling_context.color == RED_IDX){
+		speed_correction = KP_R * error + KI_R * sum_error + KD_R * derivative;
+	}
 
+	if (rolling_context.color == GREEN_IDX){
+		speed_correction = KP_G * error + KI_G * sum_error + KD_G * derivative;
+	}
 
+	if (rolling_context.color == BLUE_IDX){
+		speed_correction = KP_B * error + KI_B * sum_error + KD_B * derivative;
+	}
 
 	return (int16_t)speed_correction;
 }
@@ -126,17 +158,12 @@ static THD_FUNCTION(PidRegulator, arg) {
     while(1){
     	time = chVTGetSystemTime();
 
-
-
     	switch(rolling_context.mode){
-    	case STRAIGHT_LINE :
+    	case STRAIGHT_LINE_BACKWARDS :
     		move_straight_backwards();
     		break;
-    	case GO_BACK_10cm :
-    		//dosmth();
-    		break;
-    	case TURN_180deg :
-    		//dosmth();
+    	case PID_FRONTWARDS :
+    		pid_front();
     		break;
     	case TURNING_PID :
     		//dosmth();
@@ -174,17 +201,21 @@ bool check_ir_front(void){
 }
 
 void init_context(void){
-	rolling_context.mode = STRAIGHT_LINE;
+	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	rolling_context.counter = 0;
+	rolling_context.color = NO_COLOR;
 }
 
 void move_straight_backwards(void){
 	if (check_ir_front()){
+		rollong_context.color = get_color();
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
 		if (get_middle_diff()>DEAD_ZONE_WIDTH){
-			rolling_context.mode = GO_BACK_10cm;
+			rollong_context.color = get_color();
+			prepare_to_follow_fine();
+			rolling_context.mode = PID_FRONTWARDS;
 		}
 		else {
 			color_index_t color = get_color();
@@ -213,15 +244,18 @@ void move_straight_backwards(void){
 			//rolling backwards
 			right_motor_set_speed(-speed);
 			left_motor_set_speed(-speed);
-
 		}
 	}
-
 }
 
 void prepare_to_follow_line(void){
 	motor_set_position(10, 10, speed, speed);
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
+}
+
+void pid_front(){
+	int16_t speed_corr = pid_regulator(get_middle_diff());
+
 }
 
 void pid_regulator_start(void){
@@ -233,8 +267,8 @@ int16_t cms_to_steps (int16_t speed_cms) {
 	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
 }
 
-float cm_to_step (float cm) {
-	return cm * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+int cm_to_step (float cm) {
+	return (int)(cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
 }
 
 void set_leds(color_index_t color_index){
@@ -298,9 +332,10 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 	int position_to_reach_left = cm_to_step(position_l);
 	int position_to_reach_right = - cm_to_step(position_r);
 
+	left_motor_set_speed(cms_to_steps(speed_l));
+	right_motor_set_speed(cms_to_steps(speed_r));
+
 	while (!POSITION_REACHED){
-		left_motor_set_speed(cms_to_steps(speed_l));
-		right_motor_set_speed(cms_to_steps(speed_r));
 
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);

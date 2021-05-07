@@ -75,7 +75,7 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 
 	chRegSetThreadName(__FUNCTION__);
 
-	//dereferencing structure from void *
+	//dereferencing structure from pointer void *
 	tuning_config_t *tune = (tuning_config_t *)arg;
 	uint8_t contr = tune->contrast;
 	uint16_t idx = tune->line_idx;
@@ -110,6 +110,7 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 	bool send_to_computer = true;
 
+	//casting void pointer and extracting the pointed information
 	color_index_t color_index = *((color_index_t *)arg);
 
 	while(1){
@@ -173,11 +174,11 @@ void calc_line_middle(uint8_t alternator);
 uint8_t filter_noise_single(uint8_t couleur);
 
 static uint8_t image_bot[IMAGE_BUFFER_SIZE] = {0};
-static uint16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
-static uint16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
+static int16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
+static int16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
 
 
-uint16_t calc_middle(uint8_t *buffer){
+int16_t calc_middle(uint8_t *buffer){
 
 	uint16_t start_p = 0;
 	uint16_t end_p = 0;
@@ -285,11 +286,11 @@ int16_t get_middle_diff(void) {
 	return middle_line_top-middle_line_bot;
 }
 
-uint16_t get_middle_top(void) {
+int16_t get_middle_top(void) {
 	return middle_line_top;
 }
 
-uint16_t get_middle_bot(void) {
+int16_t get_middle_bot(void) {
 	return middle_line_bot;
 }
 
