@@ -32,6 +32,9 @@
 #define MAX_SUM_ERROR_G 			(MOTOR_SPEED_LIMIT/KI_G)
 #define MAX_SUM_ERROR_B 			(MOTOR_SPEED_LIMIT/KI_B)
 
+//Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
+#define STRAIGHT_LINE_COUNT			10000
+
 //Threshold des IR
 #define	IR_THRESHOLD				250
 
@@ -68,11 +71,7 @@ typedef enum {
 typedef enum {
 	STRAIGHT_LINE_BACKWARDS = 0,
 	PID_FRONTWARDS,
-	TURNING_PID,
 	OBS_AVOIDANCE,
-	GO_BACK_5cm,
-	TURN_ANGLE,
-	ADVANCE
 } STATE_t;
 
 typedef struct {
@@ -170,24 +169,11 @@ static THD_FUNCTION(PidRegulator, arg) {
 		case PID_FRONTWARDS :
 			pid_front();
 			break;
-		case TURNING_PID :
-			//dosmth();
-			break;
 		case OBS_AVOIDANCE :
-			//dosmth();
+			avoid_obs();
 			break;
-		case GO_BACK_5cm :
-			//dosmth();
-			break;
-		case TURN_ANGLE :
-			//dosmth();
-			break;
-		case ADVANCE :
-			//dosmth();
-			break;
-
 		default :
-			//dosmth();
+			move_straight_backwards();
 			break;
 		}
 
@@ -265,9 +251,26 @@ void prepare_to_follow_line(void){
 }
 
 void pid_front(void){
-	int16_t speed_corr = pid_regulator(get_middle_diff());
+	int16_t middle_diff = get_middle_diff();
+	int16_t speed_corr = pid_regulator();
 	right_motor_set_speed(rolling_context.speed - speed_corr);
 	left_motor_set_speed(rolling_context.speed + speed_corr);
+
+	if (middle_diff < DEAD_ZONE_WIDTH){
+		rolling_context.counter = rolling_context.counter + 1;
+		if (rolling_context.counter >= STRAIGHT_LINE_COUNT){
+			prepare_to_follow_line();
+			rolling_context.counter = 0;
+			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+		}
+	}
+
+}
+
+void avoid_obs(void){
+
+	//to complete
+
 }
 
 void pid_regulator_start(void){
@@ -357,27 +360,3 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 	}
 }
 
-
-//void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
-//
-// start_move as static
-//	if (start_move == 0){
-//	left_motor_set_pos(0);
-//	right_motor_set_pos(0);
-//
-//	int position_to_reach_left = cm_to_step(position_l);
-//	int position_to_reach_right = - cm_to_step(position_r);
-//
-//
-//	left_motor_set_speed(cms_to_steps(speed_l));
-//	right_motor_set_speed(cms_to_steps(speed_r));
-//	start_move = 1;
-//
-//	}
-//
-//	if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
-//		left_motor_set_speed(0);
-//		right_motor_set_speed(0);
-//	}
-//
-//}

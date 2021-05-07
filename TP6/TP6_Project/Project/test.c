@@ -189,3 +189,41 @@
 //		chThdSleepUntilWindowed(time, time + MS2ST(10));
 //	}
 //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
+//
+// start_move as static
+//	if (start_move == 0){
+//	left_motor_set_pos(0);
+//	right_motor_set_pos(0);
+//
+//	int position_to_reach_left = cm_to_step(position_l);
+//	int position_to_reach_right = - cm_to_step(position_r);
+//
+//
+//	left_motor_set_speed(cms_to_steps(speed_l));
+//	right_motor_set_speed(cms_to_steps(speed_r));
+//	start_move = 1;
+//
+//	}
+//
+//	if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
+//		left_motor_set_speed(0);
+//		right_motor_set_speed(0);
+//	}
+//
+//}

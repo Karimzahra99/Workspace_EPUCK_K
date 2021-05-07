@@ -183,13 +183,13 @@ void init_visual_context_tune(tuning_config_t received_config){
 	image_context.mean_green = 0;
 	image_context.mean_blue = 0;
 
+	image_context.threshold_color = 0;
+
 	for (int16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
 		image_context.image_red [i] = 0;
 		image_context.image_green [i] = 0;
 		image_context.image_blue [i] = 0;
 	}
-
-	image_context.threshold_color = 0;
 
 }
 
