@@ -92,6 +92,7 @@ void move_straight_backwards(void);
 void pid_front(void);
 void init_context(void);
 void prepare_pid_front(void);
+void avoid_obs(void);
 
 //PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -252,7 +253,7 @@ void prepare_to_follow_line(void){
 
 void pid_front(void){
 	int16_t middle_diff = get_middle_diff();
-	int16_t speed_corr = pid_regulator();
+	int16_t speed_corr = pid_regulator(middle_diff);
 	right_motor_set_speed(rolling_context.speed - speed_corr);
 	left_motor_set_speed(rolling_context.speed + speed_corr);
 
