@@ -11,7 +11,7 @@ extern "C" {
 
 
 //Comment after tuning the color detection parameters in read_image.c
-#define TUNE
+//#define TUNE
 
 //Difference between middle top and bottom line neglected (used in read_image.c and pid_regulator.c)
 #define DEAD_ZONE_WIDTH				100
