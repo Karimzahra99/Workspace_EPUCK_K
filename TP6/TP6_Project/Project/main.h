@@ -11,7 +11,7 @@ extern "C" {
 
 
 //Comment after tuning the color detection parameters in read_image.c
-#define TUNE
+//#define TUNE
 
 
 //Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)

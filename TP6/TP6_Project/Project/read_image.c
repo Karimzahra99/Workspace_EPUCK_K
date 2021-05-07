@@ -29,33 +29,42 @@
 #define SHIFT_3						3
 #define SHIFT_6						6
 
+typedef struct {
+
+	//After tuning adjust to the desired detection mode
+	detect_mode_t detection;
+	//To visualize maxs, means and counts for each color
+	visualize_mode_t send_data;
+
+	uint16_t count_red;
+	uint16_t count_green;
+	uint16_t count_blue;
+
+	uint8_t max_red;
+	uint8_t max_green;
+	uint8_t max_blue;
+
+	uint8_t mean_red;
+	uint8_t mean_green;
+	uint8_t mean_blue;
+
+	uint8_t image_red[IMAGE_BUFFER_SIZE];
+	uint8_t image_green[IMAGE_BUFFER_SIZE];
+	uint8_t image_blue[IMAGE_BUFFER_SIZE];
+
+	color_index_t color_index = 0;
+	uint8_t threshold_color = 0;
+
+#ifndef TUNE
+	uint8_t image_bot[IMAGE_BUFFER_SIZE] = {0};
+	int16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
+	int16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
+#endif
+
+} VISUAL_CONTEXT_t;
 
 
-//After tuning adjust to the desired detection mode
-static detect_mode_t detection = MAX_ONLY;
-//To visualize maxs, means and counts for each color
-static visualize_mode_t send_data = NO_VISUALIZE_PARAMS;
-
-
-static color_index_t color_idx = 0;
-static uint8_t threshold_color = 0;
-
-static uint16_t count_red  = 0;
-static uint16_t count_green  = 0;
-static uint16_t count_blue = 0;
-
-static uint8_t max_red  = 0;
-static uint8_t max_green  = 0;
-static uint8_t max_blue = 0;
-
-static uint8_t mean_red  = 0;
-static uint8_t mean_green  = 0;
-static uint8_t mean_blue = 0;
-
-static uint8_t image_red[IMAGE_BUFFER_SIZE] = {0};
-static uint8_t image_green[IMAGE_BUFFER_SIZE] = {0};
-static uint8_t image_blue[IMAGE_BUFFER_SIZE] = {0};
-
+static VISUAL_CONTEXT_t image_context;
 
 void find_color(void);
 void set_threshold_color(int selector_pos);
@@ -111,7 +120,7 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 	bool send_to_computer = true;
 
 	//casting void pointer and extracting the pointed information
-	color_index_t color_index = *((color_index_t *)arg);
+	image_context.color_index = *((color_index_t *)arg);
 
 	while(1){
 		//waits until an image has been captured
@@ -143,9 +152,9 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 		//To visualize one image on computer with plotImage.py
 		if(send_to_computer){
 			//sends to the computer the image
-			if (color_index == RED_IDX) SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
-			if (color_index == GREEN_IDX) SendUint8ToComputer(image_green, IMAGE_BUFFER_SIZE);
-			if (color_index == BLUE_IDX) SendUint8ToComputer(image_blue, IMAGE_BUFFER_SIZE);
+			if (image_context.color_index == RED_IDX) SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
+			if (image_context.color_index == GREEN_IDX) SendUint8ToComputer(image_context.image_green, IMAGE_BUFFER_SIZE);
+			if (image_context.color_index == BLUE_IDX) SendUint8ToComputer(image_context.image_blue, IMAGE_BUFFER_SIZE);
 		}
 
 		//invert the bool
@@ -158,8 +167,8 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 void tune_image_start(tuning_config_t arg_tune_settings){
 	chThdCreateStatic(waTuneProcessImage, sizeof(waTuneProcessImage), NORMALPRIO, TuneProcessImage, &arg_tune_settings);
 	chThdCreateStatic(waTuneCaptureImage, sizeof(waTuneCaptureImage), NORMALPRIO, TuneCaptureImage, &(arg_tune_settings.color_idx));
-	send_data = arg_tune_settings.send_data_terminal;
-	detection = arg_tune_settings.detection_mode;
+	image_context.send_data = arg_tune_settings.send_data_terminal;
+	image_context.detection = arg_tune_settings.detection_mode;
 }
 
 #else
@@ -172,10 +181,6 @@ static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
 
 void calc_line_middle(uint8_t alternator);
 uint8_t filter_noise_single(uint8_t couleur);
-
-static uint8_t image_bot[IMAGE_BUFFER_SIZE] = {0};
-static int16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
-static int16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
 
 
 int16_t calc_middle(uint8_t *buffer){
@@ -254,24 +259,24 @@ int16_t calc_middle(uint8_t *buffer){
 void calc_line_middle(uint8_t alternator){
 
 	if (alternator == TOP){
-		if (color_idx == RED_IDX){
-			middle_line_top = calc_middle(image_red);
+		if (image_context.color_index == RED_IDX){
+			image_context.middle_line_top = calc_middle(image_red);
 		}
 		else {
-			if (color_idx == GREEN_IDX){
-				middle_line_top = calc_middle(image_green);
+			if (image_context.color_index == GREEN_IDX){
+				image_context.middle_line_top = calc_middle(image_green);
 			}
 
 			else {
-				if (color_idx == BLUE_IDX){
-					middle_line_top = calc_middle(image_blue);
+				if (image_context.color_index == BLUE_IDX){
+					image_context.middle_line_top = calc_middle(image_blue);
 				}
 			}
 		}
 
 	}
 	else {
-		middle_line_bot = calc_middle(image_bot);
+		image_context.middle_line_bot = calc_middle(image_bot);
 	}
 }
 
@@ -283,15 +288,15 @@ uint8_t filter_noise_single(uint8_t couleur){
 }
 
 int16_t get_middle_diff(void) {
-	return middle_line_top-middle_line_bot;
+	return image_context.middle_line_top - image_context.middle_line_bot;
 }
 
 int16_t get_middle_top(void) {
-	return middle_line_top;
+	return image_context.middle_line_top;
 }
 
 int16_t get_middle_bot(void) {
-	return middle_line_bot;
+	return image_context.middle_line_bot;
 }
 
 static THD_WORKING_AREA(waCaptureImage, 512);
@@ -389,28 +394,28 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 			uint8_t c = 0;
-			if (color_idx == RED_IDX){
+			if (image_context.color_index == RED_IDX){
 				c = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 			}
 			else {
-				if (color_idx == GREEN_IDX){
+				if (image_context.color_index == GREEN_IDX){
 					c = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
 				}
 				else {
-					if (color_idx == BLUE_IDX){
+					if (image_context.color_index == BLUE_IDX){
 						c = (uint8_t)img_buff_ptr[i+1]&0x1F;
 					}
 				}
 			}
-			image_bot[i/2] = filter_noise_single(c);
+			image_context.image_bot[i/2] = filter_noise_single(c);
 		}
 		calc_line_middle(BOTTOM);
 
 #ifdef PLOT_ON_COMPUTER
-		//		To visualize one image on computer with plotImage.py
+		// To visualize one image on computer with plotImage.py
 		if(send_to_computer){
 			//sends to the computer the image
-			SendUint8ToComputer(image_red, IMAGE_BUFFER_SIZE);
+			SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
 		}
 
 		//invert the bool
@@ -431,20 +436,20 @@ void read_image_start(void){
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
 	//filtering noise for each color
-	if (red_value > threshold_color){
-		image_red[index/2] = red_value;
+	if (red_value > image_context.threshold_color){
+		image_context.image_red[index/2] = red_value;
 	}
-	else image_red[index/2] = 0;
+	else image_context.image_red[index/2] = 0;
 
-	if (green_value > threshold_color){
-		image_green[index/2] = green_value;
+	if (green_value > image_context.threshold_color){
+		image_context.image_green[index/2] = green_value;
 	}
-	else image_green[index/2] = 0;
+	else image_context.image_green[index/2] = 0;
 
-	if (blue_value >threshold_color){
-		image_blue[index/2] = blue_value;
+	if (blue_value > image_context.threshold_color){
+		image_context.image_blue[index/2] = blue_value;
 	}
-	else image_blue[index/2] = 0;
+	else image_context.image_blue[index/2] = 0;
 }
 
 
@@ -454,55 +459,55 @@ void set_threshold_color(int selector_pos){
 	switch (selector_pos)
 	{
 	case 0: //No noise filtering
-		threshold_color = 0;
+		image_context.threshold_color = 0;
 		break;
 	case 1: //Minimum noise filtering
-		threshold_color = 5;
+		image_context.threshold_color = 5;
 		break;
 	case 2:
-		threshold_color = 10;
+		image_context.threshold_color = 10;
 		break;
 	case 3:
-		threshold_color = 12;
+		image_context.threshold_color = 12;
 		break;
 	case 4:
-		threshold_color = 14;
+		image_context.threshold_color = 14;
 		break;
 	case 5:
-		threshold_color = 16;
+		image_context.threshold_color = 16;
 		break;
 	case 6:
-		threshold_color = 18;
+		image_context.threshold_color = 18;
 		break;
 	case 7:
-		threshold_color = 20;
+		image_context.threshold_color = 20;
 		break;
 	case 8:
-		threshold_color = 22;
+		image_context.threshold_color = 22;
 		break;
 	case 9:
-		threshold_color = 23;
+		image_context.threshold_color = 23;
 		break;
 	case 10:
-		threshold_color = 24;
+		image_context.threshold_color = 24;
 		break;
 	case 11:
-		threshold_color = 25;
+		image_context.threshold_color = 25;
 		break;
 	case 12:
-		threshold_color = 26;
+		image_context.threshold_color = 26;
 		break;
 	case 13:
-		threshold_color = 27;
+		image_context.threshold_color = 27;
 		break;
 	case 14:
-		threshold_color = 28;
+		image_context.threshold_color = 28;
 		break;
 	case 15: //Maximum noise filtering
-		threshold_color = 29;
+		image_context.threshold_color = 29;
 		break;
 	default:
-		threshold_color = 15;
+		image_context.threshold_color = 15;
 		break;
 	}
 }
@@ -524,43 +529,43 @@ void calc_max_mean(void){
 	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
 
 		//MEAN
-		if(image_red[i]> 0){
-			temp_r = temp_r + image_red[i];
+		if(image_context.image_red[i]> 0){
+			temp_r = temp_r + image_context.image_red[i];
 			count_r = count_r + 1;
 		}
 
-		if(image_green[i]> 0){
-			temp_g = temp_g + image_green[i];
+		if(image_context.image_green[i]> 0){
+			temp_g = temp_g + image_context.image_green[i];
 			count_g = count_g + 1;
 		}
 
-		if(image_blue[i]> 0){
-			temp_b = temp_b + image_blue[i];
+		if(image_context.image_blue[i]> 0){
+			temp_b = temp_b + image_context.image_blue[i];
 			count_b = count_b + 1;
 		}
 
 		//MAX
-		if(image_red[i]> max_r){
-			max_r = image_red[i];
+		if(image_context.image_red[i]> max_r){
+			max_r = image_context.image_red[i];
 		}
 
-		if(image_green[i]> max_g){
-			max_g = image_green[i];
+		if(image_context.image_green[i]> max_g){
+			max_g = image_context.image_green[i];
 		}
 
-		if(image_blue[i]> max_b){
-			max_b = image_blue[i];
+		if(image_context.image_blue[i]> max_b){
+			max_b = image_context.image_blue[i];
 		}
 	}
 
 
-	mean_red = temp_r / count_r;
-	mean_green = temp_g / count_g;
-	mean_blue = temp_b / count_b;
+	image_context.mean_red = temp_r / count_r;
+	image_context.mean_green = temp_g / count_g;
+	image_context.mean_blue = temp_b / count_b;
 
-	max_red = max_r;
-	max_green = max_g;
-	max_blue = max_b;
+	image_context.max_red = max_r;
+	image_context.max_green = max_g;
+	image_context.max_blue = max_b;
 
 }
 
@@ -571,126 +576,126 @@ void max_count(void){
 	uint16_t count_b = 0;
 
 	for (uint16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
-		if(image_red[i] > max_red - TOLERANCE){
+		if(image_context.image_red[i] > image_context.max_red - TOLERANCE){
 			count_r = count_r +1;
 		}
-		if(image_green[i] > max_green - TOLERANCE){
+		if(image_context.image_green[i] > image_context.max_green - TOLERANCE){
 			count_g = count_g +1;
 		}
-		if(image_blue[i] > max_blue - TOLERANCE){
+		if(image_context.image_blue[i] > image_context.max_blue - TOLERANCE){
 			count_b = count_b +1;
 		}
 	}
 
-	count_red = count_r;
-	count_green = count_g;
-	count_blue = count_b;
+	image_context.count_red = count_r;
+	image_context.count_green = count_g;
+	image_context.count_blue = count_b;
 
 }
 
 uint8_t get_color(void){
-	return color_idx;
+	return image_context.color_index;
 }
 
 void find_color_mean(void){
 
-	if ((((max_red > max_green) && (max_red > max_blue)) || ((mean_red > mean_green) && (mean_red > mean_blue))) && (count_red > MIN_COUNT)){
-		color_idx = RED_IDX;
+	if ((((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) || ((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue))) && (image_context.count_red > MIN_COUNT)){
+		image_context.color_index = RED_IDX;
 	}
 	else{
 
-		if ((((max_green > max_red) && (max_green > max_blue)) || ((mean_green > mean_red) && (mean_green > mean_blue))) && (count_green > MIN_COUNT)){
-			color_idx = GREEN_IDX;
+		if ((((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) || ((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue))) && (image_context.count_green > MIN_COUNT)){
+			image_context.color_index = GREEN_IDX;
 		}
 
 		else {
-			if ((((max_blue > max_red) && (max_blue > max_green)) || ((mean_blue > mean_red) && (mean_blue > mean_green))) && (count_blue > MIN_COUNT)){
-				color_idx = BLUE_IDX;
+			if ((((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) || ((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green))) && (image_context.count_blue > MIN_COUNT)){
+				image_context.color_index = BLUE_IDX;
 			}
 			else {
-				color_idx = NO_COLOR;
+				image_context.color_index = NO_COLOR;
 			}
 		}
 	}
 
-	if(send_data){
+	if(image_context.send_data){
 		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-				max_red, max_green, max_blue);
+				image_context.max_red, image_context.max_green, image_context.max_blue);
 
 		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-				mean_red, mean_green, mean_blue);
+				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
 
 		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-				count_red, count_green, count_blue);
+				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 
 }
 
 void find_color_max(void){
 
-	if (((max_red > max_green) && (max_red > max_blue)) && (count_red > MIN_COUNT)){
-		color_idx = RED_IDX;
+	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)){
+		image_context.color_index = RED_IDX;
 	}
 	else{
-		if (((max_green > max_red) && (max_green > max_blue)) && (count_green > MIN_COUNT)){
-			color_idx = GREEN_IDX;
+		if (((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) && (image_context.count_green > MIN_COUNT)){
+			image_context.color_index = GREEN_IDX;
 		}
 		else {
-			if (((max_blue > max_red) && (max_blue > max_green)) && (count_blue > MIN_COUNT)){
-				color_idx = BLUE_IDX;
+			if (((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) && (image_context.count_blue > MIN_COUNT)){
+				image_context.color_index = BLUE_IDX;
 			}
 			else {
-				color_idx = NO_COLOR;
+				image_context.color_index = NO_COLOR;
 			}
 		}
 	}
 
-	if(send_data){
+	if(image_context.send_data){
 		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-				max_red, max_green, max_blue);
+				image_context.max_red, image_context.max_green, image_context.max_blue);
 
 		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-				mean_red, mean_green, mean_blue);
+				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
 
 		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-				count_red, count_green, count_blue);
+				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 }
 
 
 void find_color_max_n_mean(void){
 
-	if (((mean_red > mean_green) && (mean_red > mean_blue)) && (count_red > MIN_COUNT)){
-		color_idx = RED_IDX;
+	if (((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue)) && (image_context.count_red > MIN_COUNT)){
+		image_context.color_index = RED_IDX;
 	}
 	else{
-		if (((mean_green > mean_red) && (mean_green > mean_blue)) && (count_green > MIN_COUNT)){
-			color_idx = GREEN_IDX;
+		if (((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue)) && (image_context.count_green > MIN_COUNT)){
+			image_context.color_index = GREEN_IDX;
 		}
 		else {
-			if (((mean_blue > mean_red) && (mean_blue > mean_green)) && (count_blue > MIN_COUNT)){
-				color_idx = BLUE_IDX;
+			if (((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green)) && (image_context.count_blue > MIN_COUNT)){
+				image_context.color_index = BLUE_IDX;
 			}
 			else {
-				color_idx = NO_COLOR;
+				image_context.color_index = NO_COLOR;
 			}
 		}
 	}
-	if(send_data){
+	if(image_context.send_data){
 		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-				max_red, max_green, max_blue);
+				image_context.max_red, image_context.max_green, image_context.max_blue);
 
 		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-				mean_red, mean_green, mean_blue);
+				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
 
 		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-				count_red, count_green, count_blue);
+				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 
 }
 
 void find_color(void){
-	switch(detection){
+	switch(image_context.detection){
 	case MAX_ONLY:
 		find_color_max();
 		break;

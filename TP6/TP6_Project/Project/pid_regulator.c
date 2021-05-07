@@ -81,9 +81,9 @@ typedef struct {
 	color_index_t color;
 	int16_t speed;
 	position_status_t position_reached;
-} CONTEXT_t;
+} MOVE_CONTEXT_t;
 
-static CONTEXT_t rolling_context;
+static MOVE_CONTEXT_t rolling_context;
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
