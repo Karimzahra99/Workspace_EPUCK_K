@@ -208,6 +208,7 @@ void move_straight_backwards(void){
 	else {
 		if (get_middle_diff()>DEAD_ZONE_WIDTH){
 			rolling_context.color = get_color();
+			set_leds(PURPLE_IDX);
 			prepare_pid_front();
 			rolling_context.mode = PID_FRONTWARDS;
 		}
@@ -269,9 +270,12 @@ void pid_front(void){
 }
 
 void avoid_obs(void){
+	//temporary function :
+	set_leds(YELLOW_IDX);
+	rolling_context.counter = 0;
 
-	//to complete
-
+	right_motor_set_speed(0);
+	left_motor_set_speed(0);
 }
 
 void moving_start(void){

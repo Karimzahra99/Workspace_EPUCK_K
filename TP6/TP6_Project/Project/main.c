@@ -56,19 +56,32 @@ int main(void)
 	dcmi_start();
 	po8030_start();
 
-	//camera parameters used for tuning and project demo
+	/* Tuning parameters for camera :
+	 * contrast : [0 255]
+	 * line_index_top : [0 480]
+	 * mode_detect : MAX_ONLY, MEAN_ONLY, MAX_N_MEANS
+	 * plot_pixels_color : RED_IDX, GREEND_IDX, BLUE_IDX
+	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
+	 */
 	uint8_t contrast = 85;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
-#ifndef TUNE
+
+	detect_mode_t mode_detect = MAX_ONLY;
+	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
+#ifdef TUNE
+	//chose which color intensity to plot with plot_image.py
+	color_index_t plot_pixels_color = RED_IDX;
+#else
 	uint16_t line_index_bot = 400;
 #endif
+
 
 	//TUNE is defined in main.h
 #ifdef TUNE
 	//Contrast level, camera line index, detect_mode, image color, visualize parameters such as means, maxs, counts on terminal
 	//Adjust Contrast, Line_Idx and detection mode  in Main.h
-	tuning_config_t tunning = {contrast, line_index_top, MEAN_ONLY, RED_IDX, NO_VISUALIZE_PARAMS};
+	tuning_config_t tunning = {contrast, line_index_top, mode_detect, plot_pixels_color, send_params};
 	tune_image_start(tunning);
 #else
 	//inits the motors
@@ -76,7 +89,7 @@ int main(void)
 	//For RGB LEDS
 	spi_comm_start();
 
-	config_t config = {contrast, line_index_top, line_index_bot, MEAN_ONLY, NO_VISUALIZE_PARAMS};
+	config_t config = {contrast, line_index_top, line_index_bot, mode_detect, send_params};
 	read_image_start(config);
 
 	proximity_start();
