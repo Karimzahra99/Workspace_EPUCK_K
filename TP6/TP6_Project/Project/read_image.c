@@ -39,7 +39,6 @@ typedef struct {
 	uint8_t contrast;
 
 	uint16_t line_idx_top;
-	uint16_t line_idx_bot;
 
 	uint16_t count_red;
 	uint16_t count_green;
@@ -61,6 +60,7 @@ typedef struct {
 	uint8_t threshold_color;
 
 #ifndef TUNE
+	uint16_t line_idx_bot;
 	uint8_t image_bot[IMAGE_BUFFER_SIZE];
 	int16_t middle_line_top; //middle of line
 	int16_t middle_line_bot;
@@ -170,8 +170,6 @@ void init_visual_context_tune(tuning_config_t received_config){
 	image_context.color_index = received_config.color_idx;
 	image_context.detection = received_config.detection_mode;
 	image_context.send_data = received_config.send_data_terminal;
-
-	image_context.line_idx_bot = 0;
 
 	image_context.count_red = 0;
 	image_context.count_green = 0;
