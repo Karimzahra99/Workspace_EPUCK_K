@@ -256,7 +256,7 @@ void move_straight_backwards(void){
 }
 
 void prepare_pid_front(void){
-	motor_set_position(10, 10, rolling_context.speed, srolling_context.speed);
+	motor_set_position(10, 10, rolling_context.speed, rolling_context.speed);
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
 }
 
