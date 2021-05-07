@@ -17,7 +17,6 @@
 #include <pid_regulator.h>
 #include "read_image.h"
 
-
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
@@ -57,25 +56,30 @@ int main(void)
 	dcmi_start();
 	po8030_start();
 
+	uint8_t contrast = 85;
+	//tuning uses line_index_top for plot visualization
+	uint16_t line_index_top = 10;
+	uint16_t line_index_bot = 400;
+
 	//TUNE is defined in main.h
 #ifdef TUNE
 	//Contrast level, camera line index, detect_mode, image color, visualize parameters such as means, maxs, counts on terminal
 	//Adjust Contrast, Line_Idx and detection mode  in Main.h
-	tuning_config_t tunning = {CONTRAST, LINE_INDEX_TOP, MEAN_ONLY, RED_IDX, NO_VISUALIZE_PARAMS};
+	tuning_config_t tunning = {contrast, line_index_top, MEAN_ONLY, RED_IDX, NO_VISUALIZE_PARAMS};
 	tune_image_start(tunning);
-
 #else
 	//inits the motors
 	motors_init();
 	//For RGB LEDS
 	spi_comm_start();
 
-	//stars the threads for the pid regulator and the processing of the image
-	pid_regulator_start();
-
-	read_image_start();
+	config_t config = {contrast, line_index_top, line_index_bot, MEAN_ONLY, NO_VISUALIZE_PARAMS};
+	read_image_start(config);
 
 	proximity_start();
+
+	pid_regulator_start();
+
 
 #endif
 

@@ -36,6 +36,11 @@ typedef struct {
 	//To visualize maxs, means and counts for each color
 	visualize_mode_t send_data;
 
+	uint8_t contrast;
+
+	uint16_t line_idx_top;
+	uint16_t line_idx_bot;
+
 	uint16_t count_red;
 	uint16_t count_green;
 	uint16_t count_blue;
@@ -63,7 +68,6 @@ typedef struct {
 
 } VISUAL_CONTEXT_t;
 
-
 static VISUAL_CONTEXT_t image_context;
 
 void find_color(void);
@@ -83,20 +87,16 @@ static THD_WORKING_AREA(waTuneCaptureImage, 256);
 static THD_FUNCTION(TuneCaptureImage, arg) {
 
 	chRegSetThreadName(__FUNCTION__);
-
-	//dereferencing structure from pointer void *
-	tuning_config_t *tune = (tuning_config_t *)arg;
-	uint8_t contr = tune->contrast;
-	uint16_t idx = tune->line_idx;
+	(void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, idx, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 	po8030_set_awb(0);
-	po8030_set_contrast(contr);
+	po8030_set_contrast(image_context.contrast);
 
 	while(1){
 		//starts a capture
@@ -114,13 +114,11 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 
 	chRegSetThreadName(__FUNCTION__);
+	(void)arg;
 
 	uint8_t *img_buff_ptr;
 
 	bool send_to_computer = true;
-
-	//casting void pointer and extracting the pointed information
-	image_context.color_index = *((color_index_t *)arg);
 
 	while(1){
 		//waits until an image has been captured
@@ -164,14 +162,47 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 }
 
+void init_visual_context_tune(tuning_config_t received_config){
+
+
+	image_context.contrast = received_config.contrast;
+	image_context.line_idx_top = received_config.line_idx;
+	image_context.color_index = received_config.color_idx;
+	image_context.detection = received_config.detection_mode;
+	image_context.send_data = received_config.send_data_terminal;
+
+	image_context.line_idx_bot = 0;
+
+	image_context.count_red = 0;
+	image_context.count_green = 0;
+	image_context.count_blue = 0;
+
+	image_context.max_red = 0;
+	image_context.max_green = 0;
+	image_context.max_blue = 0;
+
+	image_context.mean_red = 0;
+	image_context.mean_green = 0;
+	image_context.mean_blue = 0;
+
+	for (int16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
+		image_context.image_red [i] = 0;
+		image_context.image_green [i] = 0;
+		image_context.image_blue [i] = 0;
+	}
+
+	image_context.threshold_color = 0;
+
+}
+
 void tune_image_start(tuning_config_t arg_tune_settings){
-	chThdCreateStatic(waTuneProcessImage, sizeof(waTuneProcessImage), NORMALPRIO, TuneProcessImage, &arg_tune_settings);
-	chThdCreateStatic(waTuneCaptureImage, sizeof(waTuneCaptureImage), NORMALPRIO, TuneCaptureImage, &(arg_tune_settings.color_idx));
-	image_context.send_data = arg_tune_settings.send_data_terminal;
-	image_context.detection = arg_tune_settings.detection_mode;
+	init_visual_context_tune(arg_tune_settings);
+	chThdCreateStatic(waTuneProcessImage, sizeof(waTuneProcessImage), NORMALPRIO, TuneProcessImage, NULL);
+	chThdCreateStatic(waTuneCaptureImage, sizeof(waTuneCaptureImage), NORMALPRIO, TuneCaptureImage, NULL);
 }
 
 #else
+
 //Uncomment to use plot_image.py for debug
 //#define PLOT_ON_COMPUTER
 
@@ -179,10 +210,9 @@ void tune_image_start(tuning_config_t arg_tune_settings){
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
 
+void init_visual_context(config_t received_config);
 void calc_line_middle(uint8_t alternator);
 uint8_t filter_noise_single(uint8_t couleur);
-
-
 int16_t calc_middle(uint8_t *buffer){
 
 	uint16_t start_p = 0;
@@ -425,10 +455,49 @@ static THD_FUNCTION(ProcessImage, arg) {
 	}
 }
 
-void read_image_start(void){
+void init_visual_context(config_t received_config){
+
+	//After tuning adjust to the desired detection mode
+	image_context.detection = received_config.detection_mode;
+	//To visualize maxs, means and counts for each color
+	image_context.send_data = received_config.send_data_terminal;
+
+	image_context.contrast = received_config.contrast;
+
+	image_context.line_idx_top = received_config.lin_idx_top;
+	image_context.line_idx_bot = received_config.lin_idx_bot;
+
+	image_context.count_red = 0;
+	image_context.count_green = 0;
+	image_context.count_blue = 0;
+
+	image_context.max_red = 0;
+	image_context.max_green = 0;
+	image_context.max_blue = 0;
+
+	image_context.mean_red = 0;
+	image_context.mean_green = 0;
+	image_context.mean_blue = 0;
+
+	for (int16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
+		image_context.image_red [i] = 0;
+		image_context.image_green [i] = 0;
+		image_context.image_blue [i] = 0;
+		image_context.image_bot [i] = 0;
+	}
+
+	image_context.color_index = 0;
+	image_context.threshold_color = 0;
+
+	image_context.middle_line_top = IMAGE_BUFFER_SIZE/2;; //middle of line
+	image_context.middle_line_bot = IMAGE_BUFFER_SIZE/2;
+
+}
+
+void read_image_start(config_t arg_config){
+	init_visual_context(arg_config);
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
-
 }
 
 #endif
@@ -710,5 +779,4 @@ void find_color(void){
 		break;
 	}
 }
-
 
