@@ -52,13 +52,13 @@ typedef struct {
 	uint8_t image_green[IMAGE_BUFFER_SIZE];
 	uint8_t image_blue[IMAGE_BUFFER_SIZE];
 
-	color_index_t color_index = 0;
-	uint8_t threshold_color = 0;
+	color_index_t color_index;
+	uint8_t threshold_color;
 
 #ifndef TUNE
-	uint8_t image_bot[IMAGE_BUFFER_SIZE] = {0};
-	int16_t middle_line_top = IMAGE_BUFFER_SIZE/2; //middle of line
-	int16_t middle_line_bot = IMAGE_BUFFER_SIZE/2;
+	uint8_t image_bot[IMAGE_BUFFER_SIZE];
+	int16_t middle_line_top; //middle of line
+	int16_t middle_line_bot;
 #endif
 
 } VISUAL_CONTEXT_t;
@@ -260,28 +260,28 @@ void calc_line_middle(uint8_t alternator){
 
 	if (alternator == TOP){
 		if (image_context.color_index == RED_IDX){
-			image_context.middle_line_top = calc_middle(image_red);
+			image_context.middle_line_top = calc_middle(image_context.image_red);
 		}
 		else {
 			if (image_context.color_index == GREEN_IDX){
-				image_context.middle_line_top = calc_middle(image_green);
+				image_context.middle_line_top = calc_middle(image_context.image_green);
 			}
 
 			else {
 				if (image_context.color_index == BLUE_IDX){
-					image_context.middle_line_top = calc_middle(image_blue);
+					image_context.middle_line_top = calc_middle(image_context.image_blue);
 				}
 			}
 		}
 
 	}
 	else {
-		image_context.middle_line_bot = calc_middle(image_bot);
+		image_context.middle_line_bot = calc_middle(image_context.image_bot);
 	}
 }
 
 uint8_t filter_noise_single(uint8_t couleur){
-	if (couleur > threshold_color){
+	if (couleur > image_context.threshold_color){
 		return couleur;
 	}
 	else return 0;
