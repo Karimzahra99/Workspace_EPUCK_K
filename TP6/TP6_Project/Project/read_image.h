@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <main.h>
 
-void read_image_start(void);
+void read_image_start(config_t arg_config);
 void tune_image_start(tuning_config_t arg_tune_settings);
 
 uint8_t get_color(void);
