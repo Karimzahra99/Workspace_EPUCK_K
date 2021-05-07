@@ -11,16 +11,10 @@ extern "C" {
 
 
 //Comment after tuning the color detection parameters in read_image.c
-//#define TUNE
+#define TUNE
 
-
-//Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
-#define LINE_INDEX_TOP				10
-#define LINE_INDEX_BOT				400
-
-//Contrast of camera
-#define CONTRAST					85
-
+//Difference between middle top and bottom line neglected (used in read_image.c and pid_regulator.c)
+#define DEAD_ZONE_WIDTH				100
 
 typedef enum {
 	MAX_ONLY = 0,
@@ -42,13 +36,21 @@ typedef enum {
 	YES_VISUALIZE_PARAMS,
 } visualize_mode_t;
 
-struct tunning_config {
+typedef struct {
 	uint8_t contrast;
 	uint16_t line_idx;
 	detect_mode_t detection_mode;
 	color_index_t color_idx;
 	visualize_mode_t send_data_terminal;
-};
+} tuning_config_t;
+
+typedef struct {
+	uint8_t contrast;
+	uint16_t line_idx_top;
+	uint16_t line_idx_bot;
+	detect_mode_t detection_mode;
+	visualize_mode_t send_data_terminal;
+} config_t;
 
 
 /** Robot wide IPC bus. */
