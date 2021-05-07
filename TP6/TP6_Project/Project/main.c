@@ -60,7 +60,9 @@ int main(void)
 	uint8_t contrast = 85;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
+#ifndef TUNE
 	uint16_t line_index_bot = 400;
+#endif
 
 	//TUNE is defined in main.h
 #ifdef TUNE

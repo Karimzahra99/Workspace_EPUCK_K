@@ -339,13 +339,13 @@ static THD_FUNCTION(CaptureImage, arg) {
 		//Line index 413 detecting colors goes wrong
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
-		po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_TOP, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 		dcmi_enable_double_buffering();
 		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 		dcmi_prepare();
 		po8030_set_awb(0);
 		//po8030_set_mirror(0, 1);
-		po8030_set_contrast(CONTRAST);
+		po8030_set_contrast(image_context.contrast);
 
 		//starts a capture
 		dcmi_capture_start();
@@ -355,13 +355,13 @@ static THD_FUNCTION(CaptureImage, arg) {
 		//signals an image has been captured
 		chBSemSignal(&image_ready_sem);
 
-		po8030_advanced_config(FORMAT_RGB565, 0, LINE_INDEX_BOT, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 		dcmi_enable_double_buffering();
 		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 		dcmi_prepare();
 		po8030_set_awb(0);
 		//po8030_set_mirror(0, 1);
-		po8030_set_contrast(CONTRAST);
+		po8030_set_contrast(image_context.contrast);
 
 		//starts a capture
 		dcmi_capture_start();
@@ -462,8 +462,8 @@ void init_visual_context(config_t received_config){
 
 	image_context.contrast = received_config.contrast;
 
-	image_context.line_idx_top = received_config.lin_idx_top;
-	image_context.line_idx_bot = received_config.lin_idx_bot;
+	image_context.line_idx_top = received_config.line_idx_top;
+	image_context.line_idx_bot = received_config.line_idx_bot;
 
 	image_context.count_red = 0;
 	image_context.count_green = 0;
