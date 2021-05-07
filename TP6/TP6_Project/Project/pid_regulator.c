@@ -109,7 +109,7 @@ int16_t pid_regulator_S(int middle){
 
 	last_error = error;
 
-	speed = 1 * error; //+  1* derivative; //0.01 * sum_error; //+ 0.1 * derivative;
+	speed = 0.2 * error; //0.01 * sum_error; //+ 0.1 * derivative;
 
     return (int16_t) speed;
 }
@@ -153,36 +153,33 @@ static THD_FUNCTION(PidRegulator, arg) {
 				//ir1_new = get_calibrated_prox(Sensor_IR1);
 				ir3_new = get_calibrated_prox(Sensor_IR3);
 				chprintf((BaseSequentialStream *)&SD3, " ir3new =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", ir3_new, ir3_old, speed_correction);
-//				if( get_prox(Sensor_IR2) < 50){
-////					motor_set_position(2,2,-3,-3);
-////					motor_set_position(PERIMETER_EPUCK/4,PERIMETER_EPUCK/4,3,-3);
-////					motor_set_position(5,5,-2,-2);
-////
-////				}
+//				if( get_calibrated_prox(Sensor_IR2) < 5 ){
+//					left_motor_set_speed(-cms_to_steps(2)+ 2*speed_correction);
+//					right_motor_set_speed(-cms_to_steps(2)- 2*speed_correction);
+//					motor_set_position(2,2,-3,-3);
+////					mov_circ_right(4, 3 ,PI/2, 1);
+//					motor_set_position(5,5,-2,-2);
+//
+//				}
 
-				//use ir1 ir3 to get speed correction sign
-//				if (ir1_new > ir1_old +20){
-				// plus de chance de tourner a gauche que de tourner a droite 5 bruit 50 vide
-//				if (ir3_new < 5){
-//					left_motor_set_speed(-cms_to_steps(2) + speed_correction);
-//					right_motor_set_speed(-cms_to_steps(2) - speed_correction);
-//				}
-				if (ir3_new < ir3_old ){
-						chprintf((BaseSequentialStream *)&SD3, "ir1new =%-7d ir3new =%-7d ir1old =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", ir1_new,ir3_new, ir1_old,ir3_old, speed_correction);
-				left_motor_set_speed(-cms_to_steps(2) + speed_correction);
-				right_motor_set_speed(-cms_to_steps(2) - speed_correction);
-					}
-//				}
-//				else if (ir1_new < ir1_old -20 ){
-					else if ( ir3_new > ir3_old ){
+//				//use ir1 ir3 to get speed correction sign
+//				//				if (ir1_new > ir1_old +20){
+//				// plus de chance de tourner a gauche que de tourner a droite 5 bruit 50 vide
+				if (ir3_new < ir3_old - 5){
+					left_motor_set_speed(-cms_to_steps(2) + speed_correction);
+					right_motor_set_speed(-cms_to_steps(2) - speed_correction);
+				}
+//				//				}
+//				//				else if (ir1_new < ir1_old -20 ){
+				else if ( ir3_new > ir3_old + 5  ){
 					left_motor_set_speed(-cms_to_steps(2)- speed_correction);
 					right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
-					}
-//				}
-//				else {
-//					left_motor_set_speed(-cms_to_steps(1));
-//					right_motor_set_speed(-cms_to_steps(1));
-//				}
+				}
+//				//				}
+				else {
+					left_motor_set_speed(-cms_to_steps(2));
+					right_motor_set_speed(-cms_to_steps(2));
+				}
 
 			}
 
