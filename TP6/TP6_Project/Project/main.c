@@ -56,6 +56,7 @@ int main(void)
 	dcmi_start();
 	po8030_start();
 
+	//camera parameters used for tuning and project demo
 	uint8_t contrast = 85;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
