@@ -81,7 +81,7 @@ typedef struct {
 	color_index_t color;
 	int16_t speed;
 	position_status_t position_reached;
-}CONTEXT_t;
+} CONTEXT_t;
 
 static CONTEXT_t rolling_context;
 
@@ -154,46 +154,46 @@ int16_t pid_regulator(int16_t middle_diff){
 
 static THD_WORKING_AREA(waPidRegulator, 512);
 static THD_FUNCTION(PidRegulator, arg) {
-    chRegSetThreadName(__FUNCTION__);
-    (void)arg;
+	chRegSetThreadName(__FUNCTION__);
+	(void)arg;
 
-    systime_t time;
+	systime_t time;
 
 
-    while(1){
-    	time = chVTGetSystemTime();
+	while(1){
+		time = chVTGetSystemTime();
 
-    	switch(rolling_context.mode){
-    	case STRAIGHT_LINE_BACKWARDS :
-    		move_straight_backwards();
-    		break;
-    	case PID_FRONTWARDS :
-    		pid_front();
-    		break;
-    	case TURNING_PID :
-    		//dosmth();
-    		break;
-    	case OBS_AVOIDANCE :
-    		//dosmth();
-    		break;
-    	case GO_BACK_5cm :
-    		//dosmth();
-    		break;
-    	case TURN_ANGLE :
-    		//dosmth();
-    		break;
-    	case ADVANCE :
-    		//dosmth();
-    		break;
+		switch(rolling_context.mode){
+		case STRAIGHT_LINE_BACKWARDS :
+			move_straight_backwards();
+			break;
+		case PID_FRONTWARDS :
+			pid_front();
+			break;
+		case TURNING_PID :
+			//dosmth();
+			break;
+		case OBS_AVOIDANCE :
+			//dosmth();
+			break;
+		case GO_BACK_5cm :
+			//dosmth();
+			break;
+		case TURN_ANGLE :
+			//dosmth();
+			break;
+		case ADVANCE :
+			//dosmth();
+			break;
 
-    	default :
-    		//dosmth();
-    		break;
-    	}
+		default :
+			//dosmth();
+			break;
+		}
 
-    	//100Hz
-    	chThdSleepUntilWindowed(time, time + MS2ST(10));
-    }
+		//100Hz
+		chThdSleepUntilWindowed(time, time + MS2ST(10));
+	}
 }
 
 bool check_ir_front(void){
@@ -360,7 +360,7 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 
 //void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l){
 //
-	// start_move as static
+// start_move as static
 //	if (start_move == 0){
 //	left_motor_set_pos(0);
 //	right_motor_set_pos(0);
