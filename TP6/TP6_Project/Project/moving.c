@@ -1,3 +1,4 @@
+#include "moving.h"
 #include "ch.h"
 #include "hal.h"
 #include <math.h>
@@ -8,7 +9,6 @@
 #include <leds.h>
 #include <main.h>
 #include <motors.h>
-#include <pid_regulator.h>
 #include "read_image.h"
 
 //Distances parameters
@@ -274,7 +274,7 @@ void avoid_obs(void){
 
 }
 
-void pid_regulator_start(void){
+void moving_start(void){
 	init_context();
 	chThdCreateStatic(waPidRegulator, sizeof(waPidRegulator), NORMALPRIO, PidRegulator, NULL);
 }

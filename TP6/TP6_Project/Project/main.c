@@ -14,7 +14,7 @@
 #include <sensors/proximity.h>
 #include <leds.h>
 #include <spi_comm.h>
-#include <pid_regulator.h>
+#include "moving.h"
 #include "read_image.h"
 
 messagebus_t bus;
@@ -81,7 +81,7 @@ int main(void)
 
 	proximity_start();
 
-	pid_regulator_start();
+	moving_start();
 
 
 #endif
