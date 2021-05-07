@@ -86,8 +86,11 @@ static int16_t speed = 2;
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
 int16_t cms_to_steps (int16_t speed_cms);
-float cm_to_step (float cm);
-
+int cm_to_step (float cm);
+void move_straight_backwards(void);
+void pid_front(void);
+void init_context(void);
+void prepare_to_follow_line(void);
 
 //PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -208,13 +211,13 @@ void init_context(void){
 
 void move_straight_backwards(void){
 	if (check_ir_front()){
-		rollong_context.color = get_color();
+		rolling_context.color = get_color();
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
 		if (get_middle_diff()>DEAD_ZONE_WIDTH){
-			rollong_context.color = get_color();
-			prepare_to_follow_fine();
+			rolling_context.color = get_color();
+			prepare_to_follow_line();
 			rolling_context.mode = PID_FRONTWARDS;
 		}
 		else {
@@ -253,7 +256,7 @@ void prepare_to_follow_line(void){
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, speed, -speed);
 }
 
-void pid_front(){
+void pid_front(void){
 	int16_t speed_corr = pid_regulator(get_middle_diff());
 
 }
