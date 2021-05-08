@@ -13,6 +13,8 @@ void mov_circ_right(float vitesse,float rayon,float angle, int mode);
 
 void mov_circ_left(float vitesse,float rayon,float angle, int mode);
 
-int rotate_until_irmax(void);
+int rotate_until_irmax_left(void);
+
+int rotate_until_irmax_right(void);
 
 #endif /* PID_REGULATOR_H_ */
