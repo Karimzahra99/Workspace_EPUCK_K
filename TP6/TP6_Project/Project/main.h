@@ -29,7 +29,8 @@ typedef enum {
 typedef enum {
 	MAX_ONLY = 0,
 	MEAN_ONLY,
-	MAX_N_MEAN
+	MAX_N_MEAN,
+	MAX_N_COUNT
 } detect_mode_t;
 
 typedef enum {

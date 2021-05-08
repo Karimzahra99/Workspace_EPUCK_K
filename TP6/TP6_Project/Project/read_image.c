@@ -656,6 +656,18 @@ void max_count(void){
 		}
 	}
 
+	if (count_r == IMAGE_BUFFER_SIZE){
+		count_r = 0;
+	}
+
+	if (count_g == IMAGE_BUFFER_SIZE){
+		count_g = 0;
+	}
+
+	if (count_b == IMAGE_BUFFER_SIZE){
+		count_b = 0;
+	}
+
 	image_context.count_red = count_r;
 	image_context.count_green = count_g;
 	image_context.count_blue = count_b;
@@ -799,6 +811,49 @@ void find_color_max_n_mean(void){
 
 }
 
+void find_color_max_n_count(void){
+
+	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)  && (image_context.count_red > image_context.count_green)  && (image_context.count_red > image_context.count_blue)){
+		image_context.color_index = RED_IDX;
+#ifdef TUNE
+		set_leds(RED_IDX);
+#endif
+	}
+	else{
+		if (((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) && (image_context.count_green > MIN_COUNT)  && (image_context.count_green > image_context.count_red)  && (image_context.count_green > image_context.count_blue)){
+			image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+			set_leds(GREEN_IDX);
+#endif
+		}
+		else {
+			if (((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) && (image_context.count_blue > MIN_COUNT)  && (image_context.count_blue > image_context.count_red)  && (image_context.count_blue > image_context.count_green)){
+				image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+				set_leds(BLUE_IDX);
+#endif
+			}
+			else {
+				image_context.color_index = NO_COLOR;
+#ifdef TUNE
+				set_leds(NO_COLOR);
+#endif
+			}
+		}
+	}
+	if(image_context.send_data){
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+				image_context.max_red, image_context.max_green, image_context.max_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+				image_context.count_red, image_context.count_green, image_context.count_blue);
+	}
+
+}
+
 void find_color(void){
 	switch(image_context.detection){
 	case MAX_ONLY:
@@ -810,6 +865,9 @@ void find_color(void){
 	case MAX_N_MEAN:
 		find_color_max_n_mean();
 		break;
+	case MAX_N_COUNT:
+			find_color_max_n_count();
+			break;
 	default:
 		find_color_max();
 		break;
