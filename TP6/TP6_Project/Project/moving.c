@@ -6,7 +6,6 @@
 #include <chprintf.h>
 #include<stdbool.h>
 #include <sensors/proximity.h>
-#include <leds.h>
 #include <main.h>
 #include <motors.h>
 #include "read_image.h"
@@ -38,21 +37,10 @@
 //Threshold des IR
 #define	IR_THRESHOLD				250
 
-//Level des leds
-#define LED_ON						10
-#define LED_OFF						0
-
 //Color speeds
 #define LOW_SPEED					2
 #define MEDIUM_SPEED				4
 #define HIGH_SPEED 					6
-
-typedef enum {
-	LED_RGB_2 = 0,
-	LED_RGB_4,
-	LED_RGB_6,
-	LED_RGB_8
-} rgb_leds_index_t;
 
 typedef enum {
 	SENSOR_IR1 = 1,
@@ -291,55 +279,6 @@ int cm_to_step (float cm) {
 	return (int)(cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
 }
 
-void set_leds(color_index_t color_index){
-	if (color_index == RED_IDX){
-		set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
-		set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_OFF);
-		set_rgb_led(LED_RGB_6, LED_ON, LED_OFF, LED_OFF);
-		set_rgb_led(LED_RGB_8, LED_ON, LED_OFF, LED_OFF);
-	}
-	else {
-		if (color_index == GREEN_IDX){
-			set_rgb_led(LED_RGB_2, LED_OFF, LED_ON, LED_OFF);
-			set_rgb_led(LED_RGB_4, LED_OFF, LED_ON, LED_OFF);
-			set_rgb_led(LED_RGB_6, LED_OFF, LED_ON, LED_OFF);
-			set_rgb_led(LED_RGB_8, LED_OFF, LED_ON, LED_OFF);
-		}
-		else {
-			if (color_index == BLUE_IDX){
-				set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_ON);
-				set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_ON);
-				set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_ON);
-				set_rgb_led(LED_RGB_8, LED_OFF, LED_OFF, LED_ON);
-			}
-			else {
-				if (color_index == YELLOW_IDX){
-					set_rgb_led(LED_RGB_2, LED_ON, LED_ON, LED_OFF);
-					set_rgb_led(LED_RGB_4, LED_ON, LED_ON, LED_OFF);
-					set_rgb_led(LED_RGB_6, LED_ON, LED_ON, LED_OFF);
-					set_rgb_led(LED_RGB_8, LED_ON, LED_ON, LED_OFF);
-				}
-				else {
-					if (color_index == PURPLE_IDX){
-						set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_ON);
-						set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_ON);
-						set_rgb_led(LED_RGB_6, LED_ON, LED_OFF, LED_ON);
-						set_rgb_led(LED_RGB_8, LED_ON, LED_OFF, LED_ON);
-					}
-					else {
-						if (color_index == NO_COLOR){
-							set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_OFF);
-							set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_OFF);
-							set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_OFF);
-							set_rgb_led(LED_RGB_8, LED_OFF, LED_OFF, LED_OFF);
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
 //position in cm and speed en cm/s
 //int : -2^32/2 to 2^32/2-1
 //motor set position -2^31/2 to 2^31/2-1
@@ -376,8 +315,4 @@ void odometry(void){
 		float angle = 0;
 		first_time = 1;
 	}
-
-
-
-
 }
