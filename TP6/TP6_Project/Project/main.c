@@ -59,16 +59,18 @@ int main(void)
 	spi_comm_start();
 
 	/* Tuning parameters for camera :
+	 * rgb_gains : [0 255] for each, default : 94, 64, 93
 	 * contrast : [0 255], default 64
 	 * line_index_top : [0 480]
 	 * mode_detect : MAX_ONLY, MEAN_ONLY, MAX_N_MEANS
 	 * plot_pixels_color : RED_IDX, GREEND_IDX, BLUE_IDX
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
+
+	rgb_gain_t rgb_gains = {94, 80, 80};
 	uint8_t contrast = 85;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
-	rgb_gain_t rgb_gains = {94, 80, 80};
 	detect_mode_t mode_detect = MAX_ONLY;
 	visualize_mode_t send_params = YES_VISUALIZE_PARAMS;
 #ifdef TUNE

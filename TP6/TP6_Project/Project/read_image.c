@@ -100,7 +100,7 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
 	//default : 94 (1.46875), 64 (1), 93 (1.453125)
-	po8030_set_rgb_gain(94, 80, 80);
+	//po8030_set_rgb_gain(94, 80, 80);
 
 	while(1){
 		//starts a capture
