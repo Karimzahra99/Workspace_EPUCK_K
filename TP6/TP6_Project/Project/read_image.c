@@ -147,16 +147,18 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 		max_count();
 		find_color();
 
-		//To visualize one image on computer with plotImage.py
-		if(send_to_computer){
-			//sends to the computer the image
-			if (image_context.color_index == RED_IDX) SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
-			if (image_context.color_index == GREEN_IDX) SendUint8ToComputer(image_context.image_green, IMAGE_BUFFER_SIZE);
-			if (image_context.color_index == BLUE_IDX) SendUint8ToComputer(image_context.image_blue, IMAGE_BUFFER_SIZE);
-		}
+		if (image_context.send_data == NO_VISUALIZE_PARAMS){
+			//To visualize one image on computer with plotImage.py
+			if(send_to_computer){
+				//sends to the computer the image
+				if (image_context.color_index == RED_IDX) SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
+				if (image_context.color_index == GREEN_IDX) SendUint8ToComputer(image_context.image_green, IMAGE_BUFFER_SIZE);
+				if (image_context.color_index == BLUE_IDX) SendUint8ToComputer(image_context.image_blue, IMAGE_BUFFER_SIZE);
+			}
 
-		//invert the bool
-		send_to_computer = !send_to_computer;
+			//invert the bool
+			send_to_computer = !send_to_computer;
+		}
 
 	}
 
