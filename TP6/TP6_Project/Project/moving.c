@@ -365,3 +365,19 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 	}
 }
 
+
+static uint8_t first_time = 0;
+
+void odometry(void){
+
+	if (first_time == 0){
+		float x = 0;
+		float y = 0;
+		float angle = 0;
+		first_time = 1;
+	}
+
+
+
+
+}

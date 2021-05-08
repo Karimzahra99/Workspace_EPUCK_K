@@ -17,6 +17,13 @@ extern "C" {
 #define DEAD_ZONE_WIDTH				100
 
 typedef enum {
+	LED_RGB_2 = 0,
+	LED_RGB_4,
+	LED_RGB_6,
+	LED_RGB_8
+} rgb_leds_index_t;
+
+typedef enum {
 	MAX_ONLY = 0,
 	MEAN_ONLY,
 	MAX_N_MEAN
