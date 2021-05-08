@@ -36,6 +36,8 @@ typedef struct {
 	//To visualize maxs, means and counts for each color
 	visualize_mode_t send_data;
 
+	rgb_gain_t rgb_gains;
+
 	uint8_t contrast;
 
 	uint16_t line_idx_top;
@@ -97,6 +99,8 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 	dcmi_prepare();
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
+	//default : 94 (1.46875), 64 (1), 93 (1.453125)
+	po8030_set_rgb_gain(94, 80, 80);
 
 	while(1){
 		//starts a capture
@@ -147,16 +151,18 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 		max_count();
 		find_color();
 
-		//To visualize one image on computer with plotImage.py
-		if(send_to_computer){
-			//sends to the computer the image
-			if (image_context.color_index == RED_IDX) SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
-			if (image_context.color_index == GREEN_IDX) SendUint8ToComputer(image_context.image_green, IMAGE_BUFFER_SIZE);
-			if (image_context.color_index == BLUE_IDX) SendUint8ToComputer(image_context.image_blue, IMAGE_BUFFER_SIZE);
-		}
+		if (image_context.send_data == NO_VISUALIZE_PARAMS){
+			//To visualize one image on computer with plotImage.py
+			if(send_to_computer){
+				//sends to the computer the image
+				if (image_context.color_index == RED_IDX) SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
+				if (image_context.color_index == GREEN_IDX) SendUint8ToComputer(image_context.image_green, IMAGE_BUFFER_SIZE);
+				if (image_context.color_index == BLUE_IDX) SendUint8ToComputer(image_context.image_blue, IMAGE_BUFFER_SIZE);
+			}
 
-		//invert the bool
-		send_to_computer = !send_to_computer;
+			//invert the bool
+			send_to_computer = !send_to_computer;
+		}
 
 	}
 
@@ -170,6 +176,10 @@ void init_visual_context_tune(tuning_config_t received_config){
 	image_context.color_index = received_config.color_idx;
 	image_context.detection = received_config.detection_mode;
 	image_context.send_data = received_config.send_data_terminal;
+
+	image_context.rgb_gains.red_gain = received_config.rgb_gain.red_gain;
+	image_context.rgb_gains.green_gain = received_config.rgb_gain.green_gain;
+	image_context.rgb_gains.blue_gain = received_config.rgb_gain.blue_gain;
 
 	image_context.count_red = 0;
 	image_context.count_green = 0;
@@ -654,6 +664,18 @@ void max_count(void){
 		}
 	}
 
+	if (count_r == IMAGE_BUFFER_SIZE){
+		count_r = 0;
+	}
+
+	if (count_g == IMAGE_BUFFER_SIZE){
+		count_g = 0;
+	}
+
+	if (count_b == IMAGE_BUFFER_SIZE){
+		count_b = 0;
+	}
+
 	image_context.count_red = count_r;
 	image_context.count_green = count_g;
 	image_context.count_blue = count_b;
@@ -797,6 +819,49 @@ void find_color_max_n_mean(void){
 
 }
 
+void find_color_max_n_count(void){
+
+	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)  && (image_context.count_red > image_context.count_green)  && (image_context.count_red > image_context.count_blue)){
+		image_context.color_index = RED_IDX;
+#ifdef TUNE
+		set_leds(RED_IDX);
+#endif
+	}
+	else{
+		if (((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) && (image_context.count_green > MIN_COUNT)  && (image_context.count_green > image_context.count_red)  && (image_context.count_green > image_context.count_blue)){
+			image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+			set_leds(GREEN_IDX);
+#endif
+		}
+		else {
+			if (((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) && (image_context.count_blue > MIN_COUNT)  && (image_context.count_blue > image_context.count_red)  && (image_context.count_blue > image_context.count_green)){
+				image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+				set_leds(BLUE_IDX);
+#endif
+			}
+			else {
+				image_context.color_index = NO_COLOR;
+#ifdef TUNE
+				set_leds(NO_COLOR);
+#endif
+			}
+		}
+	}
+	if(image_context.send_data){
+		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+				image_context.max_red, image_context.max_green, image_context.max_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+				image_context.count_red, image_context.count_green, image_context.count_blue);
+	}
+
+}
+
 void find_color(void){
 	switch(image_context.detection){
 	case MAX_ONLY:
@@ -808,6 +873,9 @@ void find_color(void){
 	case MAX_N_MEAN:
 		find_color_max_n_mean();
 		break;
+	case MAX_N_COUNT:
+			find_color_max_n_count();
+			break;
 	default:
 		find_color_max();
 		break;
