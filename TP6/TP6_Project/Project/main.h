@@ -9,12 +9,22 @@ extern "C" {
 #include "msgbus/messagebus.h"
 #include "parameter/parameter.h"
 
-
 //Comment after tuning the color detection parameters in read_image.c
 //#define TUNE
 
+//Level des leds
+#define LED_ON						10
+#define LED_OFF						0
+
 //Difference between middle top and bottom line neglected (used in read_image.c and pid_regulator.c)
 #define DEAD_ZONE_WIDTH				100
+
+typedef enum {
+	LED_RGB_2 = 0,
+	LED_RGB_4,
+	LED_RGB_6,
+	LED_RGB_8
+} rgb_leds_index_t;
 
 typedef enum {
 	MAX_ONLY = 0,
@@ -59,6 +69,8 @@ extern messagebus_t bus;
 extern parameter_namespace_t parameter_root;
 
 void SendUint8ToComputer(uint8_t* data, uint16_t size);
+
+void set_leds(color_index_t color_index);
 
 #ifdef __cplusplus
 }

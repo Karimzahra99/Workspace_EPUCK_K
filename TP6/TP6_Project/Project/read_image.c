@@ -668,19 +668,31 @@ void find_color_mean(void){
 
 	if ((((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) || ((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue))) && (image_context.count_red > MIN_COUNT)){
 		image_context.color_index = RED_IDX;
+#ifdef TUNE
+		set_leds(RED_IDX);
+#endif
 	}
 	else{
 
 		if ((((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) || ((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue))) && (image_context.count_green > MIN_COUNT)){
 			image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+			set_leds(GREEN_IDX);
+#endif
 		}
 
 		else {
 			if ((((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) || ((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green))) && (image_context.count_blue > MIN_COUNT)){
 				image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+			set_leds(BLUE_IDX);
+#endif
 			}
 			else {
 				image_context.color_index = NO_COLOR;
+#ifdef TUNE
+				set_leds(NO_COLOR);
+#endif
 			}
 		}
 	}
@@ -702,17 +714,29 @@ void find_color_max(void){
 
 	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)){
 		image_context.color_index = RED_IDX;
+#ifdef TUNE
+		set_leds(RED_IDX);
+#endif
 	}
 	else{
 		if (((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) && (image_context.count_green > MIN_COUNT)){
 			image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+			set_leds(GREEN_IDX);
+#endif
 		}
 		else {
 			if (((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) && (image_context.count_blue > MIN_COUNT)){
 				image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+				set_leds(BLUE_IDX);
+#endif
 			}
 			else {
 				image_context.color_index = NO_COLOR;
+#ifdef TUNE
+				set_leds(NO_COLOR);
+#endif
 			}
 		}
 	}
@@ -734,17 +758,29 @@ void find_color_max_n_mean(void){
 
 	if (((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue)) && (image_context.count_red > MIN_COUNT)){
 		image_context.color_index = RED_IDX;
+#ifdef TUNE
+		set_leds(RED_IDX);
+#endif
 	}
 	else{
 		if (((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue)) && (image_context.count_green > MIN_COUNT)){
 			image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+			set_leds(GREEN_IDX);
+#endif
 		}
 		else {
 			if (((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green)) && (image_context.count_blue > MIN_COUNT)){
 				image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+				set_leds(BLUE_IDX);
+#endif
 			}
 			else {
 				image_context.color_index = NO_COLOR;
+#ifdef TUNE
+				set_leds(NO_COLOR);
+#endif
 			}
 		}
 	}
