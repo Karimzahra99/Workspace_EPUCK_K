@@ -6,7 +6,8 @@
 #include <main.h>
 #include <motors.h>
 #include <pi_regulator.h>
-#include <process_image.h>
+
+#include "read_image.h"
 
 //simple PI regulator implementation
 int16_t pi_regulator(float distance, float goal){

@@ -10,49 +10,48 @@ extern "C" {
 #include "parameter/parameter.h"
 
 
-//constants for the differents parts of the project
-#define PI                 		3.1415926536f
+//Comment after tuning the color detection parameters in read_image.c
+//#define TUNE
 
-#define IMAGE_BUFFER_SIZE		640
-//#define ROTATION_THRESHOLD		30
-#define ROTATION_COEFF			2
-#define LINEWIDTH				100		//en fonction de la ligne imprimmer, a voir si utile
-#define TOLERANCE				3
-#define ERROR_THRESHOLD			0.1f	//[cm] because of the noise of the camera
-#define KP						800.0f
-#define KI 						3.5f	//must not be zero
-#define KD						25.0f	//a tuner -> utiliser deuxieme methode de ZN avec Ku et Pu
-#define MAX_SUM_ERROR 			(MOTOR_SPEED_LIMIT/KI)
+//Difference between middle top and bottom line neglected (used in read_image.c and pid_regulator.c)
+#define DEAD_ZONE_WIDTH				100
 
+typedef enum {
+	MAX_ONLY = 0,
+	MEAN_ONLY,
+	MAX_N_MEAN
+} detect_mode_t;
 
-#define WHEEL_PERIMETER     	13 		//[cm]
-#define NSTEP_ONE_TURN      	1000	// number of step for 1 turn of the motor
-#define WHEEL_DISTANCE      	5.30f    //cm
-#define PERIMETER_EPUCK     	(PI * WHEEL_DISTANCE)
+typedef enum {
+	NO_COLOR = 0,
+	RED_IDX,
+	GREEN_IDX,
+	BLUE_IDX,
+	YELLOW_IDX,
+	PURPLE_IDX
+} color_index_t;
 
-#define Sensor_IR1				1
-#define Sensor_IR2				2
-#define Sensor_IR3				3
-#define Sensor_IR4				4
-#define Sensor_IR5				5
-#define Sensor_IR6				6
-#define	IR_THRESHOLD			200
+typedef enum {
+	NO_VISUALIZE_PARAMS = 0,
+	YES_VISUALIZE_PARAMS,
+} visualize_mode_t;
 
-//Vertical index of line (0 to 480) 0 : highest, 479 :lowest (due to camera library we take two lines)
-#define LINE_INDEX					25
+typedef struct {
+	uint8_t contrast;
+	uint16_t line_idx;
+	detect_mode_t detection_mode;
+	color_index_t color_idx;
+	visualize_mode_t send_data_terminal;
+} tuning_config_t;
 
-//Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
-#define MIN_COUNT					5
+typedef struct {
+	uint8_t contrast;
+	uint16_t line_idx_top;
+	uint16_t line_idx_bot;
+	detect_mode_t detection_mode;
+	visualize_mode_t send_data_terminal;
+} config_t;
 
-//Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
-#define SHIFT_3						3
-#define SHIFT_5						5
-
-//Index des couleurs / utiliser enum ?
-#define RED_IDX						1
-#define GREEN_IDX					2
-#define BLUE_IDX					3
-#define NO_COLOR					0
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;
