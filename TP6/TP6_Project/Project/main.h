@@ -48,6 +48,13 @@ typedef enum {
 } visualize_mode_t;
 
 typedef struct {
+	uint8_t red_gain;
+	uint8_t green_gain;
+	uint8_t blue_gain;
+} rgb_gain_t;
+
+typedef struct {
+	rgb_gain_t rgb_gain;
 	uint8_t contrast;
 	uint16_t line_idx;
 	detect_mode_t detection_mode;
@@ -56,6 +63,7 @@ typedef struct {
 } tuning_config_t;
 
 typedef struct {
+	rgb_gain_t rgb_gain;
 	uint8_t contrast;
 	uint16_t line_idx_top;
 	uint16_t line_idx_bot;

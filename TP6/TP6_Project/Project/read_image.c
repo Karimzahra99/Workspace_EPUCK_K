@@ -36,6 +36,8 @@ typedef struct {
 	//To visualize maxs, means and counts for each color
 	visualize_mode_t send_data;
 
+	rgb_gain_t rgb_gains;
+
 	uint8_t contrast;
 
 	uint16_t line_idx_top;
@@ -97,6 +99,8 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 	dcmi_prepare();
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
+	//default : 94 (1.46875), 64 (1), 93 (1.453125)
+	po8030_set_rgb_gain(94, 80, 80);
 
 	while(1){
 		//starts a capture
@@ -172,6 +176,10 @@ void init_visual_context_tune(tuning_config_t received_config){
 	image_context.color_index = received_config.color_idx;
 	image_context.detection = received_config.detection_mode;
 	image_context.send_data = received_config.send_data_terminal;
+
+	image_context.rgb_gains.red_gain = received_config.rgb_gain.red_gain;
+	image_context.rgb_gains.green_gain = received_config.rgb_gain.green_gain;
+	image_context.rgb_gains.blue_gain = received_config.rgb_gain.blue_gain;
 
 	image_context.count_red = 0;
 	image_context.count_green = 0;
