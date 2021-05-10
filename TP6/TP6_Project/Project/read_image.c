@@ -357,6 +357,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 		po8030_set_awb(0);
 		//po8030_set_mirror(0, 1);
 		po8030_set_contrast(image_context.contrast);
+		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
 		//starts a capture
 		dcmi_capture_start();
@@ -496,7 +497,7 @@ void init_visual_context(config_t received_config){
 		image_context.image_bot [i] = 0;
 	}
 
-	image_context.color_index = 0;
+	image_context.color_index = RED_IDX;
 	image_context.threshold_color = 0;
 
 	image_context.middle_line_top = IMAGE_BUFFER_SIZE/2;; //middle of line
@@ -683,6 +684,12 @@ void max_count(void){
 }
 
 uint8_t get_color(void){
+
+	while(1){
+		chprintf((BaseSequentialStream *)&SD3, "Color in read_image =%-7d \r\n\n",
+							image_context.color_index);
+	}
+
 	return image_context.color_index;
 }
 
