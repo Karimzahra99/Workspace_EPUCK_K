@@ -72,7 +72,7 @@ int main(void)
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
 	detect_mode_t mode_detect = SUPER_RAINY_DAY;
-	visualize_mode_t send_params = YES_VISUALIZE_PARAMS;
+	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
 #ifdef TUNE
 	//chose which color intensity to plot with plot_image.py
 	color_index_t plot_pixels_color = RED_IDX;
