@@ -66,7 +66,7 @@ typedef struct {
 	STATE_t mode;
 	uint32_t counter;
 	color_index_t color;
-	int16_t speed;
+	int16_t virtual speed;
 	position_status_t position_reached;
 } MOVE_CONTEXT_t;
 
@@ -302,8 +302,11 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 	left_motor_set_speed(cms_to_steps(speed_l));
 	right_motor_set_speed(cms_to_steps(speed_r));
 
+
+
 	while (!rolling_context.position_reached){
 		chprintf((BaseSequentialStream *)&SD3, "BUG \r\n\n");
+		chprintf((BaseSequentialStream *)&SD3, "Speed_r =%-7d Speed_l =%-7d \r\n\n",speed_l,speed_r);
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
