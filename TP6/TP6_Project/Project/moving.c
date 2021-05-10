@@ -151,12 +151,14 @@ static THD_FUNCTION(PidRegulator, arg) {
 	while(1){
 		time = chVTGetSystemTime();
 
-		chprintf((BaseSequentialStream *)&SD3, "%TOP =%-7d BOT =%-7d DIFF =%-7d \r\n\n",
+		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d \r\n\n",
 					get_middle_top(), get_middle_bot(), get_middle_diff());
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
+			chprintf((BaseSequentialStream *)&SD3, "Inside \r\n\n");
 			move_straight_backwards();
+			chprintf((BaseSequentialStream *)&SD3, "Outside \r\n\n");
 			break;
 //		case PID_FRONTWARDS :
 //			pid_front();
@@ -235,8 +237,11 @@ void move_straight_backwards(void){
 }
 
 void prepare_pid_front(void){
+
 	motor_set_position(10, 10, rolling_context.speed, rolling_context.speed);
+
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
+
 }
 
 void prepare_to_follow_line(void){
@@ -298,7 +303,7 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 	right_motor_set_speed(cms_to_steps(speed_r));
 
 	while (!rolling_context.position_reached){
-
+		chprintf((BaseSequentialStream *)&SD3, "BUG \r\n\n");
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
