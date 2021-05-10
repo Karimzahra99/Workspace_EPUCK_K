@@ -394,7 +394,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 
-	uint8_t *img_buff_ptr;
+	uint8_t *img_buff_ptr_1;
+	uint8_t *img_buff_ptr_2;
 
 #ifdef PLOT_ON_COMPUTER
 	bool send_to_computer = true; //to use plot_image.py
@@ -405,11 +406,11 @@ static THD_FUNCTION(ProcessImage, arg) {
 		chBSemWait(&image_ready_sem);
 
 		//gets the pointer to the array filled with the last image in RGB565
-		img_buff_ptr = dcmi_get_last_image_ptr();
+		img_buff_ptr_1 = dcmi_get_last_image_ptr();
 
 		//prints some numbers but mostly 0s
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
-			chprintf((BaseSequentialStream *)&SD3, "Pix =%-7d \r\n\n",img_buff_ptr[i]);
+			chprintf((BaseSequentialStream *)&SD3, "Pix =%-7d \r\n\n",img_buff_ptr_1[i]);
 		}
 
 		// prints only 0s
@@ -422,13 +423,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 
 			//extracting red 5 bits and shifting them right
-			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
+			uint8_t r = ((uint8_t)img_buff_ptr_1[i]&0xF8) >> SHIFT_3;
 
 			//Extract G6G5G4G3G2
-			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
+			uint8_t g = (((uint8_t)img_buff_ptr_1[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_1[i+1]&0xC0) >> SHIFT_6);
 
 			//extracting blue 5 bits
-			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
+			uint8_t b = (uint8_t)img_buff_ptr_1[i+1]&0x1F;
 
 //			chprintf((BaseSequentialStream *)&SD3, "Red Pix =%-7d \r\n\n",r);
 //			chprintf((BaseSequentialStream *)&SD3, "Index =%-7d \r\n\n",i);
@@ -445,20 +446,20 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 		chBSemWait(&image_ready_sem_2);
 
-		img_buff_ptr = dcmi_get_last_image_ptr();
+		img_buff_ptr_2 = dcmi_get_last_image_ptr();
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 			uint8_t c = 0;
 			if (image_context.color_index == RED_IDX){
-				c = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
+				c = ((uint8_t)img_buff_ptr_2[i]&0xF8) >> SHIFT_3;
 			}
 			else {
 				if (image_context.color_index == GREEN_IDX){
-					c = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
+					c = (((uint8_t)img_buff_ptr_2[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_2[i+1]&0xC0) >> SHIFT_6);
 				}
 				else {
 					if (image_context.color_index == BLUE_IDX){
-						c = (uint8_t)img_buff_ptr[i+1]&0x1F;
+						c = (uint8_t)img_buff_ptr_2[i+1]&0x1F;
 					}
 				}
 			}
