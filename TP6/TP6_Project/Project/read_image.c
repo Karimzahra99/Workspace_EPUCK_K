@@ -213,7 +213,7 @@ void tune_image_start(tuning_config_t arg_tune_settings){
 #else
 
 //Uncomment to use plot_image.py for debug
-/define PLOT_ON_COMPUTER
+#define PLOT_ON_COMPUTER
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
