@@ -531,8 +531,6 @@ void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_
 	else image_context.image_blue[index/2] = 0;
 }
 
-
-
 void set_threshold_color(int selector_pos){
 
 	switch (selector_pos)
@@ -691,7 +689,9 @@ uint8_t get_color(void){
 void find_color_max_n_mean(void){
 
 	if ((((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) || ((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue))) && (image_context.count_red > MIN_COUNT)){
+#ifndef TUNE
 		image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 		set_leds(RED_IDX);
 #endif
@@ -699,7 +699,9 @@ void find_color_max_n_mean(void){
 	else{
 
 		if ((((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) || ((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue))) && (image_context.count_green > MIN_COUNT)){
+#ifndef TUNE
 			image_context.color_index = GREEN_IDX;
+#endif
 #ifdef TUNE
 			set_leds(GREEN_IDX);
 #endif
@@ -707,13 +709,17 @@ void find_color_max_n_mean(void){
 
 		else {
 			if ((((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) || ((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green))) && (image_context.count_blue > MIN_COUNT)){
+#ifndef TUNE
 				image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
-			set_leds(BLUE_IDX);
+				set_leds(BLUE_IDX);
 #endif
 			}
 			else {
+#ifndef TUNE
 				image_context.color_index = NO_COLOR;
+#endif
 #ifdef TUNE
 				set_leds(NO_COLOR);
 #endif
@@ -737,27 +743,35 @@ void find_color_max_n_mean(void){
 void find_color_max(void){
 
 	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)){
+#ifndef TUNE
 		image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 		set_leds(RED_IDX);
 #endif
 	}
 	else{
 		if (((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) && (image_context.count_green > MIN_COUNT)){
+#ifndef TUNE
 			image_context.color_index = GREEN_IDX;
+#endif
 #ifdef TUNE
 			set_leds(GREEN_IDX);
 #endif
 		}
 		else {
 			if (((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) && (image_context.count_blue > MIN_COUNT)){
+#ifndef TUNE
 				image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
 				set_leds(BLUE_IDX);
 #endif
 			}
 			else {
+#ifndef TUNE
 				image_context.color_index = NO_COLOR;
+#endif
 #ifdef TUNE
 				set_leds(NO_COLOR);
 #endif
@@ -780,27 +794,35 @@ void find_color_max(void){
 void find_color_mean(void){
 
 	if (((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue)) && (image_context.count_red > MIN_COUNT)){
+#ifndef TUNE
 		image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 		set_leds(RED_IDX);
 #endif
 	}
 	else{
 		if (((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue)) && (image_context.count_green > MIN_COUNT)){
+#ifndef TUNE
 			image_context.color_index = GREEN_IDX;
+#endif
 #ifdef TUNE
 			set_leds(GREEN_IDX);
 #endif
 		}
 		else {
 			if (((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green)) && (image_context.count_blue > MIN_COUNT)){
+#ifndef TUNE
 				image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
 				set_leds(BLUE_IDX);
 #endif
 			}
 			else {
+#ifndef TUNE
 				image_context.color_index = NO_COLOR;
+#endif
 #ifdef TUNE
 				set_leds(NO_COLOR);
 #endif
@@ -823,27 +845,35 @@ void find_color_mean(void){
 void find_color_max_n_count(void){
 
 	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)  && (image_context.count_red > image_context.count_green)  && (image_context.count_red > image_context.count_blue)){
+#ifndef TUNE
 		image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 		set_leds(RED_IDX);
 #endif
 	}
 	else{
 		if (((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) && (image_context.count_green > MIN_COUNT)  && (image_context.count_green > image_context.count_red)  && (image_context.count_green > image_context.count_blue)){
+#ifndef TUNE
 			image_context.color_index = GREEN_IDX;
+#endif
 #ifdef TUNE
 			set_leds(GREEN_IDX);
 #endif
 		}
 		else {
 			if (((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) && (image_context.count_blue > MIN_COUNT)  && (image_context.count_blue > image_context.count_red)  && (image_context.count_blue > image_context.count_green)){
+#ifndef TUNE
 				image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
 				set_leds(BLUE_IDX);
 #endif
 			}
 			else {
+#ifndef TUNE
 				image_context.color_index = NO_COLOR;
+#endif
 #ifdef TUNE
 				set_leds(NO_COLOR);
 #endif
@@ -866,7 +896,9 @@ void find_color_max_n_count(void){
 void find_color_rainy_day(void){
 
 	if ((image_context.max_red < 29) && (image_context.max_green < 29) && (image_context.max_blue < 29)){
+#ifndef TUNE
 		image_context.color_index = NO_COLOR;
+#endif
 
 #ifdef TUNE
 		set_leds(NO_COLOR);
@@ -877,7 +909,9 @@ void find_color_rainy_day(void){
 	else {
 		//red case
 		if ((image_context.max_red - image_context.max_green > 2) && (image_context.max_red - image_context.max_blue > 2)){
+#ifndef TUNE
 			image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 			set_leds(RED_IDX);
 #endif
@@ -885,31 +919,39 @@ void find_color_rainy_day(void){
 		else {
 			if ((image_context.max_red - image_context.max_green < 2) && (image_context.max_red - image_context.max_blue > 2)){
 				if ((image_context.mean_red > image_context.mean_green) && (image_context.count_red > MIN_COUNT)){
+#ifndef TUNE
 					image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 					set_leds(RED_IDX);
 #endif
 				}
 				else {
 					if ((image_context.mean_red < image_context.mean_green) && (image_context.count_green > MIN_COUNT)){
+#ifndef TUNE
 						image_context.color_index = GREEN_IDX;
-	#ifdef TUNE
+#endif
+#ifdef TUNE
 						set_leds(GREEN_IDX);
-	#endif
+#endif
 					}
 				}
 			}
 			else {
 				if ((image_context.max_red - image_context.max_blue < 2) && (image_context.max_red - image_context.max_green > 2)){
 					if ((image_context.mean_red > image_context.mean_blue) && (image_context.count_red > MIN_COUNT)){
+#ifndef TUNE
 						image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 						set_leds(RED_IDX);
 #endif
 					}
 					else {
 						if ((image_context.mean_blue > image_context.mean_red) && (image_context.count_blue > MIN_COUNT)){
+#ifndef TUNE
 							image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
 							set_leds(BLUE_IDX);
 #endif
@@ -921,7 +963,9 @@ void find_color_rainy_day(void){
 
 		//green case
 		if ((image_context.max_green - image_context.max_red > 2) && (image_context.max_green - image_context.max_blue > 2)){
+#ifndef TUNE
 			image_context.color_index = GREEN_IDX;
+#endif
 #ifdef TUNE
 			set_leds(GREEN_IDX);
 #endif
@@ -929,14 +973,18 @@ void find_color_rainy_day(void){
 		else {
 			if ((image_context.max_green - image_context.max_red < 2) && (image_context.max_green - image_context.max_blue > 2)){
 				if ((image_context.mean_green > image_context.mean_red) && (image_context.count_green > MIN_COUNT)){
+#ifndef TUNE
 					image_context.color_index = GREEN_IDX;
+#endif
 #ifdef TUNE
 					set_leds(GREEN_IDX);
 #endif
 				}
 				else {
 					if ((image_context.mean_green < image_context.mean_red) && (image_context.count_red > MIN_COUNT)){
+#ifndef TUNE
 						image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 						set_leds(RED_IDX);
 #endif
@@ -946,14 +994,18 @@ void find_color_rainy_day(void){
 			else {
 				if ((image_context.max_green - image_context.max_blue < 2) && (image_context.max_green - image_context.max_red > 2)){
 					if ((image_context.mean_green > image_context.mean_blue) && (image_context.count_green > MIN_COUNT)){
+#ifndef TUNE
 						image_context.color_index = GREEN_IDX;
+#endif
 #ifdef TUNE
 						set_leds(GREEN_IDX);
 #endif
 					}
 					else {
 						if ((image_context.mean_blue > image_context.mean_green) && (image_context.count_blue > MIN_COUNT)){
+#ifndef TUNE
 							image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
 							set_leds(BLUE_IDX);
 #endif
@@ -964,7 +1016,9 @@ void find_color_rainy_day(void){
 		}
 		//blue case
 		if ((image_context.max_blue - image_context.max_red > 2) && (image_context.max_blue - image_context.max_green > 2)){
+#ifndef TUNE
 			image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
 			set_leds(BLUE_IDX);
 #endif
@@ -973,14 +1027,18 @@ void find_color_rainy_day(void){
 		else {
 			if ((image_context.max_blue - image_context.max_red < 2) && (image_context.max_blue - image_context.max_green > 2)){
 				if ((image_context.mean_blue > image_context.mean_red) && (image_context.count_blue > MIN_COUNT)){
+#ifndef TUNE
 					image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
 					set_leds(BLUE_IDX);
 #endif
 				}
 				else {
 					if ((image_context.mean_blue < image_context.mean_red) && (image_context.count_red > MIN_COUNT)){
+#ifndef TUNE
 						image_context.color_index = RED_IDX;
+#endif
 #ifdef TUNE
 						set_leds(RED_IDX);
 #endif
@@ -990,14 +1048,18 @@ void find_color_rainy_day(void){
 			else {
 				if ((image_context.max_blue - image_context.max_green < 2) && (image_context.max_blue - image_context.max_red > 2)){
 					if ((image_context.mean_blue > image_context.mean_green) && (image_context.count_blue > MIN_COUNT)){
+#ifndef TUNE
 						image_context.color_index = BLUE_IDX;
+#endif
 #ifdef TUNE
 						set_leds(BLUE_IDX);
 #endif
 					}
 					else {
 						if ((image_context.mean_green > image_context.mean_blue) && (image_context.count_green > MIN_COUNT)){
+#ifndef TUNE
 							image_context.color_index = GREEN_IDX;
+#endif
 #ifdef TUNE
 							set_leds(GREEN_IDX);
 #endif
@@ -1035,11 +1097,14 @@ void find_color(void){
 		find_color_max_n_mean();
 		break;
 	case MAX_N_COUNT:
-			find_color_max_n_count();
-			break;
+		find_color_max_n_count();
+		break;
 	case RAINY_DAY:
-			find_color_rainy_day();
-			break;
+		find_color_rainy_day();
+		break;
+	case SUPER_RAINY_DAY:
+		find_color_super_rainy_day();
+		break;
 	default:
 		find_color_max();
 		break;
