@@ -75,7 +75,7 @@ int main(void)
 	visualize_mode_t send_params = YES_VISUALIZE_PARAMS;
 #ifdef TUNE
 	//chose which color intensity to plot with plot_image.py
-	color_index_t plot_pixels_color = BLUE_IDX;
+	color_index_t plot_pixels_color = RED_IDX;
 #else
 	uint16_t line_index_bot = 400;
 #endif
