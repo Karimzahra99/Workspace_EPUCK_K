@@ -144,9 +144,6 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
-			chprintf((BaseSequentialStream *)&SD3, "Red Pix =%-7d \r\n\n",r);
-			chprintf((BaseSequentialStream *)&SD3, "Index =%-7d \r\n\n",i);
-
 			filter_noise(i, r, g, b);
 
 		}
@@ -410,6 +407,16 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
 
+		//prints some numbers but mostly 0s
+		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
+			chprintf((BaseSequentialStream *)&SD3, "Pix =%-7d \r\n\n",img_buff_ptr[i]);
+		}
+
+		// prints only 0s
+//		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
+//			chprintf((BaseSequentialStream *)&SD3, "Pix =%-7d Idx =%-7d \r\n\n",img_buff_ptr[i],i);
+//		}
+
 		set_threshold_color(get_selector());
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
@@ -422,6 +429,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
+
+//			chprintf((BaseSequentialStream *)&SD3, "Red Pix =%-7d \r\n\n",r);
+//			chprintf((BaseSequentialStream *)&SD3, "Index =%-7d \r\n\n",i);
 
 			filter_noise(i, r, g, b);
 
