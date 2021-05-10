@@ -875,6 +875,7 @@ void find_color_rainy_day(void){
 	}
 
 	else {
+		//red case
 		if ((image_context.max_red - image_context.max_green > 2) && (image_context.max_red - image_context.max_blue > 2)){
 			image_context.color_index = RED_IDX;
 #ifdef TUNE
@@ -918,7 +919,7 @@ void find_color_rainy_day(void){
 			}
 		}
 
-
+		//green case
 		if ((image_context.max_green - image_context.max_red > 2) && (image_context.max_green - image_context.max_blue > 2)){
 			image_context.color_index = GREEN_IDX;
 #ifdef TUNE
@@ -961,7 +962,7 @@ void find_color_rainy_day(void){
 				}
 			}
 		}
-
+		//blue case
 		if ((image_context.max_blue - image_context.max_red > 2) && (image_context.max_blue - image_context.max_green > 2)){
 			image_context.color_index = BLUE_IDX;
 #ifdef TUNE
