@@ -151,6 +151,9 @@ static THD_FUNCTION(PidRegulator, arg) {
 	while(1){
 		time = chVTGetSystemTime();
 
+		chprintf((BaseSequentialStream *)&SD3, "%TOP =%-7d BOT =%-7d DIFF =%-7d \r\n\n",
+					get_middle_top(), get_middle_bot(), get_middle_diff());
+
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
 			move_straight_backwards();
@@ -303,16 +306,3 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 		}
 	}
 }
-
-
-//static uint8_t first_time = 0;
-//
-//void odometry(void){
-//
-//	if (first_time == 0){
-//		float x = 0;
-//		float y = 0;
-//		float angle = 0;
-//		first_time = 1;
-//	}
-//}
