@@ -497,7 +497,7 @@ void init_visual_context(config_t received_config){
 		image_context.image_bot [i] = 0;
 	}
 
-	image_context.color_index = RED_IDX;
+	image_context.color_index = NO_COLOR;
 	image_context.threshold_color = 0;
 
 	image_context.middle_line_top = IMAGE_BUFFER_SIZE/2;; //middle of line
@@ -684,12 +684,6 @@ void max_count(void){
 }
 
 uint8_t get_color(void){
-
-	while(1){
-		chprintf((BaseSequentialStream *)&SD3, "Color in read_image =%-7d \r\n\n",
-							image_context.color_index);
-	}
-
 	return image_context.color_index;
 }
 
@@ -1286,6 +1280,7 @@ void find_color_super_rainy_day(void){
 
 
 void find_color(void){
+
 	switch(image_context.detection){
 	case MAX_ONLY:
 		find_color_max();

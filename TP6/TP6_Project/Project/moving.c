@@ -189,9 +189,7 @@ void init_context(void){
 	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	rolling_context.counter = 0;
 	rolling_context.color = get_color();
-	while(1){
-		chprintf((BaseSequentialStream *)&SD3, "Color =%-7d \r\n\n", rolling_context.color);
-	}
+
 	rolling_context.speed = 2;
 	rolling_context.position_reached = NOT_REACHED;
 }
