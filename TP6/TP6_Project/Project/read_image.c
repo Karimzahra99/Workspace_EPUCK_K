@@ -410,7 +410,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 		//prints some numbers but mostly 0s
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
-			chprintf((BaseSequentialStream *)&SD3, "Pix =%-7d \r\n\n",img_buff_ptr_1[i]);
+			chprintf((BaseSequentialStream *)&SD3, "Pix1 =%-7d \r\n\n",img_buff_ptr_1[i]);
 		}
 
 		// prints only 0s
@@ -447,6 +447,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 		chBSemWait(&image_ready_sem_2);
 
 		img_buff_ptr_2 = dcmi_get_last_image_ptr();
+
+		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
+			chprintf((BaseSequentialStream *)&SD3, "Pix2 =%-7d \r\n\n",img_buff_ptr_2[i]);
+		}
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 			uint8_t c = 0;
