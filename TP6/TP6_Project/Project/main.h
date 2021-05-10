@@ -30,7 +30,8 @@ typedef enum {
 	MAX_ONLY = 0,
 	MEAN_ONLY,
 	MAX_N_MEAN,
-	MAX_N_COUNT
+	MAX_N_COUNT,
+	RAINY_DAY
 } detect_mode_t;
 
 typedef enum {
