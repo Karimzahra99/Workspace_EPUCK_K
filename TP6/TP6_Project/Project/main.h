@@ -10,7 +10,7 @@ extern "C" {
 #include "parameter/parameter.h"
 
 //Comment after tuning the color detection parameters in read_image.c
-//#define TUNE
+#define TUNE
 
 //Level des leds
 #define LED_ON						10

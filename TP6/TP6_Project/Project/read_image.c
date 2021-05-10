@@ -144,6 +144,9 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
+			chprintf((BaseSequentialStream *)&SD3, "Red Pix =%-7d \r\n\n",r);
+			chprintf((BaseSequentialStream *)&SD3, "Index =%-7d \r\n\n",i);
+
 			filter_noise(i, r, g, b);
 
 		}
@@ -152,18 +155,18 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 		max_count();
 		find_color();
 
-//		if (image_context.send_data == NO_VISUALIZE_PARAMS){
-//			//To visualize one image on computer with plotImage.py
-//			if(send_to_computer){
-//				//sends to the computer the image
-//				if (image_context.color_index == RED_IDX) SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
-//				if (image_context.color_index == GREEN_IDX) SendUint8ToComputer(image_context.image_green, IMAGE_BUFFER_SIZE);
-//				if (image_context.color_index == BLUE_IDX) SendUint8ToComputer(image_context.image_blue, IMAGE_BUFFER_SIZE);
-//			}
-//
-//			//invert the bool
-//			send_to_computer = !send_to_computer;
-//		}
+		if (image_context.send_data == NO_VISUALIZE_PARAMS){
+			//To visualize one image on computer with plotImage.py
+			if(send_to_computer){
+				//sends to the computer the image
+				if (image_context.color_index == RED_IDX) SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
+				if (image_context.color_index == GREEN_IDX) SendUint8ToComputer(image_context.image_green, IMAGE_BUFFER_SIZE);
+				if (image_context.color_index == BLUE_IDX) SendUint8ToComputer(image_context.image_blue, IMAGE_BUFFER_SIZE);
+			}
+
+			//invert the bool
+			send_to_computer = !send_to_computer;
+		}
 
 	}
 
@@ -213,7 +216,7 @@ void tune_image_start(tuning_config_t arg_tune_settings){
 #else
 
 //Uncomment to use plot_image.py for debug
-#define PLOT_ON_COMPUTER
+//#define PLOT_ON_COMPUTER
 
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
@@ -222,6 +225,7 @@ static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
 void init_visual_context(config_t received_config);
 void calc_line_middle(uint8_t alternator);
 uint8_t filter_noise_single(uint8_t couleur);
+
 int16_t calc_middle(uint8_t *buffer){
 
 	uint16_t start_p = 0;
