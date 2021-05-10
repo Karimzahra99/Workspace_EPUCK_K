@@ -529,7 +529,7 @@ void init_visual_context(config_t received_config){
 
 void read_image_start(config_t arg_config){
 	init_visual_context(arg_config);
-	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
+	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), HIGHPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
