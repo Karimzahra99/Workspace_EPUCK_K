@@ -67,8 +67,8 @@ int main(void)
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {94, 80, 80};
-	uint8_t contrast = 85;
+	rgb_gain_t rgb_gains = {94, 85, 50};
+	uint8_t contrast = 64;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
 	detect_mode_t mode_detect = MAX_ONLY;
