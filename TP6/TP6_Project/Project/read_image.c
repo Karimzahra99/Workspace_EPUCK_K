@@ -100,7 +100,8 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
 	//default : 94 (1.46875), 64 (1), 93 (1.453125)
-	po8030_set_rgb_gain(94, 80, 0);
+	//po8030_set_rgb_gain(94, 80, 0);
+	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
 	while(1){
 		//starts a capture
@@ -372,6 +373,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 		po8030_set_awb(0);
 		//po8030_set_mirror(0, 1);
 		po8030_set_contrast(image_context.contrast);
+		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
 		//starts a capture
 		dcmi_capture_start();
