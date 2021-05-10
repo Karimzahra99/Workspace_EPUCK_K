@@ -31,7 +31,8 @@ typedef enum {
 	MEAN_ONLY,
 	MAX_N_MEAN,
 	MAX_N_COUNT,
-	RAINY_DAY
+	RAINY_DAY,
+	SUPER_RAINY_DAY
 } detect_mode_t;
 
 typedef enum {
