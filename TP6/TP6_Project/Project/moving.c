@@ -66,7 +66,7 @@ typedef struct {
 	STATE_t mode;
 	uint32_t counter;
 	color_index_t color;
-	int16_t virtual speed;
+	int16_t speed;
 	position_status_t position_reached;
 } MOVE_CONTEXT_t;
 
@@ -158,7 +158,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 		case STRAIGHT_LINE_BACKWARDS :
 			chprintf((BaseSequentialStream *)&SD3, "Inside \r\n\n");
 			move_straight_backwards();
-			chprintf((BaseSequentialStream *)&SD3, "Outside \r\n\n");
+			;
 			break;
 //		case PID_FRONTWARDS :
 //			pid_front();
@@ -189,6 +189,9 @@ void init_context(void){
 	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	rolling_context.counter = 0;
 	rolling_context.color = get_color();
+	while(1){
+		chprintf((BaseSequentialStream *)&SD3, "Color =%-7d \r\n\n", rolling_context.color);
+	}
 	rolling_context.speed = 2;
 	rolling_context.position_reached = NOT_REACHED;
 }
@@ -212,6 +215,7 @@ void move_straight_backwards(void){
 			case 0: //NO COLOR
 				set_leds(color);
 				rolling_context.speed = 0;
+
 				break;
 			case 1: //RED
 				set_leds(color);
@@ -238,7 +242,7 @@ void move_straight_backwards(void){
 
 void prepare_pid_front(void){
 
-	motor_set_position(10, 10, rolling_context.speed, rolling_context.speed);
+	motor_set_position(10, 10,  rolling_context.speed,  rolling_context.speed);
 
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
 
@@ -305,8 +309,6 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 
 
 	while (!rolling_context.position_reached){
-		chprintf((BaseSequentialStream *)&SD3, "BUG \r\n\n");
-		chprintf((BaseSequentialStream *)&SD3, "Speed_r =%-7d Speed_l =%-7d \r\n\n",speed_l,speed_r);
 		if (abs(right_motor_get_pos()) > abs(position_to_reach_right) && abs(left_motor_get_pos()) > abs(position_to_reach_left) ){
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);

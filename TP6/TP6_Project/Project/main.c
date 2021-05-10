@@ -94,6 +94,8 @@ int main(void)
 	config_t config = {rgb_gains, contrast, line_index_top, line_index_bot, mode_detect, send_params};
 	read_image_start(config);
 
+	chThdSleepMilliseconds(1000);
+
 	proximity_start();
 
 	moving_start();
