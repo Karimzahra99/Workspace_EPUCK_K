@@ -1038,7 +1038,7 @@ void find_color(void){
 			find_color_max_n_count();
 			break;
 	case RAINY_DAY:
-			fin_color_rainy_day();
+			find_color_rainy_day();
 			break;
 	default:
 		find_color_max();
