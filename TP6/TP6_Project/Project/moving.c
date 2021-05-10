@@ -158,12 +158,12 @@ static THD_FUNCTION(PidRegulator, arg) {
 		case STRAIGHT_LINE_BACKWARDS :
 			move_straight_backwards();
 			break;
-		case PID_FRONTWARDS :
-			pid_front();
-			break;
-		case OBS_AVOIDANCE :
-			avoid_obs();
-			break;
+//		case PID_FRONTWARDS :
+//			pid_front();
+//			break;
+//		case OBS_AVOIDANCE :
+//			avoid_obs();
+//			break;
 		default :
 			move_straight_backwards();
 			break;
@@ -186,7 +186,7 @@ bool check_ir_front(void){
 void init_context(void){
 	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	rolling_context.counter = 0;
-	rolling_context.color = NO_COLOR;
+	rolling_context.color = get_color();
 	rolling_context.speed = 2;
 	rolling_context.position_reached = NOT_REACHED;
 }
