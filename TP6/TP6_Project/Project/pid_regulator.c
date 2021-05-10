@@ -114,7 +114,7 @@ int16_t pid_regulator_S(int middle){
 
 	last_error = error;
 
-	speed = 0.2 * error; //0.01 * sum_error; //+ 0.1 * derivative;
+	speed = 0.2 * error + 0.2 * derivative; //0.01 * sum_error; //+ 0.1 * derivative;
 
     return (int16_t) speed;
 }
@@ -155,11 +155,11 @@ static THD_FUNCTION(PidRegulator, arg) {
 					speed_correction = pid_regulator_S(ir_left_max);
 					ir3_new = get_calibrated_prox(Sensor_IR3);
 //					chprintf((BaseSequentialStream *)&SD3, " ir3new =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", ir3_new, ir3_old, speed_correction);
-					if (ir3_new < ir3_old - 5){
+					if (ir3_new < ir3_old - 10){
 						left_motor_set_speed(-cms_to_steps(2) + speed_correction);
 						right_motor_set_speed(-cms_to_steps(2) - speed_correction);
 					}
-					else if ( ir3_new > ir3_old + 5  ){
+					else if ( ir3_new > ir3_old + 10  ){
 						left_motor_set_speed(-cms_to_steps(2)- speed_correction);
 						right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
 					}
@@ -180,11 +180,11 @@ static THD_FUNCTION(PidRegulator, arg) {
 					speed_correction = pid_regulator_S(ir_right_max);
 					ir4_new = get_calibrated_prox(Sensor_IR4);
 //					chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, ir4_old, speed_correction);
-					if (ir4_new < ir4_old - 5){
+					if (ir4_new < ir4_old - 20){
 						left_motor_set_speed(-cms_to_steps(2) - speed_correction);
 						right_motor_set_speed(-cms_to_steps(2) + speed_correction);
 					}
-					else if ( ir4_new > ir4_old + 5  ){
+					else if ( ir4_new > ir4_old + 10  ){
 						left_motor_set_speed(-cms_to_steps(2)+ speed_correction);
 						right_motor_set_speed(-cms_to_steps(2)- speed_correction);
 					}
@@ -372,9 +372,7 @@ return ir_left_ancien;
 int rotate_until_irmax_right(void)
 {
 	int	ir_right_ancien =0;
-//	int	ir_avant_ancien =0;
 	int	ir_right_nouvau =0;
-//	int	ir_avant_nouvau =0;
 	int start = 0;
 	while ((ir_right_nouvau > ir_right_ancien + 5 ) || start==0){
 			start =1;
