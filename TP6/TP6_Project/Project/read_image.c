@@ -919,6 +919,93 @@ void find_color_rainy_day(void){
 		}
 
 
+		if ((image_context.max_green - image_context.max_red > 2) && (image_context.max_green - image_context.max_blue > 2)){
+			image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+			set_leds(GREEN_IDX);
+#endif
+		}
+		else {
+			if ((image_context.max_green - image_context.max_red < 2) && (image_context.max_green - image_context.max_blue > 2)){
+				if ((image_context.mean_green > image_context.mean_red) && (image_context.count_green > MIN_COUNT)){
+					image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+					set_leds(GREEN_IDX);
+#endif
+				}
+				else {
+					if ((image_context.mean_green < image_context.mean_red) && (image_context.count_red > MIN_COUNT)){
+						image_context.color_index = RED_IDX;
+#ifdef TUNE
+						set_leds(RED_IDX);
+#endif
+					}
+				}
+			}
+			else {
+				if ((image_context.max_green - image_context.max_blue < 2) && (image_context.max_green - image_context.max_red > 2)){
+					if ((image_context.mean_green > image_context.mean_blue) && (image_context.count_green > MIN_COUNT)){
+						image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+						set_leds(GREEN_IDX);
+#endif
+					}
+					else {
+						if ((image_context.mean_blue > image_context.mean_green) && (image_context.count_blue > MIN_COUNT)){
+							image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+							set_leds(BLUE_IDX);
+#endif
+						}
+					}
+				}
+			}
+		}
+
+		if ((image_context.max_blue - image_context.max_red > 2) && (image_context.max_blue - image_context.max_green > 2)){
+			image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+			set_leds(BLUE_IDX);
+#endif
+		}
+
+		else {
+			if ((image_context.max_blue - image_context.max_red < 2) && (image_context.max_blue - image_context.max_green > 2)){
+				if ((image_context.mean_blue > image_context.mean_red) && (image_context.count_blue > MIN_COUNT)){
+					image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+					set_leds(BLUE_IDX);
+#endif
+				}
+				else {
+					if ((image_context.mean_blue < image_context.mean_red) && (image_context.count_red > MIN_COUNT)){
+						image_context.color_index = RED_IDX;
+#ifdef TUNE
+						set_leds(RED_IDX);
+#endif
+					}
+				}
+			}
+			else {
+				if ((image_context.max_blue - image_context.max_green < 2) && (image_context.max_blue - image_context.max_red > 2)){
+					if ((image_context.mean_blue > image_context.mean_green) && (image_context.count_blue > MIN_COUNT)){
+						image_context.color_index = BLUE_IDX;
+#ifdef TUNE
+						set_leds(BLUE_IDX);
+#endif
+					}
+					else {
+						if ((image_context.mean_green > image_context.mean_blue) && (image_context.count_green > MIN_COUNT)){
+							image_context.color_index = GREEN_IDX;
+#ifdef TUNE
+							set_leds(GREEN_IDX);
+#endif
+						}
+					}
+				}
+			}
+		}
+
 	}
 
 
