@@ -394,8 +394,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 
-	uint8_t *img_buff_ptr_1;
-	uint8_t *img_buff_ptr_2;
+	uint8_t *img_buff_ptr_1 = NULL;
+	uint8_t *img_buff_ptr_2 = NULL;
 
 #ifdef PLOT_ON_COMPUTER
 	bool send_to_computer = true; //to use plot_image.py
@@ -406,11 +406,18 @@ static THD_FUNCTION(ProcessImage, arg) {
 		chBSemWait(&image_ready_sem);
 
 		//gets the pointer to the array filled with the last image in RGB565
-		img_buff_ptr_1 = dcmi_get_last_image_ptr();
+		img_buff_ptr_temp = dcmi_get_last_image_ptr();
+
+		if (img_buff_ptr_temp[0] != 0){
+			img_buff_ptr_1 = img_buff_ptr_temp;
+		}
+
+
 
 		//prints some numbers but mostly 0s
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
-			chprintf((BaseSequentialStream *)&SD3, "Pix1 =%-7d \r\n\n",img_buff_ptr_1[i]);
+			chprintf((BaseSequentialStream *)&SD3, "Pix1 =%-7d idx1 =%-7d \r\n\n",img_buff_ptr_1[i],i);
+
 		}
 
 		// prints only 0s
@@ -448,8 +455,14 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 		img_buff_ptr_2 = dcmi_get_last_image_ptr();
 
+		img_buff_ptr_temp_2 = dcmi_get_last_image_ptr();
+
+		if (img_buff_ptr_temp_2[0] != 0){
+			img_buff_ptr_2 = img_buff_ptr_temp_2;
+		}
+
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
-			chprintf((BaseSequentialStream *)&SD3, "Pix2 =%-7d \r\n\n",img_buff_ptr_2[i]);
+			chprintf((BaseSequentialStream *)&SD3, "Pix2 =%-7d idx2 =%-7d \r\n\n",img_buff_ptr_2[i],i);
 		}
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
