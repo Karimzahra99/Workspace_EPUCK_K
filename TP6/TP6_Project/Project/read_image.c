@@ -1086,7 +1086,6 @@ void find_color_rainy_day(void){
 }
 
 void find_color_super_rainy_day(void){
-	void find_color_rainy_day(void){
 
 		if ((image_context.max_red < 29) && (image_context.max_green < 29) && (image_context.max_blue < 29)){
 #ifndef TUNE
