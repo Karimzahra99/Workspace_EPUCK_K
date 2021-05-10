@@ -397,6 +397,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 	uint8_t *img_buff_ptr_1 = NULL;
 	uint8_t *img_buff_ptr_2 = NULL;
 
+	uint8_t *img_buff_ptr_temp_1 = NULL;
+	uint8_t *img_buff_ptr_temp_2 = NULL;
+
 #ifdef PLOT_ON_COMPUTER
 	bool send_to_computer = true; //to use plot_image.py
 #endif
