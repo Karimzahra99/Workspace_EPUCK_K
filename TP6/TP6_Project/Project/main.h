@@ -10,7 +10,7 @@ extern "C" {
 #include "parameter/parameter.h"
 
 //Comment after tuning the color detection parameters in read_image.c
-//#define TUNE
+#define TUNE
 
 //Level des leds
 #define LED_ON						10
@@ -32,7 +32,8 @@ typedef enum {
 	MAX_N_MEAN,
 	MAX_N_COUNT,
 	RAINY_DAY,
-	SUPER_RAINY_DAY
+	SUPER_RAINY_DAY,
+	ULTRA_RAINY_DAY
 } detect_mode_t;
 
 typedef enum {
