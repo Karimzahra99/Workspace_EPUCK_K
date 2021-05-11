@@ -214,7 +214,7 @@ void tune_image_start(tuning_config_t arg_tune_settings){
 }
 
 #else
-// DEMO SECTION
+//// DEMO SECTION
 
 //Uncomment to use plot_image.py for debug
 //#define PLOT_ON_COMPUTER
@@ -370,10 +370,12 @@ uint8_t filter_noise_single(uint8_t couleur){
 
 //initialization of camera and dcmi for top line lecture
 void camera_init_top(void){
+	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because of camera internal library)
 	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
+	//Deactivate auto-white balance
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
 	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
@@ -381,10 +383,12 @@ void camera_init_top(void){
 
 //initialization of camera and dcmi for bot line lecture
 void camera_init_bot(void){
+	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 400 + 401 (minimum 2 lines because of camera internal library)
 	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
+	//Deactivate auto-white balance
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
 	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
@@ -454,7 +458,7 @@ void init_visual_context(config_t received_config){
 //Threads used in demo section :
 
 
-//Acquistion thread
+//Acquisition thread
 static THD_WORKING_AREA(waCaptureImage, 512);
 static THD_FUNCTION(CaptureImage, arg) {
 
@@ -504,7 +508,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 
-	uint8_t *img_buff_ptr
+	uint8_t *img_buff_ptr;
 
 #ifdef PLOT_ON_COMPUTER
 	bool send_to_computer = true; //to use plot_image.py
@@ -523,13 +527,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 
 			//extracting red 5 bits and shifting them right
-			uint8_t r = ((uint8_t)img_buff_ptr_1[i]&0xF8) >> SHIFT_3;
+			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 
 			//Extract G6G5G4G3G2
-			uint8_t g = (((uint8_t)img_buff_ptr_1[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_1[i+1]&0xC0) >> SHIFT_6);
+			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
 
 			//extracting blue 5 bits
-			uint8_t b = (uint8_t)img_buff_ptr_1[i+1]&0x1F;
+			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
 			filter_noise(i, r, g, b);
 
@@ -550,15 +554,15 @@ static THD_FUNCTION(ProcessImage, arg) {
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 			uint8_t c = 0;
 			if (image_context.color_index == RED_IDX){
-				c = ((uint8_t)img_buff_ptr_2[i]&0xF8) >> SHIFT_3;
+				c = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 			}
 			else {
 				if (image_context.color_index == GREEN_IDX){
-					c = (((uint8_t)img_buff_ptr_2[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_2[i+1]&0xC0) >> SHIFT_6);
+					c = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
 				}
 				else {
 					if (image_context.color_index == BLUE_IDX){
-						c = (uint8_t)img_buff_ptr_2[i+1]&0x1F;
+						c = (uint8_t)img_buff_ptr[i+1]&0x1F;
 					}
 				}
 			}
