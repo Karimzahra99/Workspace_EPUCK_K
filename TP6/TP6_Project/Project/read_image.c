@@ -508,7 +508,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 
-	uint8_t *img_buff_ptr;
+	uint8_t *img_buff_ptr = NULL;
 
 #ifdef PLOT_ON_COMPUTER
 	bool send_to_computer = true; //to use plot_image.py
