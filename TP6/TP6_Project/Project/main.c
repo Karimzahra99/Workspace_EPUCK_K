@@ -88,6 +88,7 @@ int main(void)
 	tuning_config_t tunning = {rgb_gains, contrast, line_index_top, mode_detect, plot_pixels_color, send_params};
 	tune_image_start(tunning);
 #else
+
 	//inits the motors
 	motors_init();
 
@@ -105,8 +106,10 @@ int main(void)
 
 	while (1) {
 		//waits 1 second
-		chThdSleepMilliseconds(1000);
+		//chThdSleepMilliseconds(1000);
 
+		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d \r\n\n",
+						get_middle_top(), get_middle_bot(), get_middle_diff());
 
 	}
 }

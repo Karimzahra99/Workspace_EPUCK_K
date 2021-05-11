@@ -214,22 +214,55 @@ void tune_image_start(tuning_config_t arg_tune_settings){
 }
 
 #else
+// DEMO SECTION
 
 //Uncomment to use plot_image.py for debug
 //#define PLOT_ON_COMPUTER
 
-//semaphore
-static BSEMAPHORE_DECL(image_ready_sem_top, TRUE);
-static BSEMAPHORE_DECL(image_process_sem_top, TRUE);
-static BSEMAPHORE_DECL(image_ready_sem_bot, TRUE);
-static BSEMAPHORE_DECL(image_process_sem_bot, TRUE);
+//semaphores to read top line and bottom line alternately
+static BSEMAPHORE_DECL(image_ready_top_sem, TRUE); //acquisition top line
+static BSEMAPHORE_DECL(image_process_top_sem, TRUE); //process top line
+static BSEMAPHORE_DECL(image_ready_bot_sem, TRUE); //acquisition bottom line
+static BSEMAPHORE_DECL(image_process_bot_sem, TRUE); //process bottom line
 
-void init_visual_context(config_t received_config);
+
+
+//Prototypes of functions used in demo section :
+
+
+//calculates the middle of the line
+int16_t calc_middle(uint8_t *buffer);
+
+//calls calc_middle(uint8_t *buffer) with top or bottom line buffer alternately
 void calc_line_middle(uint8_t alternator);
-uint8_t filter_noise_single(uint8_t couleur);
-void camera_re_init_top(void);
-void camera_re_init_bot(void);
 
+//removes background noise for the bottom line buffer, as the color was previously found with the top line
+uint8_t filter_noise_single(uint8_t couleur);
+
+//initializes camera po8030d and dcmi to capture top line
+void camera_init_top(void);
+
+//initializes camera po8030d and dcmi to capture bot line
+void camera_init_bot(void);
+
+//returns the difference between the middle of the top line and bottom line
+int16_t get_middle_diff(void);
+
+//returns the middle position of top line (used for debug)
+int16_t get_middle_top(void);
+
+//returns the middle position of bottom line (used for debug)
+int16_t get_middle_bot(void);
+
+//initializes the image_context structure with the received configuration
+void init_visual_context(config_t received_config);
+
+
+
+// Definitions of functions used in demo section :
+
+
+//finds the middle position of the largest line width in the buffer and ignores holes of small width inside the line
 int16_t calc_middle(uint8_t *buffer){
 
 	uint16_t start_p = 0;
@@ -302,7 +335,7 @@ int16_t calc_middle(uint8_t *buffer){
 	return (end_n+start_n)/2;
 }
 
-
+//sends to calc_middle the appropriate buffer to find the middle position
 void calc_line_middle(uint8_t alternator){
 
 	if (alternator == TOP){
@@ -327,6 +360,7 @@ void calc_line_middle(uint8_t alternator){
 	}
 }
 
+//filters background noise for the bottom line buffer
 uint8_t filter_noise_single(uint8_t couleur){
 	if (couleur > image_context.threshold_color){
 		return couleur;
@@ -334,144 +368,44 @@ uint8_t filter_noise_single(uint8_t couleur){
 	else return 0;
 }
 
+//initialization of camera and dcmi for top line lecture
+void camera_init_top(void){
+	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	dcmi_disable_double_buffering();
+	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+	dcmi_prepare();
+	po8030_set_awb(0);
+	po8030_set_contrast(image_context.contrast);
+	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+}
+
+//initialization of camera and dcmi for bot line lecture
+void camera_init_bot(void){
+	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	dcmi_disable_double_buffering();
+	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+	dcmi_prepare();
+	po8030_set_awb(0);
+	po8030_set_contrast(image_context.contrast);
+	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+}
+
+//middle position difference between top and bottom lines
 int16_t get_middle_diff(void) {
 	return image_context.middle_line_top - image_context.middle_line_bot;
 }
 
+//middle position of top line
 int16_t get_middle_top(void) {
 	return image_context.middle_line_top;
 }
 
+//middle position of bottom line
 int16_t get_middle_bot(void) {
 	return image_context.middle_line_bot;
 }
 
-static THD_WORKING_AREA(waCaptureImage, 512);
-static THD_FUNCTION(CaptureImage, arg) {
-
-	chRegSetThreadName(__FUNCTION__);
-
-	(void)arg;
-
-	while(1){
-
-		//Line index 413 detecting colors goes wrong
-		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-		//top
-		camera_re_init_top();
-
-		//starts a capture
-		dcmi_capture_start();
-		//waits for the capture to be done
-		wait_image_ready(); //fait l'attente dans le while(1)
-
-		//signals an image has been captured
-		chBSemSignal(&image_ready_sem_top);//top change name
-
-		chBSemWait(&image_process_sem_top);
-
-		//bottom
-		camera_re_init_bot();
-
-		//starts a capture
-		dcmi_capture_start();
-		//waits for the capture to be done
-		wait_image_ready(); //fait l'attente dans le while(1)
-
-		//signals an image has been captured
-		chBSemSignal(&image_ready_sem_bot);
-
-		chBSemWait(&image_process_sem_bot);
-	}
-}
-
-
-static THD_WORKING_AREA(waProcessImage, 4096);
-static THD_FUNCTION(ProcessImage, arg) {
-
-
-	chRegSetThreadName(__FUNCTION__);
-	(void)arg;
-
-	uint8_t *img_buff_ptr_1 = NULL;
-	uint8_t *img_buff_ptr_2 = NULL;
-
-#ifdef PLOT_ON_COMPUTER
-	bool send_to_computer = true; //to use plot_image.py
-#endif
-
-	while(1){
-
-		chBSemWait(&image_ready_sem_top);
-
-		//gets the pointer to the array filled with the last image in RGB565
-		img_buff_ptr_1 = dcmi_get_last_image_ptr();// = 0
-
-		set_threshold_color(get_selector());
-
-		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
-
-			//extracting red 5 bits and shifting them right
-			uint8_t r = ((uint8_t)img_buff_ptr_1[i]&0xF8) >> SHIFT_3;
-
-			//Extract G6G5G4G3G2
-			uint8_t g = (((uint8_t)img_buff_ptr_1[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_1[i+1]&0xC0) >> SHIFT_6);
-
-			//extracting blue 5 bits
-			uint8_t b = (uint8_t)img_buff_ptr_1[i+1]&0x1F;
-
-			filter_noise(i, r, g, b);
-
-		}
-		calc_max_mean();
-		max_count();
-		find_color();
-
-		//search for a line in the image and gets its middle position
-		calc_line_middle(TOP);
-
-		chBSemSignal(&image_process_sem_top);
-
-		chBSemWait(&image_ready_sem_bot);
-
-
-		img_buff_ptr_2 = dcmi_get_last_image_ptr();
-
-		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
-			uint8_t c = 0;
-			if (image_context.color_index == RED_IDX){
-				c = ((uint8_t)img_buff_ptr_2[i]&0xF8) >> SHIFT_3;
-			}
-			else {
-				if (image_context.color_index == GREEN_IDX){
-					c = (((uint8_t)img_buff_ptr_2[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_2[i+1]&0xC0) >> SHIFT_6);
-				}
-				else {
-					if (image_context.color_index == BLUE_IDX){
-						c = (uint8_t)img_buff_ptr_2[i+1]&0x1F;
-					}
-				}
-			}
-			image_context.image_bot[i/2] = filter_noise_single(c);
-		}
-		calc_line_middle(BOTTOM);
-
-		chBSemSignal(&image_process_sem_bot);
-
-#ifdef PLOT_ON_COMPUTER
-		// To visualize one image on computer with plotImage.py
-		if(send_to_computer){
-			//sends to the computer the image
-			SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
-		}
-
-		//invert the bool
-		send_to_computer = !send_to_computer;
-#endif
-
-	}
-}
-
+//initialization of image_context
 void init_visual_context(config_t received_config){
 
 	//After tuning adjust to the desired detection mode
@@ -517,24 +451,135 @@ void init_visual_context(config_t received_config){
 
 
 
-void camera_re_init_top(void){
-	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-	dcmi_disable_double_buffering();
-	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-	dcmi_prepare();
-	po8030_set_awb(0);
-	po8030_set_contrast(image_context.contrast);
-	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+//Threads used in demo section :
+
+
+//Acquistion thread
+static THD_WORKING_AREA(waCaptureImage, 512);
+static THD_FUNCTION(CaptureImage, arg) {
+
+	chRegSetThreadName(__FUNCTION__);
+
+	(void)arg;
+
+	while(1){
+
+		//top line initialization
+		camera_init_top();
+
+		//starts top line capture
+		dcmi_capture_start();
+
+		//waits for the capture to be done
+		wait_image_ready();
+
+		//signals top image has been captured
+		chBSemSignal(&image_ready_top_sem);
+
+		//waits for top line process to be finished
+		chBSemWait(&image_process_top_sem);
+
+		//bottom line initialization
+		camera_init_bot();
+
+		//starts bottom line capture
+		dcmi_capture_start();
+
+		//waits for the capture to be done
+		wait_image_ready();
+
+		//signals bottom image has been captured
+		chBSemSignal(&image_ready_bot_sem);
+
+		//waits for bottom line process to be finished
+		chBSemWait(&image_process_bot_sem);
+	}
 }
 
-void camera_re_init_bot(void){
-	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-	dcmi_disable_double_buffering();
-	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-	dcmi_prepare();
-	po8030_set_awb(0);
-	po8030_set_contrast(image_context.contrast);
-	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+//Process thread
+static THD_WORKING_AREA(waProcessImage, 2048);
+static THD_FUNCTION(ProcessImage, arg) {
+
+
+	chRegSetThreadName(__FUNCTION__);
+	(void)arg;
+
+	uint8_t *img_buff_ptr
+
+#ifdef PLOT_ON_COMPUTER
+	bool send_to_computer = true; //to use plot_image.py
+#endif
+
+	while(1){
+
+		//waits for top line acquisition to be finished
+		chBSemWait(&image_ready_top_sem);
+
+		//gets the pointer to the array filled with the last image in RGB565
+		img_buff_ptr = dcmi_get_last_image_ptr();
+
+		set_threshold_color(get_selector());
+
+		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
+
+			//extracting red 5 bits and shifting them right
+			uint8_t r = ((uint8_t)img_buff_ptr_1[i]&0xF8) >> SHIFT_3;
+
+			//Extract G6G5G4G3G2
+			uint8_t g = (((uint8_t)img_buff_ptr_1[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_1[i+1]&0xC0) >> SHIFT_6);
+
+			//extracting blue 5 bits
+			uint8_t b = (uint8_t)img_buff_ptr_1[i+1]&0x1F;
+
+			filter_noise(i, r, g, b);
+
+		}
+		calc_max_mean();
+		max_count();
+		find_color();
+
+		//search for a line in the image and gets its middle position
+		calc_line_middle(TOP);
+
+		chBSemSignal(&image_process_top_sem);
+
+		chBSemWait(&image_ready_bot_sem);
+
+		img_buff_ptr = dcmi_get_last_image_ptr();
+
+		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
+			uint8_t c = 0;
+			if (image_context.color_index == RED_IDX){
+				c = ((uint8_t)img_buff_ptr_2[i]&0xF8) >> SHIFT_3;
+			}
+			else {
+				if (image_context.color_index == GREEN_IDX){
+					c = (((uint8_t)img_buff_ptr_2[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_2[i+1]&0xC0) >> SHIFT_6);
+				}
+				else {
+					if (image_context.color_index == BLUE_IDX){
+						c = (uint8_t)img_buff_ptr_2[i+1]&0x1F;
+					}
+				}
+			}
+			image_context.image_bot[i/2] = filter_noise_single(c);
+		}
+		calc_line_middle(BOTTOM);
+
+		chBSemSignal(&image_process_bot_sem);
+
+#ifdef PLOT_ON_COMPUTER
+		// To visualize one image on computer with plotImage.py
+		if(send_to_computer){
+			//sends to the computer the image
+			SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
+		}
+
+		//invert the bool
+		send_to_computer = !send_to_computer;
+#endif
+
+	}
 }
 
 void read_image_start(config_t arg_config){
@@ -544,7 +589,6 @@ void read_image_start(config_t arg_config){
 }
 
 #endif
-
 
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
 	//filtering noise for each color
@@ -721,6 +765,17 @@ uint8_t get_color(void){
 
 void find_color_max_n_mean(void){
 
+	if(image_context.send_data){
+		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+				image_context.max_red, image_context.max_green, image_context.max_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+				image_context.count_red, image_context.count_green, image_context.count_blue);
+	}
+
 	if ((((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) || ((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue))) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 		image_context.color_index = RED_IDX;
@@ -759,6 +814,9 @@ void find_color_max_n_mean(void){
 			}
 		}
 	}
+}
+
+void find_color_max(void){
 
 	if(image_context.send_data){
 		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
@@ -770,10 +828,6 @@ void find_color_max_n_mean(void){
 		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
-
-}
-
-void find_color_max(void){
 
 	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
@@ -811,6 +865,9 @@ void find_color_max(void){
 			}
 		}
 	}
+}
+
+void find_color_mean(void){
 
 	if(image_context.send_data){
 		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
@@ -822,9 +879,6 @@ void find_color_max(void){
 		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
-}
-
-void find_color_mean(void){
 
 	if (((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
@@ -862,6 +916,10 @@ void find_color_mean(void){
 			}
 		}
 	}
+}
+
+void find_color_max_n_count(void){
+
 	if(image_context.send_data){
 		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
 				image_context.max_red, image_context.max_green, image_context.max_blue);
@@ -872,10 +930,6 @@ void find_color_mean(void){
 		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
-
-}
-
-void find_color_max_n_count(void){
 
 	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)  && (image_context.count_red > image_context.count_green)  && (image_context.count_red > image_context.count_blue)){
 #ifndef TUNE
@@ -913,17 +967,6 @@ void find_color_max_n_count(void){
 			}
 		}
 	}
-	if(image_context.send_data){
-		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-				image_context.max_red, image_context.max_green, image_context.max_blue);
-
-		chprintf((BaseSequentialStream *)&SD3, "R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
-
-		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-				image_context.count_red, image_context.count_green, image_context.count_blue);
-	}
-
 }
 
 void find_color_rainy_day(void){
@@ -1112,7 +1155,6 @@ void find_color_rainy_day(void){
 				}
 			}
 		}
-
 	}
 }
 
@@ -1302,9 +1344,7 @@ void find_color_super_rainy_day(void){
 				}
 			}
 		}
-
 	}
-
 }
 
 void find_color_ultra_rainy_day(void){
@@ -1494,11 +1534,8 @@ void find_color_ultra_rainy_day(void){
 				}
 			}
 		}
-
 	}
-
 }
-
 
 void find_color(void){
 
