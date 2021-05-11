@@ -9,6 +9,7 @@
 #include <camera/po8030.h>
 #include <selector.h>
 
+
 //Longeur d'une ligne de pixels de la camera et tolerance pour les comptages du nombre de pixels egaux a l'intensite maximal
 #define IMAGE_BUFFER_SIZE			640
 #define TOLERANCE					3
@@ -108,6 +109,43 @@ void find_color(void);
 static BSEMAPHORE_DECL(tune_image_ready_sem, TRUE);
 
 
+//initialization of image_context
+void init_visual_context_tune(tuning_config_t received_config){
+
+
+	image_context.contrast = received_config.contrast;
+	image_context.line_idx_top = received_config.line_idx;
+	image_context.color_index = received_config.color_idx;
+	image_context.detection = received_config.detection_mode;
+	image_context.send_data = received_config.send_data_terminal;
+
+	image_context.rgb_gains.red_gain = received_config.rgb_gain.red_gain;
+	image_context.rgb_gains.green_gain = received_config.rgb_gain.green_gain;
+	image_context.rgb_gains.blue_gain = received_config.rgb_gain.blue_gain;
+
+	image_context.count_red = 0;
+	image_context.count_green = 0;
+	image_context.count_blue = 0;
+
+	image_context.max_red = 0;
+	image_context.max_green = 0;
+	image_context.max_blue = 0;
+
+	image_context.mean_red = 0;
+	image_context.mean_green = 0;
+	image_context.mean_blue = 0;
+
+	image_context.threshold_color = 0;
+
+	for (int16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
+		image_context.image_red [i] = 0;
+		image_context.image_green [i] = 0;
+		image_context.image_blue [i] = 0;
+	}
+
+}
+
+
 // Tuning threads
 
 //Acquisition thread
@@ -147,9 +185,9 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 
 }
 
+//Process thread
 static THD_WORKING_AREA(waTuneProcessImage, 1024);
 static THD_FUNCTION(TuneProcessImage, arg) {
-
 
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
@@ -159,11 +197,14 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 	bool send_to_computer = true;
 
 	while(1){
+
 		//waits until an image has been captured
 		chBSemWait(&tune_image_ready_sem);
+
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
 
+		//noise threshold from selector position
 		set_threshold_color(get_selector());
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
@@ -171,18 +212,24 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 			//extracting red 5 bits and shifting them right
 			uint8_t r = ((uint8_t)img_buff_ptr[i]&0xF8) >> SHIFT_3;
 
-			//Extract G6G5G4G3G2
+			//Extract G5G4G3G2G1 and truncating G0 to have all colors on 5 bits
 			uint8_t g = (((uint8_t)img_buff_ptr[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr[i+1]&0xC0) >> SHIFT_6);
 
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
+			//filter noise for each color
 			filter_noise(i, r, g, b);
 
 		}
 
+		//calculate max and mean values for each color
 		calc_max_mean();
+
+		//finds the number of pixels with intensity equal the maximum pixel intensity
 		max_count();
+
+		//finds the color of the line if there is one
 		find_color();
 
 		if (image_context.send_data == NO_VISUALIZE_PARAMS){
@@ -202,41 +249,7 @@ static THD_FUNCTION(TuneProcessImage, arg) {
 
 }
 
-void init_visual_context_tune(tuning_config_t received_config){
-
-
-	image_context.contrast = received_config.contrast;
-	image_context.line_idx_top = received_config.line_idx;
-	image_context.color_index = received_config.color_idx;
-	image_context.detection = received_config.detection_mode;
-	image_context.send_data = received_config.send_data_terminal;
-
-	image_context.rgb_gains.red_gain = received_config.rgb_gain.red_gain;
-	image_context.rgb_gains.green_gain = received_config.rgb_gain.green_gain;
-	image_context.rgb_gains.blue_gain = received_config.rgb_gain.blue_gain;
-
-	image_context.count_red = 0;
-	image_context.count_green = 0;
-	image_context.count_blue = 0;
-
-	image_context.max_red = 0;
-	image_context.max_green = 0;
-	image_context.max_blue = 0;
-
-	image_context.mean_red = 0;
-	image_context.mean_green = 0;
-	image_context.mean_blue = 0;
-
-	image_context.threshold_color = 0;
-
-	for (int16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
-		image_context.image_red [i] = 0;
-		image_context.image_green [i] = 0;
-		image_context.image_blue [i] = 0;
-	}
-
-}
-
+//initializes image_context structure and starts threads
 void tune_image_start(tuning_config_t arg_tune_settings){
 	init_visual_context_tune(arg_tune_settings);
 	chThdCreateStatic(waTuneProcessImage, sizeof(waTuneProcessImage), NORMALPRIO, TuneProcessImage, NULL);
@@ -572,6 +585,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr[i+1]&0x1F;
 
+			//filter noise for each color
 			filter_noise(i, r, g, b);
 
 		}
