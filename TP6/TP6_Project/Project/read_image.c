@@ -346,6 +346,45 @@ int16_t get_middle_bot(void) {
 	return image_context.middle_line_bot;
 }
 
+static THD_WORKING_AREA(waCaptureImage, 512);
+static THD_FUNCTION(CaptureImage, arg) {
+
+	chRegSetThreadName(__FUNCTION__);
+
+	(void)arg;
+
+	while(1){
+
+		//Line index 413 detecting colors goes wrong
+		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+		//top
+		camera_re_init_top();
+
+		//starts a capture
+		dcmi_capture_start();
+		//waits for the capture to be done
+		wait_image_ready(); //fait l'attente dans le while(1)
+
+		//signals an image has been captured
+		chBSemSignal(&image_ready_sem_top);//top change name
+
+		chBSemWait(&image_process_sem_top);
+
+		//bottom
+		camera_re_init_bot();
+
+		//starts a capture
+		dcmi_capture_start();
+		//waits for the capture to be done
+		wait_image_ready(); //fait l'attente dans le while(1)
+
+		//signals an image has been captured
+		chBSemSignal(&image_ready_sem_bot);
+
+		chBSemWait(&image_process_sem_bot);
+	}
+}
+
 
 static THD_WORKING_AREA(waProcessImage, 4096);
 static THD_FUNCTION(ProcessImage, arg) {
@@ -361,22 +400,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 	bool send_to_computer = true; //to use plot_image.py
 #endif
 
-	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-
-	dcmi_disable_double_buffering();
-	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-	dcmi_prepare();
-
-	po8030_set_awb(0);
-	po8030_set_contrast(image_context.contrast);
-	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
-
 	while(1){
 
-		//starts a capture
-		dcmi_capture_start();
-		//waits for the capture to be done
-		wait_image_ready();
+		chBSemWait(&image_ready_sem_top);
 
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr_1 = dcmi_get_last_image_ptr();// = 0
@@ -404,14 +430,12 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its middle position
 		calc_line_middle(TOP);
 
-		camera_re_init_bot();
+		chBSemSignal(&image_process_sem_top);
 
-		dcmi_capture_start();
-		//waits for the capture to be done
-		wait_image_ready();
+		chBSemWait(&image_ready_sem_bot);
+
 
 		img_buff_ptr_2 = dcmi_get_last_image_ptr();
-		dcmi_capture_stop();
 
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
 			uint8_t c = 0;
@@ -432,7 +456,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		calc_line_middle(BOTTOM);
 
-		camera_re_init_top();
+		chBSemSignal(&image_process_sem_bot);
 
 #ifdef PLOT_ON_COMPUTER
 		// To visualize one image on computer with plotImage.py
@@ -515,6 +539,7 @@ void camera_re_init_bot(void){
 
 void read_image_start(config_t arg_config){
 	init_visual_context(arg_config);
+	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 }
 
