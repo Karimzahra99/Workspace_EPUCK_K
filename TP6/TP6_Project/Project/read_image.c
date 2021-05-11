@@ -104,8 +104,6 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
-	//default : 94 (1.46875), 64 (1), 93 (1.453125)
-	//po8030_set_rgb_gain(94, 80, 0);
 	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
 	while(1){
@@ -363,16 +361,23 @@ static THD_FUNCTION(ProcessImage, arg) {
 	bool send_to_computer = true; //to use plot_image.py
 #endif
 
-
+//	po8030_set_awb(0);
+//	po8030_set_contrast(image_context.contrast);
+	//po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+	while(1){
+	chprintf((BaseSequentialStream *)&SD3, "R =%-7d G =%-7d B =%-7d \r\n\n", image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+	}
 	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
-	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+	//po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
+	uint8_t start = 0;
 
 	while(1){
 
@@ -391,13 +396,15 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr_1 = dcmi_get_last_image_ptr();// = 0
 
-		camera_re_init_bot();
-
 		//prints some numbers but mostly 0s
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
 			chprintf((BaseSequentialStream *)&SD3, "Pix1 =%-7d idx1 =%-7d \r\n\n",img_buff_ptr_1[i],i);
+			if ((img_buff_ptr_1[i] == 0) && (start ==1)){
+				set_leds(YELLOW_IDX);
+			}
 
 		}
+		start = 1;
 
 		// prints only 0s
 		//		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
@@ -430,36 +437,36 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its middle position
 		calc_line_middle(TOP);
 
-		dcmi_capture_start();
-		//waits for the capture to be done
-		wait_image_ready(); //fait l'attente dans le while(1)
+//		dcmi_capture_start();
+//		//waits for the capture to be done
+//		wait_image_ready(); //fait l'attente dans le while(1)
+//
+//		img_buff_ptr_2 = dcmi_get_last_image_ptr();
+//		dcmi_capture_stop();
+//		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
+//			chprintf((BaseSequentialStream *)&SD3, "Pix2 =%-7d idx2 =%-7d \r\n\n",img_buff_ptr_2[i],i);
+//		}
+//
+//		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
+//			uint8_t c = 0;
+//			if (image_context.color_index == RED_IDX){
+//				c = ((uint8_t)img_buff_ptr_2[i]&0xF8) >> SHIFT_3;
+//			}
+//			else {
+//				if (image_context.color_index == GREEN_IDX){
+//					c = (((uint8_t)img_buff_ptr_2[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_2[i+1]&0xC0) >> SHIFT_6);
+//				}
+//				else {
+//					if (image_context.color_index == BLUE_IDX){
+//						c = (uint8_t)img_buff_ptr_2[i+1]&0x1F;
+//					}
+//				}
+//			}
+//			image_context.image_bot[i/2] = filter_noise_single(c);
+//		}
+//		calc_line_middle(BOTTOM);
 
-		img_buff_ptr_2 = dcmi_get_last_image_ptr();
-		dcmi_capture_stop();
-		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
-			chprintf((BaseSequentialStream *)&SD3, "Pix2 =%-7d idx2 =%-7d \r\n\n",img_buff_ptr_2[i],i);
-		}
 
-		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
-			uint8_t c = 0;
-			if (image_context.color_index == RED_IDX){
-				c = ((uint8_t)img_buff_ptr_2[i]&0xF8) >> SHIFT_3;
-			}
-			else {
-				if (image_context.color_index == GREEN_IDX){
-					c = (((uint8_t)img_buff_ptr_2[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_2[i+1]&0xC0) >> SHIFT_6);
-				}
-				else {
-					if (image_context.color_index == BLUE_IDX){
-						c = (uint8_t)img_buff_ptr_2[i+1]&0x1F;
-					}
-				}
-			}
-			image_context.image_bot[i/2] = filter_noise_single(c);
-		}
-		calc_line_middle(BOTTOM);
-
-		camera_re_init_top();
 
 #ifdef PLOT_ON_COMPUTER
 		// To visualize one image on computer with plotImage.py
