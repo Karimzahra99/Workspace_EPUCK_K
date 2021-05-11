@@ -230,7 +230,7 @@ void init_visual_context(config_t received_config);
 void calc_line_middle(uint8_t alternator);
 uint8_t filter_noise_single(uint8_t couleur);
 void camera_re_init_top(void);
-void camera_re_init_top(void);
+void camera_re_init_bot(void);
 
 int16_t calc_middle(uint8_t *buffer){
 
