@@ -95,9 +95,9 @@ int main(void)
 	config_t config = {rgb_gains, contrast, line_index_top, line_index_bot, mode_detect, send_params};
 	read_image_start(config);
 
-	chThdSleepMilliseconds(3000);
-
 	proximity_start();
+
+	chThdSleepMilliseconds(1000);
 
 	//moving_start();
 
@@ -105,31 +105,14 @@ int main(void)
 #endif
 
 	while (1) {
-		//waits 1 second
-		//chThdSleepMilliseconds(1000);
 
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d \r\n\n",
-						get_middle_top(), get_middle_bot(), get_middle_diff());
+		//waits 1 second
+		chThdSleepMilliseconds(1000);
 
 	}
 }
 
-#define STACK_CHK_GUARD 0xe2dee396
-uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
-
-void __stack_chk_fail(void)
-{
-	chSysHalt("Stack smashing detected");
-}
-
-//Functions for communication and visualization
-void SendUint8ToComputer(uint8_t* data, uint16_t size)
-{
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
-}
-
+//Led setting function
 void set_leds(color_index_t color_index){
 	if (color_index == RED_IDX){
 		set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
@@ -178,3 +161,21 @@ void set_leds(color_index_t color_index){
 		}
 	}
 }
+
+//Function for visualization
+void SendUint8ToComputer(uint8_t* data, uint16_t size)
+{
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
+}
+
+//Security function
+#define STACK_CHK_GUARD 0xe2dee396
+uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
+
+void __stack_chk_fail(void)
+{
+	chSysHalt("Stack smashing detected");
+}
+
