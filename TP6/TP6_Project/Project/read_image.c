@@ -92,11 +92,16 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 	(void)arg;
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
+
 	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
 	dcmi_enable_double_buffering();
+
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
+
+
+
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
 	//default : 94 (1.46875), 64 (1), 93 (1.453125)
@@ -396,7 +401,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 	}
 }
 
-static THD_WORKING_AREA(waProcessImage, 2048);
+static THD_WORKING_AREA(waProcessImage, 4096);
 static THD_FUNCTION(ProcessImage, arg) {
 
 
@@ -410,6 +415,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 	bool send_to_computer = true; //to use plot_image.py
 #endif
 
+
+
+
 	while(1){
 
 		//lancer acquisition top
@@ -419,13 +427,22 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//attendre image bot
 		//traitement bot
 
-		//waits until an image has been captured
-		chBSemWait(&image_ready_sem_top);
+
+		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+		dcmi_disable_double_buffering();
+		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+		dcmi_prepare();
+		po8030_set_awb(0);
+		po8030_set_contrast(image_context.contrast);
+		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+
+		//starts a capture
+		dcmi_capture_start();
+		//waits for the capture to be done
+		wait_image_ready(); //fait l'attente dans le while(1)
 
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr_1 = dcmi_get_last_image_ptr();
-
-
 
 		//prints some numbers but mostly 0s
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
@@ -434,9 +451,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 
 		// prints only 0s
-//		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
-//			chprintf((BaseSequentialStream *)&SD3, "Pix =%-7d Idx =%-7d \r\n\n",img_buff_ptr[i],i);
-//		}
+		//		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
+		//			chprintf((BaseSequentialStream *)&SD3, "Pix =%-7d Idx =%-7d \r\n\n",img_buff_ptr[i],i);
+		//		}
 
 		set_threshold_color(get_selector());
 
@@ -451,8 +468,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 			//extracting blue 5 bits
 			uint8_t b = (uint8_t)img_buff_ptr_1[i+1]&0x1F;
 
-//			chprintf((BaseSequentialStream *)&SD3, "Red Pix =%-7d \r\n\n",r);
-//			chprintf((BaseSequentialStream *)&SD3, "Index =%-7d \r\n\n",i);
+			//			chprintf((BaseSequentialStream *)&SD3, "Red Pix =%-7d \r\n\n",r);
+			//			chprintf((BaseSequentialStream *)&SD3, "Index =%-7d \r\n\n",i);
 
 			filter_noise(i, r, g, b);
 
@@ -464,12 +481,21 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its middle position
 		calc_line_middle(TOP);
 
-		chBSemSignal(&image_process_sem_top);
+		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+		dcmi_disable_double_buffering();
+		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+		dcmi_prepare();
+		po8030_set_awb(0);
+		po8030_set_contrast(image_context.contrast);
+		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
-		chBSemWait(&image_ready_sem_bot);
+		//starts a capture
+		dcmi_capture_start();
+		//waits for the capture to be done
+		wait_image_ready(); //fait l'attente dans le while(1)
 
 		img_buff_ptr_2 = dcmi_get_last_image_ptr();
-
+		dcmi_capture_stop();
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
 			chprintf((BaseSequentialStream *)&SD3, "Pix2 =%-7d idx2 =%-7d \r\n\n",img_buff_ptr_2[i],i);
 		}
@@ -493,7 +519,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 		calc_line_middle(BOTTOM);
 
-		chBSemSignal(&image_process_sem_bot);
+
 
 #ifdef PLOT_ON_COMPUTER
 		// To visualize one image on computer with plotImage.py
@@ -551,7 +577,7 @@ void init_visual_context(config_t received_config){
 void read_image_start(config_t arg_config){
 	init_visual_context(arg_config);
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
-	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
+	//chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
 #endif
