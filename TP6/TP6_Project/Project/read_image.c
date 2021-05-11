@@ -364,9 +364,6 @@ static THD_FUNCTION(ProcessImage, arg) {
 //	po8030_set_awb(0);
 //	po8030_set_contrast(image_context.contrast);
 	//po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
-	while(1){
-	chprintf((BaseSequentialStream *)&SD3, "R =%-7d G =%-7d B =%-7d \r\n\n", image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
-	}
 	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
 	dcmi_disable_double_buffering();
@@ -375,7 +372,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
-	//po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
 	uint8_t start = 0;
 
@@ -505,6 +502,10 @@ void init_visual_context(config_t received_config){
 	image_context.mean_red = 0;
 	image_context.mean_green = 0;
 	image_context.mean_blue = 0;
+
+	image_context.rgb_gains.red_gain = received_config.rgb_gain.red_gain;
+	image_context.rgb_gains.green_gain = received_config.rgb_gain.green_gain;
+	image_context.rgb_gains.blue_gain = received_config.rgb_gain.blue_gain;
 
 	for (int16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
 		image_context.image_red [i] = 0;
