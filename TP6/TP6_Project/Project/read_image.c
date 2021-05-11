@@ -216,8 +216,10 @@ void tune_image_start(tuning_config_t arg_tune_settings){
 //#define PLOT_ON_COMPUTER
 
 //semaphore
-static BSEMAPHORE_DECL(image_ready_sem, TRUE);
-static BSEMAPHORE_DECL(image_ready_sem_2, TRUE);
+static BSEMAPHORE_DECL(image_ready_sem_top, TRUE);
+static BSEMAPHORE_DECL(image_process_sem_top, TRUE);
+static BSEMAPHORE_DECL(image_ready_sem_bot, TRUE);
+static BSEMAPHORE_DECL(image_process_sem_bot, TRUE);
 
 void init_visual_context(config_t received_config);
 void calc_line_middle(uint8_t alternator);
@@ -346,13 +348,15 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 	(void)arg;
 
+	dcmi_disable_double_buffering();
+
 	while(1){
 
 		//Line index 413 detecting colors goes wrong
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-
+		//top
 		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-		dcmi_enable_double_buffering();
+		dcmi_disable_double_buffering();
 		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 		dcmi_prepare();
 		po8030_set_awb(0);
@@ -366,10 +370,13 @@ static THD_FUNCTION(CaptureImage, arg) {
 		wait_image_ready(); //fait l'attente dans le while(1)
 
 		//signals an image has been captured
-		chBSemSignal(&image_ready_sem);
+		chBSemSignal(&image_ready_sem_top);//top change name
 
+		chBSemWait(&image_process_sem_top);
+
+		//bottom
 		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-		dcmi_enable_double_buffering();
+		dcmi_disable_double_buffering();
 		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 		dcmi_prepare();
 		po8030_set_awb(0);
@@ -383,7 +390,9 @@ static THD_FUNCTION(CaptureImage, arg) {
 		wait_image_ready(); //fait l'attente dans le while(1)
 
 		//signals an image has been captured
-		chBSemSignal(&image_ready_sem_2);
+		chBSemSignal(&image_ready_sem_bot);
+
+		chBSemWait(&image_process_sem_bot);
 	}
 }
 
@@ -402,8 +411,16 @@ static THD_FUNCTION(ProcessImage, arg) {
 #endif
 
 	while(1){
+
+		//lancer acquisition top
+		//attendre image top
+		//traitement top
+		//lancer acquisition bot
+		//attendre image bot
+		//traitement bot
+
 		//waits until an image has been captured
-		chBSemWait(&image_ready_sem);
+		chBSemWait(&image_ready_sem_top);
 
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr_1 = dcmi_get_last_image_ptr();
@@ -447,7 +464,9 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its middle position
 		calc_line_middle(TOP);
 
-		chBSemWait(&image_ready_sem_2);
+		chBSemSignal(&image_process_sem_top);
+
+		chBSemWait(&image_ready_sem_bot);
 
 		img_buff_ptr_2 = dcmi_get_last_image_ptr();
 
@@ -473,6 +492,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 			image_context.image_bot[i/2] = filter_noise_single(c);
 		}
 		calc_line_middle(BOTTOM);
+
+		chBSemSignal(&image_process_sem_bot);
 
 #ifdef PLOT_ON_COMPUTER
 		// To visualize one image on computer with plotImage.py
@@ -529,7 +550,7 @@ void init_visual_context(config_t received_config){
 
 void read_image_start(config_t arg_config){
 	init_visual_context(arg_config);
-	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), HIGHPRIO, ProcessImage, NULL);
+	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
 	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
