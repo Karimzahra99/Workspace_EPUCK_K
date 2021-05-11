@@ -67,12 +67,12 @@ int main(void)
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {130, 120, 100};
-	uint8_t contrast = 100;
+	rgb_gain_t rgb_gains = {130, 120, 120};
+	uint8_t contrast = 93;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
 	detect_mode_t mode_detect = RAINY_DAY;
-	visualize_mode_t send_params = YES_VISUALIZE_PARAMS;
+	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
 #ifdef TUNE
 	//chose which color intensity to plot with plot_image.py
 	color_index_t plot_pixels_color = RED_IDX;
@@ -105,9 +105,9 @@ int main(void)
 
 	while (1) {
 		//waits 1 second
-		chThdSleepMilliseconds(1000);
-//				chprintf((BaseSequentialStream *)&SD3, "Color =%-7d \r\n\n",
-//									get_color());
+//		chThdSleepMilliseconds(1000);
+				chprintf((BaseSequentialStream *)&SD3, "Top =%-7d Bot =%-7d Diff =%-7d \r\n\n",
+									get_middle_top(),get_middle_bot(),get_middle_diff());
 
 	}
 }
