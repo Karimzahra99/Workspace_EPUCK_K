@@ -348,7 +348,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 	(void)arg;
 
-	dcmi_disable_double_buffering();
+	dcmi_enable_double_buffering();
 
 	while(1){
 
@@ -356,7 +356,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 		//top
 		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-		dcmi_disable_double_buffering();
+		//dcmi_disable_double_buffering();
 		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 		dcmi_prepare();
 		po8030_set_awb(0);
@@ -376,7 +376,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 
 		//bottom
 		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-		dcmi_disable_double_buffering();
+		//dcmi_disable_double_buffering();
 		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 		dcmi_prepare();
 		po8030_set_awb(0);
