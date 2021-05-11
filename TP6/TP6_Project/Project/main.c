@@ -105,9 +105,8 @@ int main(void)
 
 	while (1) {
 		//waits 1 second
-//		chThdSleepMilliseconds(1000);
-				chprintf((BaseSequentialStream *)&SD3, "Top =%-7d Bot =%-7d Diff =%-7d \r\n\n",
-									get_middle_top(),get_middle_bot(),get_middle_diff());
+		chThdSleepMilliseconds(1000);
+
 
 	}
 }
