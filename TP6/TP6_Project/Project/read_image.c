@@ -33,7 +33,8 @@ typedef struct {
 
 	//After tuning adjust to the desired detection mode
 	detect_mode_t detection;
-	//To visualize maxs, means and counts for each color
+
+	//To visualize maxs, means and counts for each color in the terminal
 	visualize_mode_t send_data;
 
 	rgb_gain_t rgb_gains;
@@ -64,55 +65,84 @@ typedef struct {
 #ifndef TUNE
 	uint16_t line_idx_bot;
 	uint8_t image_bot[IMAGE_BUFFER_SIZE];
-	int16_t middle_line_top; //middle of line
+	int16_t middle_line_top;
 	int16_t middle_line_bot;
 #endif
 
 } VISUAL_CONTEXT_t;
 
+//main structure containing all the visual parameters
 static VISUAL_CONTEXT_t image_context;
 
-void find_color(void);
+
+//Prototypes of functions used in tuning and demo mode
+
+
+//set the dark noise threshold with selector position
 void set_threshold_color(int selector_pos);
-void calc_max_mean(void);
-void max_count(void);
+
+//filter background noise for each color
 void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value);
+
+//calculates simultaneously mean and max value for each color
+void calc_max_mean(void);
+
+//calculating the number of pixels equal to the maximum intensity for each color
+void max_count(void);
+
+//returns the color index of the line color if there is one
 uint8_t get_color(void);
 
+//calls the appropriate color detection function
+void find_color(void);
 
 #ifdef TUNE
-//semaphore
+
+
+
+//// TUNING MODE
+
+
+
+//semaphore for image acquisition and process synchronization
 static BSEMAPHORE_DECL(tune_image_ready_sem, TRUE);
 
-// Tuning threads and functions
+
+// Tuning threads
+
+//Acquisition thread
 static THD_WORKING_AREA(waTuneCaptureImage, 256);
 static THD_FUNCTION(TuneCaptureImage, arg) {
 
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 
-	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
-
+	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line line_idx_top (minimum 2 lines because of camera internal library)
 	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
+	//double buffering for faster execution speed
 	dcmi_enable_double_buffering();
 
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 
-
-
+	//Deactivate auto-white balance
 	po8030_set_awb(0);
+
 	po8030_set_contrast(image_context.contrast);
 	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
 	while(1){
+
 		//starts a capture
 		dcmi_capture_start();
+
 		//waits for the capture to be done
 		wait_image_ready();
+
 		//signals an image has been captured
 		chBSemSignal(&tune_image_ready_sem);
+
 	}
 
 }
@@ -635,25 +665,6 @@ void read_image_start(config_t arg_config){
 //functions definitions used in tuning and demo mode :
 
 
-//filter background noise for each color
-void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
-	//filtering noise for each color
-	if (red_value > image_context.threshold_color){
-		image_context.image_red[index/2] = red_value;
-	}
-	else image_context.image_red[index/2] = 0;
-
-	if (green_value > image_context.threshold_color){
-		image_context.image_green[index/2] = green_value;
-	}
-	else image_context.image_green[index/2] = 0;
-
-	if (blue_value > image_context.threshold_color){
-		image_context.image_blue[index/2] = blue_value;
-	}
-	else image_context.image_blue[index/2] = 0;
-}
-
 //set the dark noise threshold with selector position
 void set_threshold_color(int selector_pos){
 
@@ -711,6 +722,25 @@ void set_threshold_color(int selector_pos){
 		image_context.threshold_color = 15;
 		break;
 	}
+}
+
+//filter background noise for each color
+void filter_noise(uint16_t index, uint8_t red_value, uint8_t green_value, uint8_t blue_value){
+	//filtering noise for each color
+	if (red_value > image_context.threshold_color){
+		image_context.image_red[index/2] = red_value;
+	}
+	else image_context.image_red[index/2] = 0;
+
+	if (green_value > image_context.threshold_color){
+		image_context.image_green[index/2] = green_value;
+	}
+	else image_context.image_green[index/2] = 0;
+
+	if (blue_value > image_context.threshold_color){
+		image_context.image_blue[index/2] = blue_value;
+	}
+	else image_context.image_blue[index/2] = 0;
 }
 
 //calculates simultaneously mean and max value for each color
@@ -811,37 +841,6 @@ void max_count(void){
 //returns the color of the found line if there is one
 uint8_t get_color(void){
 	return image_context.color_index;
-}
-
-//calls the appropriate color detection function
-void find_color(void){
-
-	switch(image_context.detection){
-	case MAX_ONLY:
-		find_color_max();
-		break;
-	case MEAN_ONLY:
-		find_color_mean();
-		break;
-	case MAX_N_MEAN:
-		find_color_max_n_mean();
-		break;
-	case MAX_N_COUNT:
-		find_color_max_n_count();
-		break;
-	case RAINY_DAY:
-		find_color_rainy_day();
-		break;
-	case SUPER_RAINY_DAY:
-		find_color_super_rainy_day();
-		break;
-	case ULTRA_RAINY_DAY:
-		find_color_ultra_rainy_day();
-		break;
-	default:
-		find_color_rainy_day();
-		break;
-	}
 }
 
 
@@ -1675,3 +1674,33 @@ void find_color_ultra_rainy_day(void){
 	}
 }
 
+//calls the appropriate color detection function
+void find_color(void){
+
+	switch(image_context.detection){
+	case MAX_ONLY:
+		find_color_max();
+		break;
+	case MEAN_ONLY:
+		find_color_mean();
+		break;
+	case MAX_N_MEAN:
+		find_color_max_n_mean();
+		break;
+	case MAX_N_COUNT:
+		find_color_max_n_count();
+		break;
+	case RAINY_DAY:
+		find_color_rainy_day();
+		break;
+	case SUPER_RAINY_DAY:
+		find_color_super_rainy_day();
+		break;
+	case ULTRA_RAINY_DAY:
+		find_color_ultra_rainy_day();
+		break;
+	default:
+		find_color_rainy_day();
+		break;
+	}
+}
