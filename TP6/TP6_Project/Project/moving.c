@@ -158,7 +158,6 @@ static THD_FUNCTION(PidRegulator, arg) {
 		case STRAIGHT_LINE_BACKWARDS :
 			chprintf((BaseSequentialStream *)&SD3, "Inside \r\n\n");
 			move_straight_backwards();
-			;
 			break;
 //		case PID_FRONTWARDS :
 //			pid_front();
@@ -207,33 +206,38 @@ void move_straight_backwards(void){
 			rolling_context.mode = PID_FRONTWARDS;
 		}
 		else {
-			color_index_t color = get_color();
-			switch (color)
-			{
-			case 0: //NO COLOR
-				set_leds(color);
-				rolling_context.speed = 0;
+			if (get_middle_diff()>20){
 
-				break;
-			case 1: //RED
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(LOW_SPEED);
-				break;
-			case 2: //GREEN
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-				break;
-			case 3: //BLUE
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(HIGH_SPEED);
-				break;
-			default:
-				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-				break;
 			}
-			//rolling backwards
-			right_motor_set_speed(-rolling_context.speed);
-			left_motor_set_speed(-rolling_context.speed);
+			else {
+				color_index_t color = get_color();
+				switch (color)
+				{
+				case 0: //NO COLOR
+					set_leds(color);
+					rolling_context.speed = 0;
+
+					break;
+				case 1: //RED
+					set_leds(color);
+					rolling_context.speed = cms_to_steps(LOW_SPEED);
+					break;
+				case 2: //GREEN
+					set_leds(color);
+					rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+					break;
+				case 3: //BLUE
+					set_leds(color);
+					rolling_context.speed = cms_to_steps(HIGH_SPEED);
+					break;
+				default:
+					rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+					break;
+				}
+				//rolling backwards
+				right_motor_set_speed(-rolling_context.speed);
+				left_motor_set_speed(-rolling_context.speed);
+			}
 		}
 	}
 }
