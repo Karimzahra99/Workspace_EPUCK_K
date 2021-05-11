@@ -229,6 +229,8 @@ static BSEMAPHORE_DECL(image_process_sem_bot, TRUE);
 void init_visual_context(config_t received_config);
 void calc_line_middle(uint8_t alternator);
 uint8_t filter_noise_single(uint8_t couleur);
+void camera_re_init_top(void);
+void camera_re_init_top(void);
 
 int16_t calc_middle(uint8_t *buffer){
 
@@ -346,60 +348,6 @@ int16_t get_middle_bot(void) {
 	return image_context.middle_line_bot;
 }
 
-//static THD_WORKING_AREA(waCaptureImage, 512);
-//static THD_FUNCTION(CaptureImage, arg) {
-//
-//	chRegSetThreadName(__FUNCTION__);
-//
-//	(void)arg;
-//
-//	dcmi_enable_double_buffering();
-//
-//	while(1){
-//
-//		//Line index 413 detecting colors goes wrong
-//		//po8030_advanced_config(FORMAT_RGB565, 0, 413, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-//		//top
-//		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-//		//dcmi_disable_double_buffering();
-//		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-//		dcmi_prepare();
-//		po8030_set_awb(0);
-//		//po8030_set_mirror(0, 1);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
-//
-//		//starts a capture
-//		dcmi_capture_start();
-//		//waits for the capture to be done
-//		wait_image_ready(); //fait l'attente dans le while(1)
-//
-//		//signals an image has been captured
-//		chBSemSignal(&image_ready_sem_top);//top change name
-//
-//		chBSemWait(&image_process_sem_top);
-//
-//		//bottom
-//		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-//		//dcmi_disable_double_buffering();
-//		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-//		dcmi_prepare();
-//		po8030_set_awb(0);
-//		//po8030_set_mirror(0, 1);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
-//
-//		//starts a capture
-//		dcmi_capture_start();
-//		//waits for the capture to be done
-//		wait_image_ready(); //fait l'attente dans le while(1)
-//
-//		//signals an image has been captured
-//		chBSemSignal(&image_ready_sem_bot);
-//
-//		chBSemWait(&image_process_sem_bot);
-//	}
-//}
 
 static THD_WORKING_AREA(waProcessImage, 4096);
 static THD_FUNCTION(ProcessImage, arg) {
@@ -416,6 +364,15 @@ static THD_FUNCTION(ProcessImage, arg) {
 #endif
 
 
+	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	dcmi_disable_double_buffering();
+	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+	dcmi_prepare();
+
+	po8030_set_awb(0);
+	po8030_set_contrast(image_context.contrast);
+	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+
 
 	while(1){
 
@@ -426,30 +383,15 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//attendre image bot
 		//traitement bot
 
-		//une ligne d'indice 10
-		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-		dcmi_disable_double_buffering();
-		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-		dcmi_prepare();
-
-		po8030_set_awb(0);
-		po8030_set_contrast(image_context.contrast);
-		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
-
 		//starts a capture
 		dcmi_capture_start();
 		//waits for the capture to be done
-
-
-
 		wait_image_ready(); //fait l'attente dans le while(1)
 
 		//gets the pointer to the array filled with the last image in RGB565
 		img_buff_ptr_1 = dcmi_get_last_image_ptr();// = 0
 
-		chBSemSignal(&image_ready_sem_top);
-
-		camera_re_init();
+		camera_re_init_bot();
 
 		//prints some numbers but mostly 0s
 		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
@@ -488,46 +430,36 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its middle position
 		calc_line_middle(TOP);
 
-//		//une ligne indice 400
-//		po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
-//		dcmi_disable_double_buffering();
-//		dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
-//		dcmi_prepare();
-//		po8030_set_awb(0);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
-//
-//		//starts a capture
-//		dcmi_capture_start();
-//		//waits for the capture to be done
-//		wait_image_ready(); //fait l'attente dans le while(1)
-//
-//		img_buff_ptr_2 = dcmi_get_last_image_ptr();
-//		dcmi_capture_stop();
-//		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
-//			chprintf((BaseSequentialStream *)&SD3, "Pix2 =%-7d idx2 =%-7d \r\n\n",img_buff_ptr_2[i],i);
-//		}
-//
-//		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
-//			uint8_t c = 0;
-//			if (image_context.color_index == RED_IDX){
-//				c = ((uint8_t)img_buff_ptr_2[i]&0xF8) >> SHIFT_3;
-//			}
-//			else {
-//				if (image_context.color_index == GREEN_IDX){
-//					c = (((uint8_t)img_buff_ptr_2[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_2[i+1]&0xC0) >> SHIFT_6);
-//				}
-//				else {
-//					if (image_context.color_index == BLUE_IDX){
-//						c = (uint8_t)img_buff_ptr_2[i+1]&0x1F;
-//					}
-//				}
-//			}
-//			image_context.image_bot[i/2] = filter_noise_single(c);
-//		}
-//		calc_line_middle(BOTTOM);
+		dcmi_capture_start();
+		//waits for the capture to be done
+		wait_image_ready(); //fait l'attente dans le while(1)
 
+		img_buff_ptr_2 = dcmi_get_last_image_ptr();
+		dcmi_capture_stop();
+		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; ++i){
+			chprintf((BaseSequentialStream *)&SD3, "Pix2 =%-7d idx2 =%-7d \r\n\n",img_buff_ptr_2[i],i);
+		}
 
+		for(uint16_t i = 0 ; i < (2 * IMAGE_BUFFER_SIZE) ; i+=2){
+			uint8_t c = 0;
+			if (image_context.color_index == RED_IDX){
+				c = ((uint8_t)img_buff_ptr_2[i]&0xF8) >> SHIFT_3;
+			}
+			else {
+				if (image_context.color_index == GREEN_IDX){
+					c = (((uint8_t)img_buff_ptr_2[i]&0x07) << SHIFT_2) + (((uint8_t)img_buff_ptr_2[i+1]&0xC0) >> SHIFT_6);
+				}
+				else {
+					if (image_context.color_index == BLUE_IDX){
+						c = (uint8_t)img_buff_ptr_2[i+1]&0x1F;
+					}
+				}
+			}
+			image_context.image_bot[i/2] = filter_noise_single(c);
+		}
+		calc_line_middle(BOTTOM);
+
+		camera_re_init_top();
 
 #ifdef PLOT_ON_COMPUTER
 		// To visualize one image on computer with plotImage.py
@@ -584,8 +516,18 @@ void init_visual_context(config_t received_config){
 
 
 
-void camera_re_init(void){
-	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_bot, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+void camera_re_init_top(void){
+	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	dcmi_disable_double_buffering();
+	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
+	dcmi_prepare();
+	po8030_set_awb(0);
+	po8030_set_contrast(image_context.contrast);
+	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+}
+
+void camera_re_init_bot(void){
+	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
@@ -597,7 +539,6 @@ void camera_re_init(void){
 void read_image_start(config_t arg_config){
 	init_visual_context(arg_config);
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
-	//chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
 #endif
@@ -1394,4 +1335,3 @@ void find_color(void){
 		break;
 	}
 }
-
