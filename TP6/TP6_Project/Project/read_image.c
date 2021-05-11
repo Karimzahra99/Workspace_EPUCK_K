@@ -928,6 +928,17 @@ void find_color_max_n_count(void){
 
 void find_color_rainy_day(void){
 
+	if(image_context.send_data){
+		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+				image_context.max_red, image_context.max_green, image_context.max_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+				image_context.count_red, image_context.count_green, image_context.count_blue);
+	}
+
 	if ((image_context.max_red < 29) && (image_context.max_green < 29) && (image_context.max_blue < 29)){
 #ifndef TUNE
 		image_context.color_index = NO_COLOR;
@@ -1103,7 +1114,9 @@ void find_color_rainy_day(void){
 		}
 
 	}
+}
 
+void find_color_super_rainy_day(void){
 
 	if(image_context.send_data){
 		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
@@ -1115,10 +1128,6 @@ void find_color_rainy_day(void){
 		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
-
-}
-
-void find_color_super_rainy_day(void){
 
 	if ((image_context.max_red < 29) && (image_context.max_green < 29) && (image_context.max_blue < 29)){
 #ifndef TUNE
@@ -1296,6 +1305,10 @@ void find_color_super_rainy_day(void){
 
 	}
 
+}
+
+void find_color_ultra_rainy_day(void){
+
 
 	if(image_context.send_data){
 		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
@@ -1307,10 +1320,6 @@ void find_color_super_rainy_day(void){
 		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
-
-}
-
-void find_color_ultra_rainy_day(void){
 
 	if ((image_context.max_red < 29) && (image_context.max_green < 29) && (image_context.max_blue < 29)){
 #ifndef TUNE
@@ -1488,18 +1497,6 @@ void find_color_ultra_rainy_day(void){
 
 	}
 
-
-	if(image_context.send_data){
-		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-				image_context.max_red, image_context.max_green, image_context.max_blue);
-
-		chprintf((BaseSequentialStream *)&SD3, "R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
-
-		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-				image_context.count_red, image_context.count_green, image_context.count_blue);
-	}
-
 }
 
 
@@ -1525,8 +1522,8 @@ void find_color(void){
 		find_color_super_rainy_day();
 		break;
 	case ULTRA_RAINY_DAY:
-			find_color_ultra_rainy_day();
-			break;
+		find_color_ultra_rainy_day();
+		break;
 	default:
 		find_color_rainy_day();
 		break;
