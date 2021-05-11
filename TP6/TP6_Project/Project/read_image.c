@@ -267,11 +267,20 @@ void tune_image_start(tuning_config_t arg_tune_settings){
 //Uncomment to use plotmage.py for debug
 //#define PLOT_ON_COMPUTER
 
+
 //semaphores to read top line and bottom line alternately
-static BSEMAPHORE_DECL(image_ready_top_sem, TRUE); //acquisition top line
-static BSEMAPHORE_DECL(image_process_top_sem, TRUE); //process top line
-static BSEMAPHORE_DECL(image_ready_bot_sem, TRUE); //acquisition bottom line
-static BSEMAPHORE_DECL(image_process_bot_sem, TRUE); //process bottom line
+
+//acquisition top line
+static BSEMAPHORE_DECL(image_ready_top_sem, TRUE);
+
+//process top line
+static BSEMAPHORE_DECL(image_process_top_sem, TRUE);
+
+//acquisition bottom line
+static BSEMAPHORE_DECL(image_ready_bot_sem, TRUE);
+
+//process bottom line
+static BSEMAPHORE_DECL(image_process_bot_sem, TRUE);
 
 
 
