@@ -67,8 +67,8 @@ int main(void)
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {130, 110, 120};
-	uint8_t contrast = 80;
+	rgb_gain_t rgb_gains = {130, 120, 120};
+	uint8_t contrast = 100;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
 	detect_mode_t mode_detect = RAINY_DAY;
@@ -99,7 +99,7 @@ int main(void)
 
 	chThdSleepMilliseconds(1000);
 
-	//moving_start();
+	moving_start();
 
 
 #endif

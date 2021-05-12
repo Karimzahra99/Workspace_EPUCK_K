@@ -202,42 +202,39 @@ void move_straight_backwards(void){
 		if (get_middle_diff()>DEAD_ZONE_WIDTH){
 			rolling_context.color = get_color();
 			set_leds(PURPLE_IDX);
-			prepare_pid_front();
-			rolling_context.mode = PID_FRONTWARDS;
+			//prepare_pid_front();
+			//rolling_context.mode = PID_FRONTWARDS;
 		}
 		else {
-			if (get_middle_diff()>20){
 
-			}
-			else {
-				color_index_t color = get_color();
-				switch (color)
-				{
-				case 0: //NO COLOR
-					set_leds(color);
-					rolling_context.speed = 0;
+			color_index_t color = get_color();
+			switch (color)
+			{
+			case 0: //NO COLOR
+				set_leds(color);
+				rolling_context.speed = 0;
 
-					break;
-				case 1: //RED
-					set_leds(color);
-					rolling_context.speed = cms_to_steps(LOW_SPEED);
-					break;
-				case 2: //GREEN
-					set_leds(color);
-					rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-					break;
-				case 3: //BLUE
-					set_leds(color);
-					rolling_context.speed = cms_to_steps(HIGH_SPEED);
-					break;
-				default:
-					rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-					break;
-				}
-				//rolling backwards
-				right_motor_set_speed(-rolling_context.speed);
-				left_motor_set_speed(-rolling_context.speed);
+				break;
+			case 1: //RED
+				set_leds(color);
+				rolling_context.speed = cms_to_steps(LOW_SPEED);
+				break;
+			case 2: //GREEN
+				set_leds(color);
+				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+				break;
+			case 3: //BLUE
+				set_leds(color);
+				rolling_context.speed = cms_to_steps(HIGH_SPEED);
+				break;
+			default:
+				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+				break;
 			}
+			//rolling backwards
+			right_motor_set_speed(-rolling_context.speed);
+			left_motor_set_speed(-rolling_context.speed);
+
 		}
 	}
 }
