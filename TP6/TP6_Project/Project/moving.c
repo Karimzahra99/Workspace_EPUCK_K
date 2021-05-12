@@ -162,6 +162,9 @@ static THD_FUNCTION(PidRegulator, arg) {
 		case STRAIGHT_LINE_BACKWARDS :
 			move_straight_backwards();
 			break;
+		case OBS_AVOIDANCE :
+					avoid_obs();
+					break;
 		default :
 			move_straight_backwards();
 			break;
@@ -193,11 +196,7 @@ void init_context(void){
 void move_straight_backwards(void){
 	if (check_ir_front()){
 		rolling_context.color = get_color();
-		set_leds(YELLOW_IDX);
-		//rolling_context.mode = OBS_AVOIDANCE;
-		rolling_context.speed = 0;
-		right_motor_set_speed(-rolling_context.speed);
-		left_motor_set_speed(-rolling_context.speed);
+		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
 
@@ -281,9 +280,12 @@ void avoid_obs(void){
 	//temporary function :
 	set_leds(YELLOW_IDX);
 	rolling_context.counter = 0;
-
-	right_motor_set_speed(0);
-	left_motor_set_speed(0);
+	rolling_context.speed = 0;
+	right_motor_set_speed(-rolling_context.speed);
+	left_motor_set_speed(-rolling_context.speed);
+	if (!check_ir_front()){
+		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+	}
 }
 
 void moving_start(void){
