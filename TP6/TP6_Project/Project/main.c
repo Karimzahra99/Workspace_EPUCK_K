@@ -16,6 +16,7 @@
 #include <spi_comm.h>
 #include "moving.h"
 #include "read_image.h"
+#include <audio/play_melody.h>
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -99,6 +100,8 @@ int main(void)
 
 	//give sime time to find the color if there is one
 	chThdSleepMilliseconds(1000);
+
+	playMelodyStart();
 
 	moving_start();
 

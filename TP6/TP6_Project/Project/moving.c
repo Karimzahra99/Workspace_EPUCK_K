@@ -9,6 +9,7 @@
 #include <main.h>
 #include <motors.h>
 #include "read_image.h"
+#include <audio/play_melody.h>
 
 //Distances parameters
 #define PI                 			3.1415926536f
@@ -42,6 +43,7 @@
 #define	IR_THRESHOLD				250
 
 //Color speeds
+#define SEARCH_SPEED				1
 #define LOW_SPEED					3
 #define MEDIUM_SPEED				4
 #define HIGH_SPEED 					5
@@ -83,6 +85,7 @@ void prepare_pid_front(void);
 void avoid_obs(void);
 void set_speed_with_color(void);
 void find_next_color(void);
+void help_me_please(void);
 
 //PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -167,6 +170,14 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		case OBS_AVOIDANCE :
 			avoid_obs();
+			break;
+
+		case SEARCH_LINE :
+			find_next_color();
+			break;
+
+		case LOST :
+			help_me_please();
 			break;
 
 		default :
@@ -316,9 +327,13 @@ void set_speed_with_color(void){
 	switch (rolling_context.color)
 	{
 	case 0: //NO COLOR
-		set_leds(NO_COLOR);
-		rolling_context.speed = 0;
+		set_leds(FIND_COLOR);
 		reset_middle_positions();
+		rolling_context.counter = 0;
+		rolling_context.speed = 0;
+		left_motor_set_pos(0);
+		right_motor_set_pos(0);
+		rolling_context.mode = SEARCH_LINE;
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);
@@ -341,8 +356,31 @@ void set_speed_with_color(void){
 
 void find_next_color(void){
 
+	rolling_context.speed = cms_to_steps(SEARCH_SPEED);
+	right_motor_set_speed(-rolling_context.speed);
+	left_motor_set_speed(-rolling_context.speed);
+	rolling_context.counter = right_motor_get_pos();
+	if (get_color() != NO_COLOR){
+		rolling_context.color = get_color();
+		right_motor_set_speed(0);
+		left_motor_set_speed(0);
+		rolling_context.color = get_color();
+		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+	}
+	else {
+		if (rolling_context.counter > 5000){
+			right_motor_set_speed(0);
+			left_motor_set_speed(0);
+			rolling_context.counter = 0;
+			rolling_context.mode = LOST;
+		}
+	}
 
+}
 
+void help_me_please(void){
+	set_leds(NO_COLOR);
+	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
 }
 
 //position in cm and speed en cm/s
