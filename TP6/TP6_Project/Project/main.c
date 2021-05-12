@@ -101,7 +101,7 @@ int main(void)
 	//give sime time to find the color if there is one
 	chThdSleepMilliseconds(1000);
 
-	playMelodyStart();
+	//playMelodyStart();
 
 	moving_start();
 
