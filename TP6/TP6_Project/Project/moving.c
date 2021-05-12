@@ -202,6 +202,7 @@ void move_straight_backwards(void){
 		case 0: //NO COLOR
 			set_leds(color);
 			rolling_context.speed = 0;
+			reset_middle_positions();
 			break;
 		case 1: //RED
 			set_leds(color);
