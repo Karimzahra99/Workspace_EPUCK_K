@@ -78,6 +78,7 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 void set_leds(uint8_t color_index);
 int16_t cms_to_steps (float speed_cms);
 int cm_to_step (float cm);
+int step_to_cm (int step);
 void move_straight_backwards(void);
 void pid_front(void);
 void init_context(void);
@@ -322,6 +323,10 @@ int cm_to_step (float cm) {
 	return (int)(cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
 }
 
+int step_to_cm (int step) {
+	return (step * WHEEL_PERIMETER / NSTEP_ONE_TURN);
+}
+
 void set_speed_with_color(void){
 
 	switch (rolling_context.color)
@@ -331,6 +336,8 @@ void set_speed_with_color(void){
 		reset_middle_positions();
 		rolling_context.counter = 0;
 		rolling_context.speed = 0;
+		left_motor_set_speed(0);
+		right_motor_set_speed(0);
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 		rolling_context.mode = SEARCH_LINE;
@@ -366,9 +373,11 @@ void find_next_color(void){
 		left_motor_set_speed(0);
 		rolling_context.color = get_color();
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+		chprintf((BaseSequentialStream *)&SD3, "Inside1 \r\n\n");
 	}
 	else {
-		if (rolling_context.counter > 5000){
+		if (step_to_cm(rolling_context.counter) > 5){
+			chprintf((BaseSequentialStream *)&SD3, "Inside2 \r\n\n");
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
 			rolling_context.counter = 0;
