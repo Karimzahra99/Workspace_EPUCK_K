@@ -32,8 +32,8 @@
 #define MAX_SUM_ERROR_B 			(MOTOR_SPEED_LIMIT/KI_B)
 
 // Straight line correction zone
-#define STRAIGHT_ZONE_WIDTH_MAX		25
-#define STRAIGHT_ZONE_WIDTH_MIN		10
+#define STRAIGHT_ZONE_WIDTH_MAX		75
+#define STRAIGHT_ZONE_WIDTH_MIN		15
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
 #define STRAIGHT_LINE_COUNT			10000
@@ -208,7 +208,7 @@ void move_straight_backwards(void){
 	else {
 		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
 			//bad start case : start wasn't performed on a straight line
-			set_leds(CYAN_IDX);
+			set_leds(NO_LINE);
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
 		}
@@ -220,7 +220,7 @@ void move_straight_backwards(void){
 						right_motor_set_speed(0);
 						left_motor_set_speed(cms_to_steps(0.8));
 					}
-					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < 300) || (get_middle_bot() < 300) || (get_middle_top() > 400) || (get_middle_bot() > 400)) {
+					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < 250) || (get_middle_bot() < 250) || (get_middle_top() > 420) || (get_middle_bot() > 420)) {
 
 						prepare_pid_front();
 					}
@@ -231,7 +231,7 @@ void move_straight_backwards(void){
 						right_motor_set_speed(cms_to_steps(0.8));
 						left_motor_set_speed(0);
 					}
-					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < 300) || (get_middle_bot() < 300) || (get_middle_top() > 400) || (get_middle_bot() > 400)) {
+					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < 250) || (get_middle_bot() < 250) || (get_middle_top() > 420) || (get_middle_bot() > 420)) {
 						prepare_pid_front();
 					}
 				}
