@@ -110,9 +110,6 @@ int main(void)
 	//playSoundFileStart();
 	moving_start();
 
-	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
-
-
 #endif
 
 	while (1) {

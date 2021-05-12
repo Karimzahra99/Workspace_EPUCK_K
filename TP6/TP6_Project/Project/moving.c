@@ -9,7 +9,8 @@
 #include <main.h>
 #include <motors.h>
 #include "read_image.h"
-#include <audio/play_melody.h>
+//#include <audio/play_melody.h>
+#include <leds.h>
 
 //Distances parameters
 #define PI                 			3.1415926536f
