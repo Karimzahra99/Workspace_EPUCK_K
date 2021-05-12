@@ -202,14 +202,14 @@ void move_straight_backwards(void){
 
 		if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
 			if (get_middle_diff()<0){
-				while(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
 					right_motor_set_speed(0);
-					left_motor_set_speed(cms_to_steps(1.5));
+					left_motor_set_speed(cms_to_steps(1));
 				}
 			}
 			else {
-				while(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-					right_motor_set_speed(cms_to_steps(1.5));
+				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+					right_motor_set_speed(cms_to_steps(1));
 					left_motor_set_speed(0);
 				}
 			}
