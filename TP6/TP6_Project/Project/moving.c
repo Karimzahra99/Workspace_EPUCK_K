@@ -76,16 +76,15 @@ typedef struct {
 
 static MOVE_CONTEXT_t rolling_context;
 static int ir3_old = 0;
-static int ir2_new = 0;
 static int ir3_new = 0;
 static int ir_left_max=0;
 static int ir4_old = 0;
 static int ir4_new = 0;
-static int ir5_new = 0;
 static uint8_t  adjust = 0;
 static uint8_t obstacle_at_left =0;
 static uint8_t obstacle_at_right =0;
 static int ir_right_max=0;
+static int first_line_passed=0;
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
@@ -145,10 +144,12 @@ int16_t pid_regulator_S(int middle){
 
 	static float sum_error = 0;
 	static float last_error = 0;
-	ir2_new = get_calibrated_prox(SENSOR_IR2);
-
-	error =  ir2_new - goal;
-
+	if (obstacle_at_left){
+		error =  get_calibrated_prox(SENSOR_IR2) - goal;
+	}
+	else{
+		error =  get_calibrated_prox(SENSOR_IR5) - goal;
+	}
 	sum_error += error;
 
 	if(sum_error > 100){
@@ -419,7 +420,7 @@ void avoid_obs(void){
 			speed_correction = pid_regulator_S(ir_right_max);
 			ir4_new = get_calibrated_prox(SENSOR_IR4);
 //					chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, ir4_old, speed_correction);
-			if (ir4_new < ir4_old - 20){
+			if (ir4_new < ir4_old - 10){
 				left_motor_set_speed(-cms_to_steps(2) - speed_correction);
 				right_motor_set_speed(-cms_to_steps(2) + speed_correction);
 			}
@@ -434,9 +435,16 @@ void avoid_obs(void){
 
 		}
 	}
-	if (!check_ir_front()){
-		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-	}
+//	if (get_color() != NO_COLOR){
+//		if (!first_line_passed){
+//		first_line_passed = 1;
+//		}
+//		else{
+//			left_motor_set_speed(-cms_to_steps(0));
+//			right_motor_set_speed(-cms_to_steps(0));
+//		}
+//
+//	}
 }
 
 void moving_start(void){

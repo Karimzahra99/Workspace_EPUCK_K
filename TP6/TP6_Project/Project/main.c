@@ -100,6 +100,7 @@ int main(void)
 	read_image_start(config);
 
 	proximity_start();
+	calibrate_ir();
 
 	//give sime time to find the color if there is one
 	chThdSleepMilliseconds(1000);
