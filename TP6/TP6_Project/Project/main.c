@@ -101,7 +101,7 @@ int main(void)
 	//give sime time to find the color if there is one
 	chThdSleepMilliseconds(1000);
 
-	//playMelodyStart();
+	playMelodyStart();
 
 	moving_start();
 
@@ -111,12 +111,13 @@ int main(void)
 	while (1) {
 
 		//waits 1 second
-		//chThdSleepMilliseconds(1000);
+		chThdSleepMilliseconds(1000);
+		chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
 //		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
 //						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n",
-					get_middle_top(), get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
+//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n",
+//					get_middle_top(), get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
 
 	}
 }

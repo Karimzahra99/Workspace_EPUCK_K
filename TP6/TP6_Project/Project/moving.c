@@ -43,7 +43,7 @@
 #define	IR_THRESHOLD				250
 
 //Color speeds
-#define SEARCH_SPEED				1
+#define SEARCH_SPEED				2
 #define LOW_SPEED					3
 #define MEDIUM_SPEED				4
 #define HIGH_SPEED 					5
@@ -323,6 +323,7 @@ int cm_to_step (float cm) {
 	return (int)(cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
 }
 
+//remove if not needed
 int step_to_cm (int step) {
 	return (step * WHEEL_PERIMETER / NSTEP_ONE_TURN);
 }
@@ -367,6 +368,8 @@ void find_next_color(void){
 	right_motor_set_speed(-rolling_context.speed);
 	left_motor_set_speed(-rolling_context.speed);
 	rolling_context.counter = right_motor_get_pos();
+
+	chprintf((BaseSequentialStream *)&SD3, "Counter =%-7d \r\n\n",rolling_context.counter);
 	if (get_color() != NO_COLOR){
 		rolling_context.color = get_color();
 		right_motor_set_speed(0);
@@ -376,7 +379,7 @@ void find_next_color(void){
 		chprintf((BaseSequentialStream *)&SD3, "Inside1 \r\n\n");
 	}
 	else {
-		if (step_to_cm(rolling_context.counter) > 5){
+		if (abs(rolling_context.counter) > 500){
 			chprintf((BaseSequentialStream *)&SD3, "Inside2 \r\n\n");
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
