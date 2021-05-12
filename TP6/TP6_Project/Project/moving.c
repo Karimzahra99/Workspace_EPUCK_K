@@ -75,6 +75,17 @@ typedef struct {
 } MOVE_CONTEXT_t;
 
 static MOVE_CONTEXT_t rolling_context;
+static int ir3_old = 0;
+static int ir2_new = 0;
+static int ir3_new = 0;
+static int ir_left_max=0;
+static int ir4_old = 0;
+static int ir4_new = 0;
+static int ir5_new = 0;
+static uint8_t  adjust = 0;
+static uint8_t obstacle_at_left =0;
+static uint8_t obstacle_at_right =0;
+static int ir_right_max=0;
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
@@ -91,6 +102,69 @@ void find_next_color(void);
 void help_me_please(void);
 
 //PID Implementation
+int rotate_until_irmax_left(void)
+{
+	int	ir_left_ancien =0;
+	int	ir_left_nouvau =0;
+	int start = 0;
+	while ((ir_left_nouvau > ir_left_ancien + 5 ) || start==0){
+			start =1;
+			ir_left_ancien = get_calibrated_prox(SENSOR_IR2);
+			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
+			ir_left_nouvau = get_calibrated_prox(SENSOR_IR2);
+
+		}
+	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
+
+return ir_left_ancien;
+}
+
+int rotate_until_irmax_right(void)
+{
+	int	ir_right_ancien =0;
+	int	ir_right_nouvau =0;
+	int start = 0;
+	while ((ir_right_nouvau > ir_right_ancien + 5 ) || start==0){
+			start =1;
+			ir_right_ancien = get_calibrated_prox(SENSOR_IR5);
+			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
+			ir_right_nouvau = get_calibrated_prox(SENSOR_IR5);
+
+		}
+	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
+
+return ir_right_ancien;
+}
+
+int16_t pid_regulator_S(int middle){
+
+	int goal = middle; //milieu theorique d'une ligne parfaitement centre sur le robot ou 350 ?
+	float error = 0;
+	float speed = 0;
+	float derivative = 0;
+
+	static float sum_error = 0;
+	static float last_error = 0;
+	ir2_new = get_calibrated_prox(SENSOR_IR2);
+
+	error =  ir2_new - goal;
+
+	sum_error += error;
+
+	if(sum_error > 100){
+		sum_error = 100;
+	}else if(sum_error < -100){
+		sum_error = -100;
+	}
+
+	derivative = error - last_error ;
+
+	last_error = error;
+
+	speed = 0.2 * error + 0.2 * derivative; //0.01 * sum_error; //+ 0.1 * derivative;
+
+    return (int16_t) speed;
+}
 
 int16_t pid_regulator(int16_t middle_diff){
 
@@ -164,25 +238,25 @@ static THD_FUNCTION(PidRegulator, arg) {
 		//				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
-//		case STRAIGHT_LINE_BACKWARDS :
-//			move_straight_backwards();
-//			break;
+		case STRAIGHT_LINE_BACKWARDS :
+			move_straight_backwards();
+			break;
 
 		case PID_FRONTWARDS :
 			pid_front();
 			break;
 
-//		case OBS_AVOIDANCE :
-//			avoid_obs();
-//			break;
-//
-//		case SEARCH_LINE :
-//			find_next_color();
-//			break;
-//
-//		case LOST :
-//			help_me_please();
-//			break;
+		case OBS_AVOIDANCE :
+			avoid_obs();
+			break;
+
+		case SEARCH_LINE :
+			find_next_color();
+			break;
+
+		case LOST :
+			help_me_please();
+			break;
 
 		default :
 			pid_front();
@@ -195,8 +269,14 @@ static THD_FUNCTION(PidRegulator, arg) {
 }
 
 bool check_ir_front(void){
+	int ir_front_left = get_calibrated_prox(SENSOR_IR3);
+	int ir_front_right = get_calibrated_prox(SENSOR_IR4);
 
-	if ((get_calibrated_prox(SENSOR_IR3) > IR_THRESHOLD) && (get_calibrated_prox(SENSOR_IR4) > IR_THRESHOLD)){
+	if ((ir_front_left > IR_THRESHOLD) || (ir_front_right > IR_THRESHOLD)){
+		if (ir_front_left > ir_front_right){
+			obstacle_at_left = 1;
+		}
+		else obstacle_at_right = 1;
 		return true;
 	}
 	else return false;
@@ -302,11 +382,58 @@ void pid_front(void){
 
 void avoid_obs(void){
 	//temporary function :
+	int16_t speed_correction=0;
 	set_leds(YELLOW_IDX);
-	rolling_context.counter = 0;
-	rolling_context.speed = 0;
-	right_motor_set_speed(rolling_context.speed);
-	left_motor_set_speed(rolling_context.speed);
+	if (obstacle_at_left){
+		if (!adjust){
+			adjust = 1;
+			ir_left_max = rotate_until_irmax_left();
+			ir3_old = get_calibrated_prox(SENSOR_IR3);
+		}
+		else{
+			speed_correction = pid_regulator_S(ir_left_max);
+			ir3_new = get_calibrated_prox(SENSOR_IR3);
+//					chprintf((BaseSequentialStream *)&SD3, " ir3new =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", ir3_new, ir3_old, speed_correction);
+			if (ir3_new < ir3_old - 10){
+				left_motor_set_speed(-cms_to_steps(2) + speed_correction);
+				right_motor_set_speed(-cms_to_steps(2) - speed_correction);
+			}
+			else if ( ir3_new > ir3_old + 10  ){
+				left_motor_set_speed(-cms_to_steps(2)- speed_correction);
+				right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
+			}
+			else {
+				left_motor_set_speed(-cms_to_steps(2));
+				right_motor_set_speed(-cms_to_steps(2));
+			}
+
+		}
+	}
+	else{
+		if (!adjust){
+			adjust = 1;
+			ir_right_max = rotate_until_irmax_right();
+			ir4_old = get_calibrated_prox(SENSOR_IR4);
+		}
+		else{
+			speed_correction = pid_regulator_S(ir_right_max);
+			ir4_new = get_calibrated_prox(SENSOR_IR4);
+//					chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, ir4_old, speed_correction);
+			if (ir4_new < ir4_old - 20){
+				left_motor_set_speed(-cms_to_steps(2) - speed_correction);
+				right_motor_set_speed(-cms_to_steps(2) + speed_correction);
+			}
+			else if ( ir4_new > ir4_old + 10  ){
+				left_motor_set_speed(-cms_to_steps(2)+ speed_correction);
+				right_motor_set_speed(-cms_to_steps(2)- speed_correction);
+			}
+			else {
+				left_motor_set_speed(-cms_to_steps(2));
+				right_motor_set_speed(-cms_to_steps(2));
+			}
+
+		}
+	}
 	if (!check_ir_front()){
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	}
@@ -437,3 +564,4 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 STATE_t get_rolling_mode (void){
 	return rolling_context.mode;
 }
+
