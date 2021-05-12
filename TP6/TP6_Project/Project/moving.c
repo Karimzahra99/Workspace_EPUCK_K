@@ -196,7 +196,7 @@ void init_context(void){
 	rolling_context.counter = 0;
 	rolling_context.color = get_color();
 
-	rolling_context.speed = SLOW_SPEED;
+	rolling_context.speed = LOW_SPEED;
 	rolling_context.position_reached = NOT_REACHED;
 }
 
