@@ -217,19 +217,10 @@ void move_straight_backwards(void){
 	}
 	else {
 		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
-//			//bad start case : start wasn't performed on a straight line
-//			set_leds(NO_LINE);
-//			left_motor_set_speed(0);
-//			right_motor_set_speed(0);
-			set_leds(FIND_COLOR);
-			reset_middle_positions();
-			rolling_context.counter = 0;
-			rolling_context.speed = 0;
+			//bad start case : start wasn't performed on a straight line
+			set_leds(NO_LINE);
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
-			left_motor_set_pos(0);
-			right_motor_set_pos(0);
-			rolling_context.mode = SEARCH_LINE;
 		}
 		else {
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
@@ -379,18 +370,15 @@ void find_next_color(void){
 	left_motor_set_speed(-rolling_context.speed);
 	rolling_context.counter = right_motor_get_pos();
 
-	chprintf((BaseSequentialStream *)&SD3, "Counter =%-7d \r\n\n",rolling_context.counter);
 	if (get_color() != NO_COLOR){
 		rolling_context.color = get_color();
 		right_motor_set_speed(0);
 		left_motor_set_speed(0);
 		rolling_context.color = get_color();
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-		chprintf((BaseSequentialStream *)&SD3, "Inside1 \r\n\n");
 	}
 	else {
 		if (abs(rolling_context.counter) > 500){
-			chprintf((BaseSequentialStream *)&SD3, "Inside2 \r\n\n");
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
 			rolling_context.counter = 0;
@@ -404,14 +392,16 @@ void help_me_please(void){
 	set_leds(NO_COLOR);
 
 	//playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
-	chprintf((BaseSequentialStream *)&SD3, "ICounter =%-7d \r\n\n",rolling_context.counter);
-	if (rolling_context.counter == 0){
+	if (rolling_context.counter < 10){
 		set_body_led(1);
-		rolling_context.counter = 1;
+		rolling_context.counter ++;
 	}
 	else{
 		set_body_led(0);
-		rolling_context.counter = 0;
+		rolling_context.counter ++;
+		if (rolling_context.counter == 20){
+			rolling_context.counter = 0;
+		}
 	}
 
 }
