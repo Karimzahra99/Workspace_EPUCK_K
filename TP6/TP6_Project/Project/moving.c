@@ -193,6 +193,7 @@ void init_context(void){
 void move_straight_backwards(void){
 	if (check_ir_front()){
 		rolling_context.color = get_color();
+		set_leds(YELLOW_IDX);
 		//rolling_context.mode = OBS_AVOIDANCE;
 		rolling_context.speed = 0;
 		right_motor_set_speed(-rolling_context.speed);
@@ -204,17 +205,15 @@ void move_straight_backwards(void){
 			if (get_middle_diff()<0){
 				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
 					right_motor_set_speed(0);
-					left_motor_set_speed(cms_to_steps(1));
+					left_motor_set_speed(cms_to_steps(0.8));
 				}
 			}
 			else {
 				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-					right_motor_set_speed(cms_to_steps(1));
+					right_motor_set_speed(cms_to_steps(0.8));
 					left_motor_set_speed(0);
 				}
 			}
-			//for stabilization
-			chThdSleepMilliseconds(500);
 		}
 		else {
 			color_index_t color = get_color();
