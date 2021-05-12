@@ -71,7 +71,7 @@ int main(void)
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {130, 120, 120};
+	rgb_gain_t rgb_gains = {130, 120, 100};
 	uint8_t contrast = 100;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
@@ -104,8 +104,8 @@ int main(void)
 	//give sime time to find the color if there is one
 	chThdSleepMilliseconds(1000);
 
-	mic_start(NULL);
-	playMelodyStart();
+//	mic_start(NULL);
+//	playMelodyStart();
 
 	moving_start();
 

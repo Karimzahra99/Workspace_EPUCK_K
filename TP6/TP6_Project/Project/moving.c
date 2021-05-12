@@ -20,16 +20,17 @@
 #define PERIMETER_EPUCK     		(PI * WHEEL_DISTANCE)
 
 //PID Parameters
-#define KP_R						100.0f
-#define KI_R						3.5f
+//0.2 0.02 pour 100 r230
+#define KP_R						0.8f
+#define KI_R						0.0f
 #define KD_R						0.0f
-#define KP_G						100.0f
-#define KI_G						3.5f
+#define KP_G						0.0f
+#define KI_G						0.0f
 #define KD_G						0.0f
-#define KP_B						100.0f
-#define KI_B						3.5f
+#define KP_B						0.0f
+#define KI_B						0.0f
 #define KD_B						0.0f
-#define MAX_SUM_ERROR_R 			(MOTOR_SPEED_LIMIT/KI_R)
+#define MAX_SUM_ERROR_R 			200/KI_R //(MOTOR_SPEED_LIMIT/KI_R)
 #define MAX_SUM_ERROR_G 			(MOTOR_SPEED_LIMIT/KI_G)
 #define MAX_SUM_ERROR_B 			(MOTOR_SPEED_LIMIT/KI_B)
 
@@ -90,6 +91,7 @@ void find_next_color(void);
 void help_me_please(void);
 
 //PID Implementation
+
 int16_t pid_regulator(int16_t middle_diff){
 
 	float speed_correction = 0;
@@ -162,28 +164,28 @@ static THD_FUNCTION(PidRegulator, arg) {
 		//				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
-		case STRAIGHT_LINE_BACKWARDS :
-			move_straight_backwards();
-			break;
+//		case STRAIGHT_LINE_BACKWARDS :
+//			move_straight_backwards();
+//			break;
 
 		case PID_FRONTWARDS :
 			pid_front();
 			break;
 
-		case OBS_AVOIDANCE :
-			avoid_obs();
-			break;
-
-		case SEARCH_LINE :
-			find_next_color();
-			break;
-
-		case LOST :
-			help_me_please();
-			break;
+//		case OBS_AVOIDANCE :
+//			avoid_obs();
+//			break;
+//
+//		case SEARCH_LINE :
+//			find_next_color();
+//			break;
+//
+//		case LOST :
+//			help_me_please();
+//			break;
 
 		default :
-			move_straight_backwards();
+			pid_front();
 			break;
 		}
 
@@ -279,14 +281,13 @@ void prepare_to_follow_line(void){
 
 void pid_front(void){
 
-	rolling_context.speed = 0;
-	right_motor_set_speed(rolling_context.speed);
-	left_motor_set_speed(rolling_context.speed);
+	rolling_context.color = get_color();
+	set_speed_with_color();
 
-//	int16_t middle_diff = get_middle_diff();
-//	int16_t speed_corr = pid_regulator(middle_diff);
-//	right_motor_set_speed(rolling_context.speed - speed_corr);
-//	left_motor_set_speed(rolling_context.speed + speed_corr);
+	int16_t middle_diff = get_middle_bot()- 320;
+	int16_t speed_corr = pid_regulator(middle_diff);
+	right_motor_set_speed(rolling_context.speed - speed_corr);
+	left_motor_set_speed(rolling_context.speed + speed_corr);
 //
 //	if (middle_diff < DEAD_ZONE_WIDTH){
 //		rolling_context.counter = rolling_context.counter + 1;
