@@ -156,6 +156,12 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
 
+	//Deactivate auto-white balance
+	po8030_set_awb(0);
+	po8030_set_brightness(image_context.brightness);
+	po8030_set_contrast(image_context.contrast);
+	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line line_idx_top (minimum 2 lines because of camera internal library)
 	po8030_advanced_config(FORMAT_RGB565, 0, image_context.line_idx_top, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 
@@ -164,12 +170,6 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-
-	//Deactivate auto-white balance
-	po8030_set_awb(0);
-	po8030_set_brightness(image_context.brightness);
-	po8030_set_contrast(image_context.contrast);
-	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
 	while(1){
 
@@ -442,11 +442,6 @@ void camera_init_top(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-	po8030_set_awb(0);
-	po8030_set_contrast(image_context.contrast);
-	po8030_set_brightness(image_context.brightness);
-	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //initialization of camera and dcmi for bot line lecture
@@ -456,11 +451,6 @@ void camera_init_bot(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-	po8030_set_awb(0);
-	po8030_set_brightness(image_context.brightness);
-	po8030_set_contrast(image_context.contrast);
-	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //middle position difference between top and bottom lines
@@ -551,6 +541,12 @@ static THD_FUNCTION(CaptureImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 
 	(void)arg;
+
+	//Deactivate auto-white balance
+	po8030_set_awb(0);
+	po8030_set_brightness(image_context.brightness);
+	po8030_set_contrast(image_context.contrast);
+	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
 	while(1){
 
