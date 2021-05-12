@@ -42,9 +42,9 @@
 #define	IR_THRESHOLD				250
 
 //Color speeds
-#define LOW_SPEED					2
+#define LOW_SPEED					3
 #define MEDIUM_SPEED				4
-#define HIGH_SPEED 					6
+#define HIGH_SPEED 					5
 
 typedef enum {
 	SENSOR_IR1 = 1,
@@ -85,6 +85,7 @@ void pid_front(void);
 void init_context(void);
 void prepare_pid_front(void);
 void avoid_obs(void);
+void set_speed_with_color(void);
 
 //PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -156,18 +157,21 @@ static THD_FUNCTION(PidRegulator, arg) {
 		time = chVTGetSystemTime();
 
 //		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-//				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+		//				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
 			move_straight_backwards();
 			break;
+
 		case PID_FRONTWARDS :
-					pid_front();
-					break;
+			pid_front();
+			break;
+
 		case OBS_AVOIDANCE :
-					avoid_obs();
-					break;
+			avoid_obs();
+			break;
+
 		default :
 			move_straight_backwards();
 			break;
@@ -192,7 +196,7 @@ void init_context(void){
 	rolling_context.counter = 0;
 	rolling_context.color = get_color();
 
-	rolling_context.speed = 2;
+	rolling_context.speed = SLOW_SPEED;
 	rolling_context.position_reached = NOT_REACHED;
 }
 
@@ -203,7 +207,8 @@ void move_straight_backwards(void){
 	}
 	else {
 		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
-			set_leds(PURPLE_IDX);
+			//bad start case : start wasn't performed on a straight line
+			set_leds(CYAN_IDX);
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
 		}
@@ -211,6 +216,7 @@ void move_straight_backwards(void){
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
 				if (get_middle_diff()<0){
 					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+						rolling_context.color = get_color();
 						right_motor_set_speed(0);
 						left_motor_set_speed(cms_to_steps(0.8));
 					}
@@ -221,6 +227,7 @@ void move_straight_backwards(void){
 				}
 				else {
 					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+						rolling_context.color = get_color();
 						right_motor_set_speed(cms_to_steps(0.8));
 						left_motor_set_speed(0);
 					}
@@ -230,30 +237,10 @@ void move_straight_backwards(void){
 				}
 			}
 			else {
-				color_index_t color = get_color();
-				switch (color)
-				{
-				case 0: //NO COLOR
-					set_leds(color);
-					rolling_context.speed = 0;
-					reset_middle_positions();
-					break;
-				case 1: //RED
-					set_leds(color);
-					rolling_context.speed = cms_to_steps(LOW_SPEED);
-					break;
-				case 2: //GREEN
-					set_leds(color);
-					rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-					break;
-				case 3: //BLUE
-					set_leds(color);
-					rolling_context.speed = cms_to_steps(HIGH_SPEED);
-					break;
-				default:
-					rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-					break;
-				}
+				rolling_context.color = get_color();
+
+				set_speed_with_color();
+
 				//rolling backwards
 				right_motor_set_speed(-rolling_context.speed);
 				left_motor_set_speed(-rolling_context.speed);
@@ -268,9 +255,9 @@ void prepare_pid_front(void){
 
 	rolling_context.counter = 0;
 
-	motor_set_position(10, 10,  rolling_context.speed,  rolling_context.speed);
+	motor_set_position(10, 10,  MEDIUM_SPEED,  MEDIUM_SPEED);
 
-	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
+	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, MEDIUM_SPEED, -MEDIUM_SPEED);
 
 	rolling_context.mode = PID_FRONTWARDS;
 
@@ -325,6 +312,34 @@ int16_t cms_to_steps (float speed_cms) {
 
 int cm_to_step (float cm) {
 	return (int)(cm * NSTEP_ONE_TURN / WHEEL_PERIMETER);
+}
+
+void set_speed_with_color(void){
+
+	switch (rolling_context.color)
+	{
+	case 0: //NO COLOR
+		set_leds(NO_COLOR);
+		rolling_context.speed = 0;
+		reset_middle_positions();
+		break;
+	case 1: //RED
+		set_leds(RED_IDX);
+		rolling_context.speed = cms_to_steps(LOW_SPEED);
+		break;
+	case 2: //GREEN
+		set_leds(GREEN_IDX);
+		rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+		break;
+	case 3: //BLUE
+		set_leds(BLUE_IDX);
+		rolling_context.speed = cms_to_steps(HIGH_SPEED);
+		break;
+	default:
+		rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+		break;
+	}
+
 }
 
 //position in cm and speed en cm/s

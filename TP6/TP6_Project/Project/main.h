@@ -42,7 +42,8 @@ typedef enum {
 	GREEN_IDX,
 	BLUE_IDX,
 	YELLOW_IDX,
-	PURPLE_IDX
+	PURPLE_IDX,
+	CYAN_IDX
 } color_index_t;
 
 typedef enum {
