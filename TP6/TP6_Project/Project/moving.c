@@ -221,6 +221,7 @@ void move_straight_backwards(void){
 			set_leds(NO_LINE);
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
+			//playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
 		}
 		else {
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
