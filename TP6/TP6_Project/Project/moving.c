@@ -177,7 +177,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 bool check_ir_front(void){
 
-	if ((get_prox(SENSOR_IR3) > IR_THRESHOLD) && (get_prox(SENSOR_IR4) > IR_THRESHOLD)){
+	if ((get_calibrated_prox(SENSOR_IR3) > IR_THRESHOLD) && (get_calibrated_prox(SENSOR_IR4) > IR_THRESHOLD)){
 		return true;
 	}
 	else return false;
