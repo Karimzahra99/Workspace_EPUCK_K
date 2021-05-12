@@ -78,7 +78,7 @@ static MOVE_CONTEXT_t rolling_context;
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
-int16_t cms_to_steps (int16_t speed_cms);
+int16_t cms_to_steps (float speed_cms);
 int cm_to_step (float cm);
 void move_straight_backwards(void);
 void pid_front(void);
@@ -204,12 +204,12 @@ void move_straight_backwards(void){
 			if (get_middle_diff()<0){
 				while(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
 					right_motor_set_speed(0);
-					left_motor_set_speed(1);
+					left_motor_set_speed(cms_to_steps(1.5));
 				}
 			}
 			else {
 				while(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-					right_motor_set_speed(1);
+					right_motor_set_speed(cms_to_steps(1.5));
 					left_motor_set_speed(0);
 				}
 			}
@@ -290,8 +290,8 @@ void moving_start(void){
 	chThdCreateStatic(waPidRegulator, sizeof(waPidRegulator), NORMALPRIO, PidRegulator, NULL);
 }
 
-int16_t cms_to_steps (int16_t speed_cms) {
-	return speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER;
+int16_t cms_to_steps (float speed_cms) {
+	return (int16_t) (speed_cms * NSTEP_ONE_TURN / WHEEL_PERIMETER);
 }
 
 int cm_to_step (float cm) {
