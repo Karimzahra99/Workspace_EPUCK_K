@@ -155,8 +155,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 	while(1){
 		time = chVTGetSystemTime();
 
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+//				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
@@ -199,50 +199,55 @@ void move_straight_backwards(void){
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
-
-		if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
-			if (get_middle_diff()<0){
-				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-					right_motor_set_speed(0);
-					left_motor_set_speed(cms_to_steps(0.8));
+		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
+			set_leds(PURPLE_IDX);
+			left_motor_set_speed(0);
+			right_motor_set_speed(0);
+		}
+		else {
+			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
+				if (get_middle_diff()<0){
+					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+						right_motor_set_speed(0);
+						left_motor_set_speed(cms_to_steps(0.8));
+					}
+				}
+				else {
+					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+						right_motor_set_speed(cms_to_steps(0.8));
+						left_motor_set_speed(0);
+					}
 				}
 			}
 			else {
-				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-					right_motor_set_speed(cms_to_steps(0.8));
-					left_motor_set_speed(0);
+				color_index_t color = get_color();
+				switch (color)
+				{
+				case 0: //NO COLOR
+					set_leds(color);
+					rolling_context.speed = 0;
+					reset_middle_positions();
+					break;
+				case 1: //RED
+					set_leds(color);
+					rolling_context.speed = cms_to_steps(LOW_SPEED);
+					break;
+				case 2: //GREEN
+					set_leds(color);
+					rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+					break;
+				case 3: //BLUE
+					set_leds(color);
+					rolling_context.speed = cms_to_steps(HIGH_SPEED);
+					break;
+				default:
+					rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+					break;
 				}
+				//rolling backwards
+				right_motor_set_speed(-rolling_context.speed);
+				left_motor_set_speed(-rolling_context.speed);
 			}
-		}
-		else {
-			color_index_t color = get_color();
-			switch (color)
-			{
-			case 0: //NO COLOR
-				set_leds(color);
-				rolling_context.speed = 0;
-				reset_middle_positions();
-				break;
-			case 1: //RED
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(LOW_SPEED);
-				break;
-			case 2: //GREEN
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-				break;
-			case 3: //BLUE
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(HIGH_SPEED);
-				break;
-			default:
-				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-				break;
-			}
-			//rolling backwards
-			right_motor_set_speed(-rolling_context.speed);
-			left_motor_set_speed(-rolling_context.speed);
-
 		}
 	}
 }
