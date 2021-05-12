@@ -31,6 +31,10 @@
 #define MAX_SUM_ERROR_G 			(MOTOR_SPEED_LIMIT/KI_G)
 #define MAX_SUM_ERROR_B 			(MOTOR_SPEED_LIMIT/KI_B)
 
+// Straight line correction zone
+#define STRAIGHT_ZONE_WIDTH_MAX		20
+#define STRAIGHT_ZONE_WIDTH_MIN		10
+
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
 #define STRAIGHT_LINE_COUNT			10000
 
@@ -196,6 +200,10 @@ void move_straight_backwards(void){
 	}
 	else {
 
+//		if ((get_middle_diff()>STRAIGHT_ZONE_WIDTH_MIN) && (get_middle_diff()<STRAIGHT_ZONE_WIDTH_MAX)){
+//
+//
+//		}
 		color_index_t color = get_color();
 		switch (color)
 		{
