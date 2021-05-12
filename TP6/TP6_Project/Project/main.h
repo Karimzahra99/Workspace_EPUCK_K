@@ -61,6 +61,7 @@ typedef struct {
 typedef struct {
 	rgb_gain_t rgb_gain;
 	uint8_t contrast;
+	uint8_t brightness;
 	uint16_t line_idx;
 	detect_mode_t detection_mode;
 	color_index_t color_idx;
@@ -70,6 +71,7 @@ typedef struct {
 typedef struct {
 	rgb_gain_t rgb_gain;
 	uint8_t contrast;
+	uint8_t brightness;
 	uint16_t line_idx_top;
 	uint16_t line_idx_bot;
 	detect_mode_t detection_mode;

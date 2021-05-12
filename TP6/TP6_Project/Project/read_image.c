@@ -40,6 +40,7 @@ typedef struct {
 
 	rgb_gain_t rgb_gains;
 
+	uint8_t brightness;
 	uint8_t contrast;
 
 	uint16_t line_idx_top;
@@ -112,7 +113,7 @@ static BSEMAPHORE_DECL(tune_image_ready_sem, TRUE);
 //initialization of image_context
 void init_visual_context_tune(tuning_config_t received_config){
 
-
+	image_context.brightness = received_config.brightness;
 	image_context.contrast = received_config.contrast;
 	image_context.line_idx_top = received_config.line_idx;
 	image_context.color_index = received_config.color_idx;
@@ -166,7 +167,7 @@ static THD_FUNCTION(TuneCaptureImage, arg) {
 
 	//Deactivate auto-white balance
 	po8030_set_awb(0);
-
+	po8030_set_brightness(image_context.brightness);
 	po8030_set_contrast(image_context.contrast);
 	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 
@@ -444,6 +445,7 @@ void camera_init_top(void){
 	//Deactivate auto-white balance
 	po8030_set_awb(0);
 	po8030_set_contrast(image_context.contrast);
+	po8030_set_brightness(image_context.brightness);
 	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
@@ -456,6 +458,7 @@ void camera_init_bot(void){
 	dcmi_prepare();
 	//Deactivate auto-white balance
 	po8030_set_awb(0);
+	po8030_set_brightness(image_context.brightness);
 	po8030_set_contrast(image_context.contrast);
 	po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
@@ -499,6 +502,7 @@ void init_visual_context(config_t received_config){
 	//To visualize maxs, means and counts for each color
 	image_context.send_data = received_config.send_data_terminal;
 
+	image_context.brightness = received_config.brightness;
 	image_context.contrast = received_config.contrast;
 
 	image_context.line_idx_top = received_config.line_idx_top;

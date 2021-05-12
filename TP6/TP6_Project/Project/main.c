@@ -65,14 +65,16 @@ int main(void)
 	/* Tuning parameters for camera :
 	 * rgb_gains : [0 255] for each, default : 94, 64, 93
 	 * contrast : [0 255], default 64
+	 * birghtness : [-128 127], default 0
 	 * line_index_top : [0 480]
 	 * mode_detect : MAX_ONLY, MEAN_ONLY, MAX_N_MEANS
 	 * plot_pixels_color : RED_IDX, GREEND_IDX, BLUE_IDX
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {200, 150, 170};
+	rgb_gain_t rgb_gains = {200, 150, 150};
 	uint8_t contrast = 100;
+	uint8_t brightness = 10;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
 	detect_mode_t mode_detect = RAINY_DAY;
@@ -89,16 +91,17 @@ int main(void)
 #ifdef TUNE
 	//Contrast level, camera line index, detect_mode, image color, visualize parameters such as means, maxs, counts on terminal
 	//Adjust Contrast, Line_Idx and detection mode  in Main.h
-	tuning_config_t tunning = {rgb_gains, contrast, line_index_top, mode_detect, plot_pixels_color, send_params};
+	tuning_config_t tunning = {rgb_gains, contrast, brightness, line_index_top, mode_detect, plot_pixels_color, send_params};
 	tune_image_start(tunning);
 #else
 
 	//inits the motors
 	motors_init();
 
-	config_t config = {rgb_gains, contrast, line_index_top, line_index_bot, mode_detect, send_params};
+	config_t config = {rgb_gains, contrast, brightness, line_index_top, line_index_bot, mode_detect, send_params};
 	read_image_start(config);
 
+	calibrate_ir();
 	proximity_start();
 
 	//give sime time to find the color if there is one
