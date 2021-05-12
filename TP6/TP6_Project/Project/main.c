@@ -17,6 +17,7 @@
 #include "moving.h"
 #include "read_image.h"
 #include <audio/play_melody.h>
+#include <audio/microphone.h>
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -96,11 +97,12 @@ int main(void)
 	config_t config = {rgb_gains, contrast, line_index_top, line_index_bot, mode_detect, send_params};
 	read_image_start(config);
 
-	proximity_start();
+	//proximity_start();
 
 	//give sime time to find the color if there is one
 	chThdSleepMilliseconds(1000);
 
+	mic_start(NULL);
 	playMelodyStart();
 
 	moving_start();
