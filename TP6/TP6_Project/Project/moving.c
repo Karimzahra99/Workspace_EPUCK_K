@@ -151,20 +151,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 	while(1){
 		time = chVTGetSystemTime();
 
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d \r\n\n",
-					get_middle_top(), get_middle_bot(), get_middle_diff());
+		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
-			chprintf((BaseSequentialStream *)&SD3, "Inside \r\n\n");
 			move_straight_backwards();
 			break;
-//		case PID_FRONTWARDS :
-//			pid_front();
-//			break;
-//		case OBS_AVOIDANCE :
-//			avoid_obs();
-//			break;
 		default :
 			move_straight_backwards();
 			break;
@@ -196,46 +189,41 @@ void init_context(void){
 void move_straight_backwards(void){
 	if (check_ir_front()){
 		rolling_context.color = get_color();
-		rolling_context.mode = OBS_AVOIDANCE;
+		//rolling_context.mode = OBS_AVOIDANCE;
+		rolling_context.speed = 0;
+		right_motor_set_speed(-rolling_context.speed);
+		left_motor_set_speed(-rolling_context.speed);
 	}
 	else {
-		if (get_middle_diff()>DEAD_ZONE_WIDTH){
-			rolling_context.color = get_color();
-			set_leds(PURPLE_IDX);
-			//prepare_pid_front();
-			//rolling_context.mode = PID_FRONTWARDS;
+
+		color_index_t color = get_color();
+		switch (color)
+		{
+		case 0: //NO COLOR
+			set_leds(color);
+			rolling_context.speed = 0;
+			break;
+		case 1: //RED
+			set_leds(color);
+			rolling_context.speed = cms_to_steps(LOW_SPEED);
+			break;
+		case 2: //GREEN
+			set_leds(color);
+			rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+			break;
+		case 3: //BLUE
+			set_leds(color);
+			rolling_context.speed = cms_to_steps(HIGH_SPEED);
+			break;
+		default:
+			rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+			break;
 		}
-		else {
+		//rolling backwards
+		right_motor_set_speed(-rolling_context.speed);
+		left_motor_set_speed(-rolling_context.speed);
 
-			color_index_t color = get_color();
-			switch (color)
-			{
-			case 0: //NO COLOR
-				set_leds(color);
-				rolling_context.speed = 0;
 
-				break;
-			case 1: //RED
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(LOW_SPEED);
-				break;
-			case 2: //GREEN
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-				break;
-			case 3: //BLUE
-				set_leds(color);
-				rolling_context.speed = cms_to_steps(HIGH_SPEED);
-				break;
-			default:
-				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-				break;
-			}
-			//rolling backwards
-			right_motor_set_speed(-rolling_context.speed);
-			left_motor_set_speed(-rolling_context.speed);
-
-		}
 	}
 }
 
