@@ -110,17 +110,20 @@ static THD_FUNCTION(CaptureImage, arg) {
     //chThdSleepMilliseconds(12);
 
     (void)arg;
-
+//    po8030_set_contrast(80);
+//    po8030_set_brightness(70);
+//    po8030_set_awb(0);
+//    po8030_set_rgb_gain(100,80, 98);
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line LINE_INDEX + LINE_INDEX+1 (minimum 2 lines because reasons)
 	po8030_advanced_config(FORMAT_RGB565, 0, 10, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	//Replace with LINE_INDEX when finished testing
-	//
+
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	po8030_set_awb(0);
+
 	//po8030_set_mirror(0, 1);
-	po8030_set_contrast(90);
+	//po8030_set_contrast(90);
 
 
 	//systime_t time;//utiliser pour calculer le temps d'execution
@@ -487,14 +490,14 @@ void find_color(void){
 		}
 	}
 
-		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-							              max_red, max_green, max_blue);
-
-		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-							              mean_red, mean_green, mean_blue);
-
-		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-								              count_red, count_green, count_blue);
+//		chprintf((BaseSequentialStream *)&SD3, "%R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+//							              max_red, max_green, max_blue);
+//
+//		chprintf((BaseSequentialStream *)&SD3, "%R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+//							              mean_red, mean_green, mean_blue);
+//
+//		chprintf((BaseSequentialStream *)&SD3, "%R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+//								              count_red, count_green, count_blue);
 
 
 }
