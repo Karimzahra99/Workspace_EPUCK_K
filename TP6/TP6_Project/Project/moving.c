@@ -217,10 +217,19 @@ void move_straight_backwards(void){
 	}
 	else {
 		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
-			//bad start case : start wasn't performed on a straight line
-			set_leds(NO_LINE);
+//			//bad start case : start wasn't performed on a straight line
+//			set_leds(NO_LINE);
+//			left_motor_set_speed(0);
+//			right_motor_set_speed(0);
+			set_leds(FIND_COLOR);
+			reset_middle_positions();
+			rolling_context.counter = 0;
+			rolling_context.speed = 0;
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
+			left_motor_set_pos(0);
+			right_motor_set_pos(0);
+			rolling_context.mode = SEARCH_LINE;
 		}
 		else {
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
@@ -395,7 +404,7 @@ void help_me_please(void){
 	set_leds(NO_COLOR);
 
 	//playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
-
+	chprintf((BaseSequentialStream *)&SD3, "ICounter =%-7d \r\n\n",rolling_context.counter);
 	if (rolling_context.counter == 0){
 		set_body_led(1);
 		rolling_context.counter = 1;
