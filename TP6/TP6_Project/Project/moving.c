@@ -394,7 +394,7 @@ void find_next_color(void){
 void help_me_please(void){
 	set_leds(NO_COLOR);
 
-	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
+	//playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
 
 	if (rolling_context.counter == 0){
 		set_body_led(1);
