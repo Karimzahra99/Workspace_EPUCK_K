@@ -16,8 +16,10 @@
 #include <spi_comm.h>
 #include "moving.h"
 #include "read_image.h"
-#include <audio/play_melody.h>
-#include <audio/microphone.h>
+//#include <audio/play_melody.h>
+//#include <audio/microphone.h>
+//#include <audio/audio_thread.h>
+///#include <audio/play_sound_file.h>
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -41,6 +43,7 @@ int main(void)
 	halInit();
 	chSysInit();
 	mpu_init();
+	//dac_start();
 
 	//Initialisation bus
 	messagebus_init(&bus, &bus_lock, &bus_condvar);
@@ -102,10 +105,12 @@ int main(void)
 	//give sime time to find the color if there is one
 	chThdSleepMilliseconds(1000);
 
-	mic_start(NULL);
-	playMelodyStart();
-
+	//mic_start(NULL);
+	//playMelodyStart();
+	//playSoundFileStart();
 	moving_start();
+
+	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
 
 
 #endif

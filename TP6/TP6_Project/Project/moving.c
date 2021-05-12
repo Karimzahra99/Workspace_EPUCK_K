@@ -392,7 +392,19 @@ void find_next_color(void){
 
 void help_me_please(void){
 	set_leds(NO_COLOR);
-	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
+
+	if (rolling_context.counter == 0){
+		set_body_led(1);
+		rolling_context.counter = 1;
+	}
+	else{
+		set_body_led(0);
+		rolling_context.counter = 0;
+	}
+
+
+
+	//playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
 }
 
 //position in cm and speed en cm/s
