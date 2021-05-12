@@ -112,8 +112,8 @@ int main(void)
 //		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
 //						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-					get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n",
+					get_middle_top(), get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
 
 	}
 }
@@ -168,12 +168,21 @@ void set_leds(color_index_t color_index){
 							return;
 						}
 						else {
-							if (color_index == NO_COLOR){
-								set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_OFF);
-								set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_OFF);
-								set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_OFF);
-								set_rgb_led(LED_RGB_8, LED_OFF, LED_OFF, LED_OFF);
+							if (color_index == FIND_COLOR){
+								set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
+								set_rgb_led(LED_RGB_4, LED_OFF, LED_ON, LED_OFF);
+								set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_ON);
+								set_rgb_led(LED_RGB_8, LED_ON, LED_ON, LED_ON);
 								return;
+							}
+							else {
+								if (color_index == NO_COLOR){
+									set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_OFF);
+									set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_OFF);
+									set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_OFF);
+									set_rgb_led(LED_RGB_8, LED_OFF, LED_OFF, LED_OFF);
+									return;
+								}
 							}
 						}
 					}

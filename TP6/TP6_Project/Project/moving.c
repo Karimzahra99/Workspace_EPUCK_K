@@ -60,11 +60,7 @@ typedef enum {
 	REACHED
 } position_status_t;
 
-typedef enum {
-	STRAIGHT_LINE_BACKWARDS = 0,
-	PID_FRONTWARDS,
-	OBS_AVOIDANCE,
-} STATE_t;
+//bring back state_t
 
 typedef struct {
 	STATE_t mode;
@@ -86,6 +82,7 @@ void init_context(void);
 void prepare_pid_front(void);
 void avoid_obs(void);
 void set_speed_with_color(void);
+void find_next_color(void);
 
 //PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -342,6 +339,12 @@ void set_speed_with_color(void){
 
 }
 
+void find_next_color(void){
+
+
+
+}
+
 //position in cm and speed en cm/s
 //int : -2^32/2 to 2^32/2-1
 //motor set position -2^31/2 to 2^31/2-1
@@ -366,4 +369,8 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 			rolling_context.position_reached = REACHED;
 		}
 	}
+}
+
+STATE_t get_rolling_mode (void){
+	return rolling_context.mode;
 }
