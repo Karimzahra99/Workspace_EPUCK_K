@@ -200,39 +200,50 @@ void move_straight_backwards(void){
 	}
 	else {
 
-//		if ((get_middle_diff()>STRAIGHT_ZONE_WIDTH_MIN) && (get_middle_diff()<STRAIGHT_ZONE_WIDTH_MAX)){
-//
-//
-//		}
-		color_index_t color = get_color();
-		switch (color)
-		{
-		case 0: //NO COLOR
-			set_leds(color);
-			rolling_context.speed = 0;
-			reset_middle_positions();
-			break;
-		case 1: //RED
-			set_leds(color);
-			rolling_context.speed = cms_to_steps(LOW_SPEED);
-			break;
-		case 2: //GREEN
-			set_leds(color);
-			rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-			break;
-		case 3: //BLUE
-			set_leds(color);
-			rolling_context.speed = cms_to_steps(HIGH_SPEED);
-			break;
-		default:
-			rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
-			break;
+		if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
+			if (get_middle_diff()<0){
+				while(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+					right_motor_set_speed(0);
+					left_motor_set_speed(1);
+				}
+			}
+			else {
+				while(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+					right_motor_set_speed(1);
+					left_motor_set_speed(0);
+				}
+			}
 		}
-		//rolling backwards
-		right_motor_set_speed(-rolling_context.speed);
-		left_motor_set_speed(-rolling_context.speed);
+		else {
+			color_index_t color = get_color();
+			switch (color)
+			{
+			case 0: //NO COLOR
+				set_leds(color);
+				rolling_context.speed = 0;
+				reset_middle_positions();
+				break;
+			case 1: //RED
+				set_leds(color);
+				rolling_context.speed = cms_to_steps(LOW_SPEED);
+				break;
+			case 2: //GREEN
+				set_leds(color);
+				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+				break;
+			case 3: //BLUE
+				set_leds(color);
+				rolling_context.speed = cms_to_steps(HIGH_SPEED);
+				break;
+			default:
+				rolling_context.speed = cms_to_steps(MEDIUM_SPEED);
+				break;
+			}
+			//rolling backwards
+			right_motor_set_speed(-rolling_context.speed);
+			left_motor_set_speed(-rolling_context.speed);
 
-
+		}
 	}
 }
 
