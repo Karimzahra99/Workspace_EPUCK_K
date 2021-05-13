@@ -75,16 +75,23 @@ typedef struct {
 } MOVE_CONTEXT_t;
 
 static MOVE_CONTEXT_t rolling_context;
-static int ir3_old = 0;
-static int ir3_new = 0;
-static int ir_left_max=0;
-static int ir4_old = 0;
-static int ir4_new = 0;
-static uint8_t  adjust = 0;
-static uint8_t obstacle_at_left =0;
-static uint8_t obstacle_at_right =0;
-static int ir_right_max=0;
-static int first_line_passed=0;
+
+typedef struct {
+bool adjust;
+bool first_line_passed;
+uint32_t ir3_old;
+uint32_t ir3_new;
+uint32_t ir_left_max;
+bool obstacle_at_left;
+uint32_t ir4_old;
+uint32_t ir4_new;
+uint32_t ir_right_max;
+bool obstacle_at_right;
+} OBSTACLE_CONTEXT_t;
+
+static OBSTACLE_CONTEXT_t obstacle_context;
+
+static MOVE_CONTEXT_t rolling_context;
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
@@ -144,7 +151,7 @@ int16_t pid_regulator_S(int middle){
 
 	static float sum_error = 0;
 	static float last_error = 0;
-	if (obstacle_at_left){
+	if (obstacle_context.obstacle_at_left){
 		error =  get_calibrated_prox(SENSOR_IR2) - goal;
 	}
 	else{
@@ -275,9 +282,9 @@ bool check_ir_front(void){
 
 	if ((ir_front_left > IR_THRESHOLD) || (ir_front_right > IR_THRESHOLD)){
 		if (ir_front_left > ir_front_right){
-			obstacle_at_left = 1;
+			obstacle_context.obstacle_at_left = 1;
 		}
-		else obstacle_at_right = 1;
+		else obstacle_context.obstacle_at_right = 1;
 		return true;
 	}
 	else return false;
@@ -385,21 +392,21 @@ void avoid_obs(void){
 	//temporary function :
 	int16_t speed_correction=0;
 	set_leds(YELLOW_IDX);
-	if (obstacle_at_left){
-		if (!adjust){
-			adjust = 1;
-			ir_left_max = rotate_until_irmax_left();
-			ir3_old = get_calibrated_prox(SENSOR_IR3);
+	if (obstacle_context.obstacle_at_left){
+		if (!obstacle_context.adjust){
+			obstacle_context.adjust = 1;
+			obstacle_context.ir_left_max = rotate_until_irmax_left();
+			obstacle_context.ir3_old = get_calibrated_prox(SENSOR_IR3);
 		}
 		else{
-			speed_correction = pid_regulator_S(ir_left_max);
-			ir3_new = get_calibrated_prox(SENSOR_IR3);
-//					chprintf((BaseSequentialStream *)&SD3, " ir3new =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", ir3_new, ir3_old, speed_correction);
-			if (ir3_new < ir3_old - 10){
+			speed_correction = pid_regulator_S(obstacle_context.ir_left_max);
+			obstacle_context.ir3_new = get_calibrated_prox(SENSOR_IR3);
+//					chprintf((BaseSequentialStream *)&SD3, " ir3new =%-7d ir3old =%-7d speedcorr =%-7d\r\n\n", obstacle_context.ir3_new, obstacle_context.ir3_old, speed_correction);
+			if (obstacle_context.ir3_new < obstacle_context.ir3_old - 10){
 				left_motor_set_speed(-cms_to_steps(2) + speed_correction);
 				right_motor_set_speed(-cms_to_steps(2) - speed_correction);
 			}
-			else if ( ir3_new > ir3_old + 10  ){
+			else if ( obstacle_context.ir3_new > obstacle_context.ir3_old + 10  ){
 				left_motor_set_speed(-cms_to_steps(2)- speed_correction);
 				right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
 			}
@@ -411,20 +418,20 @@ void avoid_obs(void){
 		}
 	}
 	else{
-		if (!adjust){
-			adjust = 1;
-			ir_right_max = rotate_until_irmax_right();
-			ir4_old = get_calibrated_prox(SENSOR_IR4);
+		if (!obstacle_context.adjust){
+			obstacle_context.adjust = 1;
+			obstacle_context.ir_right_max = rotate_until_irmax_right();
+			obstacle_context.ir4_old = get_calibrated_prox(SENSOR_IR4);
 		}
 		else{
-			speed_correction = pid_regulator_S(ir_right_max);
-			ir4_new = get_calibrated_prox(SENSOR_IR4);
-//					chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, ir4_old, speed_correction);
-			if (ir4_new < ir4_old - 10){
+			speed_correction = pid_regulator_S(obstacle_context.ir_right_max);
+			obstacle_context.ir4_new = get_calibrated_prox(SENSOR_IR4);
+//					chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", obstacle_context.ir4_new, obstacle_context.ir4_old, speed_correction);
+			if (obstacle_context.ir4_new < obstacle_context.ir4_old - 10){
 				left_motor_set_speed(-cms_to_steps(2) - speed_correction);
 				right_motor_set_speed(-cms_to_steps(2) + speed_correction);
 			}
-			else if ( ir4_new > ir4_old + 10  ){
+			else if ( obstacle_context.ir4_new > obstacle_context.ir4_old + 10  ){
 				left_motor_set_speed(-cms_to_steps(2)+ speed_correction);
 				right_motor_set_speed(-cms_to_steps(2)- speed_correction);
 			}
@@ -436,8 +443,8 @@ void avoid_obs(void){
 		}
 	}
 //	if (get_color() != NO_COLOR){
-//		if (!first_line_passed){
-//		first_line_passed = 1;
+//		if (!obstacle_context.first_line_passed){
+//		obstacle_context.first_line_passed = 1;
 //		}
 //		else{
 //			left_motor_set_speed(-cms_to_steps(0));
