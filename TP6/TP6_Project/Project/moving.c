@@ -45,7 +45,7 @@
 
 //Color speeds
 #define SEARCH_SPEED				2
-#define LOW_SPEED					3
+#define LOW_SPEED					1
 #define MEDIUM_SPEED				4
 #define HIGH_SPEED 					5
 
@@ -156,8 +156,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 	while(1){
 		time = chVTGetSystemTime();
 
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
