@@ -20,8 +20,8 @@
 #define PERIMETER_EPUCK     		(PI * WHEEL_DISTANCE)
 
 //PID Parameters
-#define KP_R						100.0f
-#define KI_R						3.5f
+#define KP_R						0.2f
+#define KI_R						0.02f
 #define KD_R						0.0f
 #define KP_G						100.0f
 #define KI_G						3.5f
@@ -45,7 +45,7 @@
 
 //Color speeds
 #define SEARCH_SPEED				2
-#define LOW_SPEED					3
+#define LOW_SPEED					1
 #define MEDIUM_SPEED				4
 #define HIGH_SPEED 					5
 
@@ -278,9 +278,14 @@ void prepare_to_follow_line(void){
 
 void pid_front(void){
 
-	rolling_context.speed = 0;
-	right_motor_set_speed(rolling_context.speed);
-	left_motor_set_speed(rolling_context.speed);
+	rolling_context.color = get_color();
+	set_speed_with_color();
+
+	int16_t middle_diff = get_middle_bot()- 320;
+	int16_t speed_corr = pid_regulator(middle_diff);
+	right_motor_set_speed(rolling_context.speed - speed_corr);
+	left_motor_set_speed(rolling_context.speed + speed_corr);
+
 
 //	int16_t middle_diff = get_middle_diff();
 //	int16_t speed_corr = pid_regulator(middle_diff);
