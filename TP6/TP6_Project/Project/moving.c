@@ -34,7 +34,7 @@
 #define MAX_SUM_ERROR_B 			(MOTOR_SPEED_LIMIT/KI_B)
 
 // Straight line correction zone
-#define STRAIGHT_ZONE_WIDTH_MAX		75
+#define STRAIGHT_ZONE_WIDTH_MAX		200
 #define STRAIGHT_ZONE_WIDTH_MIN		15
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
