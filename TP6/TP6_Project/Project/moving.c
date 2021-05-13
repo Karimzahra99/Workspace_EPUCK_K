@@ -87,7 +87,6 @@ void set_speed_with_color(void);
 void find_next_color(void);
 void help_me_please(void);
 void init_pid_front(void);
-void wait_back(void);
 
 //PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
@@ -170,13 +169,9 @@ static THD_FUNCTION(PidRegulator, arg) {
 			pid_front();
 			break;
 
-		case WAIT_BACKWARDS :
-			wait_back();
+		case OBS_AVOIDANCE :
+			avoid_obs();
 			break;
-
-//		case OBS_AVOIDANCE :
-//			avoid_obs();
-//			break;
 
 //		case SEARCH_LINE :
 //			find_next_color();
@@ -323,10 +318,6 @@ void pid_front(void){
 		rolling_context.counter = 0;
 	}
 }
-
-void wait_back(void){
-	;
-};
 
 void avoid_obs(void){
 	//temporary function :
