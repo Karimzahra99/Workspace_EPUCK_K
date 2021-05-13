@@ -295,6 +295,8 @@ void prepare_to_follow_line(void){
 void init_pid_front(void){
 	rolling_context.counter = 0;
 	pid_front();
+	chprintf((BaseSequentialStream *)&SD3, "Reseted in init =%-7d \r\n\n"
+				, get_middle_diff(),rolling_context.counter);
 };
 
 void pid_front(void){
@@ -307,15 +309,17 @@ void pid_front(void){
 	right_motor_set_speed(rolling_context.speed - 4*speed_corr);
 	left_motor_set_speed(rolling_context.speed + 4*speed_corr);
 
-	chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d counter =%-7d \r\n\n"
+	chprintf((BaseSequentialStream *)&SD3, "DIFF1 =%-7d counter1 =%-7d \r\n\n"
 			, get_middle_diff(),rolling_context.counter);
 
 
-	if (get_middle_diff()<25){
-
-		chprintf((BaseSequentialStream *)&SD3, "INSIDE \r\n\n");
+	if (abs(get_middle_diff())<30){
 
 		rolling_context.counter = rolling_context.counter + 1;
+
+		chprintf((BaseSequentialStream *)&SD3, "DIFF2 =%-7d counter2 =%-7d \r\n\n"
+							, get_middle_diff(),rolling_context.counter);
+
 		if (rolling_context.counter >= STRAIGHT_LINE_COUNT){
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
@@ -325,11 +329,11 @@ void pid_front(void){
 	}
 	else {
 		rolling_context.counter = 0;
+		chprintf((BaseSequentialStream *)&SD3, "Reseted Func \r\n\n");
 	}
-	//			rolling_context.counter = 0;
-	//			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-//		}
-//	}
+
+	chprintf((BaseSequentialStream *)&SD3, "DIFF3 =%-7d counter3 =%-7d \r\n\n"
+				, get_middle_diff(),rolling_context.counter);
 
 }
 
@@ -383,6 +387,7 @@ void set_speed_with_color(void){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 		rolling_context.mode = SEARCH_LINE;
+		chprintf((BaseSequentialStream *)&SD3, "Reseted in color \r\n\n");
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);
