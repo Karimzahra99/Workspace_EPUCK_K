@@ -266,7 +266,7 @@ void tune_image_start(tuning_config_t arg_tune_settings){
 
 
 //Uncomment to use plotmage.py for debug
-//#define PLOT_ON_COMPUTER
+#define PLOT_ON_COMPUTER
 
 
 //semaphores to read top line and bottom line alternately

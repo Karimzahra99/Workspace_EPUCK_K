@@ -63,8 +63,6 @@ typedef enum {
 	REACHED
 } position_status_t;
 
-//bring back state_t
-
 typedef struct {
 	STATE_t mode;
 	uint32_t counter;
