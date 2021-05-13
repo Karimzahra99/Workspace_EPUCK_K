@@ -87,6 +87,78 @@ void set_speed_with_color(void);
 void find_next_color(void);
 void help_me_please(void);
 
+bool back_to_track(void);
+void adjust (void);
+void reset_obstacle_context(void);
+
+//PID Implementation
+int rotate_until_irmax_left(void)
+{
+	int	ir_left_ancien =0;
+	int	ir_left_nouvau =0;
+	int start = 0;
+	while ((ir_left_nouvau > ir_left_ancien + 5 ) || start==0){
+			start =1;
+			ir_left_ancien = get_calibrated_prox(SENSOR_IR2);
+			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
+			ir_left_nouvau = get_calibrated_prox(SENSOR_IR2);
+
+		}
+	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
+
+return ir_left_ancien;
+}
+
+int rotate_until_irmax_right(void)
+{
+	int	ir_right_ancien =0;
+	int	ir_right_nouvau =0;
+	int start = 0;
+	while ((ir_right_nouvau > ir_right_ancien + 5 ) || start==0){
+			start =1;
+			ir_right_ancien = get_calibrated_prox(SENSOR_IR5);
+			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
+			ir_right_nouvau = get_calibrated_prox(SENSOR_IR5);
+
+		}
+	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
+
+return ir_right_ancien;
+}
+
+int16_t pid_regulator_S(int middle){
+
+	int goal = middle; //milieu theorique d'une ligne parfaitement centre sur le robot ou 350 ?
+	float error = 0;
+	float speed = 0;
+	float derivative = 0;
+
+	static float sum_error = 0;
+	static float last_error = 0;
+	if (obstacle_context.obstacle_at_left){
+		error =  get_calibrated_prox(SENSOR_IR2) - goal;
+	}
+	else{
+		error =  get_calibrated_prox(SENSOR_IR5) - goal;
+	}
+	sum_error += error;
+
+	if(sum_error > 100){
+		sum_error = 100;
+	}else if(sum_error < -100){
+		sum_error = -100;
+	}
+
+	derivative = error - last_error ;
+
+	last_error = error;
+
+	speed = 0.2 * error + 0.2 * derivative; //0.01 * sum_error; //+ 0.1 * derivative;
+
+    return (int16_t) speed;
+}
+
+
 //PID Implementation
 int16_t pid_regulator(int16_t middle_diff){
 
