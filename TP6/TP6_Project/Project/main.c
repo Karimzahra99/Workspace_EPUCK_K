@@ -52,15 +52,15 @@ int main(void)
 	set_body_led(0);
 	set_front_led(0);
 
-	//starts the serial communication / can be removed if communication not needed
-	serial_start();
+	//starts the serial communication / can be removed if bluetooth not needed
+	//serial_start();
 	//start the USB communication / can be removed if communication not needed
 	usb_start();
 	//starts the camera
 	dcmi_start();
 	po8030_start();
 	//For RGB LEDS
-	//spi_comm_start();
+	spi_comm_start();
 
 	/* Tuning parameters for camera :
 	 * rgb_gains : [0 255] for each, default : 94, 64, 93

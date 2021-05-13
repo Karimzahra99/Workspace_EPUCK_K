@@ -38,7 +38,7 @@
 #define STRAIGHT_ZONE_WIDTH_MIN		15
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
-#define STRAIGHT_LINE_COUNT			250
+#define STRAIGHT_LINE_COUNT			200
 
 //Threshold des IR
 #define	IR_THRESHOLD				250
@@ -162,9 +162,9 @@ static THD_FUNCTION(PidRegulator, arg) {
 //						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
-//		case STRAIGHT_LINE_BACKWARDS :
-//			move_straight_backwards();
-//			break;
+		case STRAIGHT_LINE_BACKWARDS :
+			move_straight_backwards();
+			break;
 
 		case PID_FRONTWARDS :
 			pid_front();
@@ -289,14 +289,12 @@ void prepare_to_follow_line(void){
 	left_motor_set_speed(0);
 
 	rolling_context.counter = 0;
-	rolling_context.mode = WAIT_BACKWARDS;
+	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 }
 
 void init_pid_front(void){
 	rolling_context.counter = 0;
 	pid_front();
-	chprintf((BaseSequentialStream *)&SD3, "Reseted in init =%-7d \r\n\n"
-				, get_middle_diff(),rolling_context.counter);
 };
 
 void pid_front(void){
@@ -309,16 +307,10 @@ void pid_front(void){
 	right_motor_set_speed(rolling_context.speed - 4*speed_corr);
 	left_motor_set_speed(rolling_context.speed + 4*speed_corr);
 
-	chprintf((BaseSequentialStream *)&SD3, "DIFF1 =%-7d counter1 =%-7d \r\n\n"
-			, get_middle_diff(),rolling_context.counter);
-
 
 	if (abs(get_middle_diff())<30){
 
 		rolling_context.counter = rolling_context.counter + 1;
-
-		chprintf((BaseSequentialStream *)&SD3, "DIFF2 =%-7d counter2 =%-7d \r\n\n"
-							, get_middle_diff(),rolling_context.counter);
 
 		if (rolling_context.counter >= STRAIGHT_LINE_COUNT){
 			right_motor_set_speed(0);
@@ -329,12 +321,7 @@ void pid_front(void){
 	}
 	else {
 		rolling_context.counter = 0;
-		chprintf((BaseSequentialStream *)&SD3, "Reseted Func \r\n\n");
 	}
-
-	chprintf((BaseSequentialStream *)&SD3, "DIFF3 =%-7d counter3 =%-7d \r\n\n"
-				, get_middle_diff(),rolling_context.counter);
-
 }
 
 void wait_back(void){
@@ -387,7 +374,6 @@ void set_speed_with_color(void){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 		rolling_context.mode = SEARCH_LINE;
-		chprintf((BaseSequentialStream *)&SD3, "Reseted in color \r\n\n");
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);
