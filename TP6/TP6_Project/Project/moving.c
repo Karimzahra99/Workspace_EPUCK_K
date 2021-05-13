@@ -263,8 +263,14 @@ static THD_FUNCTION(PidRegulator, arg) {
 }
 
 bool check_ir_front(void){
+	int ir_front_left = get_calibrated_prox(SENSOR_IR3);
+	int ir_front_right = get_calibrated_prox(SENSOR_IR4);
 
-	if ((get_calibrated_prox(SENSOR_IR3) > IR_THRESHOLD) && (get_calibrated_prox(SENSOR_IR4) > IR_THRESHOLD)){
+	if ((ir_front_left > IR_THRESHOLD) || (ir_front_right > IR_THRESHOLD)){
+		if (ir_front_left > ir_front_right){
+			obstacle_context.obstacle_at_left = 1;
+		}
+		adjust();
 		return true;
 	}
 	else return false;
