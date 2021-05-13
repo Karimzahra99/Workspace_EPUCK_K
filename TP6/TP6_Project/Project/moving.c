@@ -42,6 +42,8 @@
 
 //Threshold des IR
 #define	IR_THRESHOLD				250
+#define IR_BRUIT_BLANC                                10
+
 
 //Color speeds
 #define SEARCH_SPEED				2
@@ -71,7 +73,18 @@ typedef struct {
 	position_status_t position_reached;
 } MOVE_CONTEXT_t;
 
+typedef struct {
+bool first_line_passed;
+uint32_t ir3_adjusted;
+uint32_t ir2_adjusted;
+bool obstacle_at_left;
+uint32_t ir4_adjusted;
+uint32_t ir5_adjusted;
+} OBSTACLE_CONTEXT_t;
+
+static OBSTACLE_CONTEXT_t obstacle_context;
 static MOVE_CONTEXT_t rolling_context;
+
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
@@ -240,9 +253,9 @@ static THD_FUNCTION(PidRegulator, arg) {
 			pid_front();
 			break;
 
-//		case OBS_AVOIDANCE :
-//			avoid_obs();
-//			break;
+		case OBS_AVOIDANCE :
+			avoid_obs();
+			break;
 
 //		case SEARCH_LINE :
 //			find_next_color();
@@ -372,7 +385,7 @@ void pid_front(void){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
-		if ((right_motor_get_pos() >= cm_to_step(8)) && (speed_corr<2)){
+		if ((right_motor_get_pos() >= cm_to_step(5)) && (speed_corr<2)){
 			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
 			motors_init();
 			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
@@ -475,12 +488,12 @@ bool back_to_track(void){
 			if (obstacle_context.obstacle_at_left){
 				left_motor_set_speed(-cms_to_steps(0));
 				right_motor_set_speed(-cms_to_steps(0));
-				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  -3, 3);
+				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  3, -3);
 			}
 			else {
 				left_motor_set_speed(-cms_to_steps(0));
 				right_motor_set_speed(-cms_to_steps(0));
-				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  3, -3);
+				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  -3, +3);
 			}
 			return 1;
 		}
