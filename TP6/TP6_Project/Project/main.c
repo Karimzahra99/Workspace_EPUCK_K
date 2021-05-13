@@ -60,7 +60,7 @@ int main(void)
 	dcmi_start();
 	po8030_start();
 	//For RGB LEDS
-	spi_comm_start();
+	//spi_comm_start();
 
 	/* Tuning parameters for camera :
 	 * rgb_gains : [0 255] for each, default : 94, 64, 93

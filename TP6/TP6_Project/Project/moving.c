@@ -309,8 +309,12 @@ void pid_front(void){
 
 	chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d counter =%-7d \r\n\n"
 			, get_middle_diff(),rolling_context.counter);
+
+
 	if (get_middle_diff()<25){
+
 		chprintf((BaseSequentialStream *)&SD3, "INSIDE \r\n\n");
+
 		rolling_context.counter = rolling_context.counter + 1;
 		if (rolling_context.counter >= STRAIGHT_LINE_COUNT){
 			right_motor_set_speed(0);
