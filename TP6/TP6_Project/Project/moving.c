@@ -398,19 +398,95 @@ void pid_front(void){
 //	}
 
 
-
 void avoid_obs(void){
-	//temporary function :
+	int16_t speed_correction=0;
 	set_leds(YELLOW_IDX);
-	rolling_context.counter = 0;
-	rolling_context.speed = 0;
-	right_motor_set_speed(rolling_context.speed);
-	left_motor_set_speed(rolling_context.speed);
-	if (!check_ir_front()){
+	if (obstacle_context.obstacle_at_left){
+		speed_correction = pid_regulator_S(obstacle_context.ir2_adjusted);
+		uint32_t ir3_new = get_calibrated_prox(SENSOR_IR3);
+		if (ir3_new < obstacle_context.ir3_adjusted - IR_BRUIT_BLANC){
+			left_motor_set_speed(-cms_to_steps(2) + speed_correction);
+			right_motor_set_speed(-cms_to_steps(2) - speed_correction);
+		}
+		else if (ir3_new > obstacle_context.ir3_adjusted + IR_BRUIT_BLANC  ){
+			left_motor_set_speed(-cms_to_steps(2)- speed_correction);
+			right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
+		}
+		else {
+			left_motor_set_speed(-cms_to_steps(2));
+			right_motor_set_speed(-cms_to_steps(2));
+		}
+
+	}
+	else{
+		speed_correction = pid_regulator_S(obstacle_context.ir5_adjusted);
+		uint32_t ir4_new = get_calibrated_prox(SENSOR_IR4);
+//				chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, obstacle_context.ir4_adjusted, speed_correction);
+		if (ir4_new < obstacle_context.ir4_adjusted - IR_BRUIT_BLANC){
+			left_motor_set_speed(-cms_to_steps(2) - speed_correction);
+			right_motor_set_speed(-cms_to_steps(2) + speed_correction);
+		}
+		else if (ir4_new > obstacle_context.ir4_adjusted + IR_BRUIT_BLANC){
+			left_motor_set_speed(-cms_to_steps(2)+ speed_correction);
+			right_motor_set_speed(-cms_to_steps(2)- speed_correction);
+		}
+		else {
+			left_motor_set_speed(-cms_to_steps(2));
+			right_motor_set_speed(-cms_to_steps(2));
+		}
+
+	}
+
+	if(back_to_track()){
+		reset_obstacle_context();
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+	}
+
+}
+
+void reset_obstacle_context(void){
+	obstacle_context.first_line_passed=0;
+	obstacle_context.ir3_adjusted=0;
+	obstacle_context.ir2_adjusted=0;
+	obstacle_context.obstacle_at_left=0;
+	obstacle_context.ir4_adjusted=0;
+	obstacle_context.ir5_adjusted=0;
+}
+
+void adjust (void){
+	if (obstacle_context.obstacle_at_left){
+		obstacle_context.ir2_adjusted = rotate_until_irmax_left();
+		obstacle_context.ir3_adjusted = get_calibrated_prox(SENSOR_IR3);
+	}
+	else {
+		obstacle_context.ir5_adjusted = rotate_until_irmax_right();
+		obstacle_context.ir4_adjusted = get_calibrated_prox(SENSOR_IR4);
 	}
 }
 
+
+bool back_to_track(void){
+	if (get_color() != NO_COLOR){
+		if (!obstacle_context.first_line_passed){
+			obstacle_context.first_line_passed = 1;
+			motor_set_position(5, 5, -2, -2);
+		}
+		else{
+			if (obstacle_context.obstacle_at_left){
+				left_motor_set_speed(-cms_to_steps(0));
+				right_motor_set_speed(-cms_to_steps(0));
+				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  -3, 3);
+			}
+			else {
+				left_motor_set_speed(-cms_to_steps(0));
+				right_motor_set_speed(-cms_to_steps(0));
+				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  3, -3);
+			}
+			return 1;
+		}
+	}
+	return 0;
+}
 void moving_start(void){
 
 	init_context();
