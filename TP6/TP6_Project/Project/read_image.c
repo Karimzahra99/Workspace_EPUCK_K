@@ -443,10 +443,10 @@ void camera_init_top(void){
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 	//Deactivate auto-white balance
-		po8030_set_awb(0);
-		po8030_set_brightness(image_context.brightness);
-		po8030_set_contrast(image_context.contrast);
-		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+//		po8030_set_awb(0);
+//		po8030_set_brightness(image_context.brightness);
+//		po8030_set_contrast(image_context.contrast);
+//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //initialization of camera and dcmi for bot line lecture
@@ -457,10 +457,10 @@ void camera_init_bot(void){
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
 	//Deactivate auto-white balance
-		po8030_set_awb(0);
-		po8030_set_brightness(image_context.brightness);
-		po8030_set_contrast(image_context.contrast);
-		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
+//		po8030_set_awb(0);
+//		po8030_set_brightness(image_context.brightness);
+//		po8030_set_contrast(image_context.contrast);
+//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //middle position difference between top and bottom lines
@@ -551,6 +551,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 
 	(void)arg;
+
 	po8030_set_awb(0);
 	po8030_set_brightness(image_context.brightness);
 	po8030_set_contrast(image_context.contrast);

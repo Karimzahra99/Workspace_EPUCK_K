@@ -313,7 +313,9 @@ void avoid_obs(void){
 }
 
 void moving_start(void){
+
 	init_context();
+
 	chThdCreateStatic(waPidRegulator, sizeof(waPidRegulator), NORMALPRIO, PidRegulator, NULL);
 }
 
