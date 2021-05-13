@@ -442,6 +442,11 @@ void camera_init_top(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
+	//Deactivate auto-white balance
+		po8030_set_awb(0);
+		po8030_set_brightness(image_context.brightness);
+		po8030_set_contrast(image_context.contrast);
+		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //initialization of camera and dcmi for bot line lecture
@@ -451,6 +456,11 @@ void camera_init_bot(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
+	//Deactivate auto-white balance
+		po8030_set_awb(0);
+		po8030_set_brightness(image_context.brightness);
+		po8030_set_contrast(image_context.contrast);
+		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //middle position difference between top and bottom lines
@@ -541,8 +551,6 @@ static THD_FUNCTION(CaptureImage, arg) {
 	chRegSetThreadName(__FUNCTION__);
 
 	(void)arg;
-
-	//Deactivate auto-white balance
 	po8030_set_awb(0);
 	po8030_set_brightness(image_context.brightness);
 	po8030_set_contrast(image_context.contrast);
@@ -698,8 +706,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 //initializes image_context structure and starts threads
 void read_image_start(config_t arg_config){
 	init_visual_context(arg_config);
-	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
+	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
 #endif

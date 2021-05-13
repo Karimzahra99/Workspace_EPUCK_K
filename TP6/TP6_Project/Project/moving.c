@@ -221,7 +221,7 @@ void move_straight_backwards(void){
 			set_leds(NO_LINE);
 			left_motor_set_speed(0);
 			right_motor_set_speed(0);
-			//playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
+			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
 		}
 		else {
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
@@ -392,7 +392,7 @@ void find_next_color(void){
 void help_me_please(void){
 	set_leds(NO_COLOR);
 
-	//playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
+	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
 	if (rolling_context.counter < 10){
 		set_body_led(1);
 		rolling_context.counter ++;

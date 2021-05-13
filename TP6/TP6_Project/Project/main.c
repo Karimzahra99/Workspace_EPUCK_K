@@ -65,23 +65,23 @@ int main(void)
 	/* Tuning parameters for camera :
 	 * rgb_gains : [0 255] for each, default : 94, 64, 93
 	 * contrast : [0 255], default 64
-	 * birghtness : [-128 127], default 0
+	 * birghtness : [-128 127], default 0, careful function of po8030.c takes an uint8_t but the format is the following [7]:[6:0] = Sign : Magnitude
 	 * line_index_top : [0 480]
 	 * mode_detect : MAX_ONLY, MEAN_ONLY, MAX_N_MEANS
 	 * plot_pixels_color : RED_IDX, GREEND_IDX, BLUE_IDX
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {94, 64, 93};
-	uint8_t contrast = 64;
-	uint8_t brightness = 0;
+	rgb_gain_t rgb_gains = {110, 94, 93};
+	uint8_t contrast = 77;
+	uint8_t brightness = 10;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
-	detect_mode_t mode_detect = RAINY_DAY;
+	detect_mode_t mode_detect = MAX_ONLY;
 	visualize_mode_t send_params = YES_VISUALIZE_PARAMS;
 #ifdef TUNE
 	//chose which color intensity to plot with plot_image.py
-	color_index_t plot_pixels_color = RED_IDX;
+	color_index_t plot_pixels_color = GREEN_IDX;
 #else
 	uint16_t line_index_bot = 400;
 #endif
@@ -108,9 +108,9 @@ int main(void)
 	chThdSleepMilliseconds(1000);
 
 	mic_start(NULL);
-	playMelodyStart();
+	//playMelodyStart();
 
-	moving_start();
+	//moving_start();
 
 #endif
 
@@ -122,8 +122,8 @@ int main(void)
 //		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
 //						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n",
-					get_middle_top(), get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
+//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n",
+//					get_middle_top(), get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
 
 	}
 }
