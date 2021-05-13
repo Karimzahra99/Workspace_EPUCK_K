@@ -68,7 +68,9 @@ typedef struct {
 	uint16_t line_idx_bot;
 	uint8_t image_bot[IMAGE_BUFFER_SIZE];
 	int16_t middle_line_top;
+	int16_t middle_line_top_temp;
 	int16_t middle_line_bot;
+	uint16_t counter;
 #endif
 
 } VISUAL_CONTEXT_t;
@@ -404,26 +406,40 @@ int16_t calc_middle(uint8_t *buffer){
 
 //sends to calc_middle the appropriate buffer to find the middle position
 void calc_line_middle(uint8_t alternator){
-
+	int16_t middle_top_temp = 0;
+	int16_t middle_bot_temp = 0;
 	if (alternator == TOP){
 		if (image_context.color_index == RED_IDX){
-			image_context.middle_line_top = calc_middle(image_context.image_red);
+			image_context.middle_line_top_temp = calc_middle(image_context.image_red);
 		}
 		else {
 			if (image_context.color_index == GREEN_IDX){
-				image_context.middle_line_top = calc_middle(image_context.image_green);
+				image_context.middle_line_top_temp = calc_middle(image_context.image_green);
 			}
 
 			else {
 				if (image_context.color_index == BLUE_IDX){
-					image_context.middle_line_top = calc_middle(image_context.image_blue);
+					image_context.middle_line_top_temp = calc_middle(image_context.image_blue);
 				}
 			}
 		}
 
 	}
 	else {
-		image_context.middle_line_bot = calc_middle(image_context.image_bot);
+		int16_t middle_bot = calc_middle(image_context.image_bot);
+		if (abs(middle_bot - image_context.middle_line_bot) < 200 ){
+			image_context.middle_line_top = middle_top_temp;
+			image_context.middle_line_bot = middle_bot_temp;
+			image_context.counter = 0;
+		}
+		else {
+			image_context.counter = image_context.counter + 1;
+			if (image_context.counter > 30){
+				image_context.middle_line_top = middle_top_temp;
+				image_context.middle_line_bot = middle_bot_temp;
+				image_context.counter = 0;
+			}
+		}
 	}
 }
 
@@ -442,11 +458,6 @@ void camera_init_top(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-//		po8030_set_awb(0);
-//		po8030_set_brightness(image_context.brightness);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //initialization of camera and dcmi for bot line lecture
@@ -456,11 +467,6 @@ void camera_init_bot(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-//		po8030_set_awb(0);
-//		po8030_set_brightness(image_context.brightness);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //middle position difference between top and bottom lines
@@ -527,15 +533,17 @@ void init_visual_context(config_t received_config){
 	for (int16_t i = 0; i < IMAGE_BUFFER_SIZE; ++i){
 		image_context.image_red [i] = 0;
 		image_context.image_green [i] = 0;
-		image_context.image_blue [i] = 0;
 		image_context.image_bot [i] = 0;
 	}
 
 	image_context.color_index = NO_COLOR;
 	image_context.threshold_color = 0;
 
+	image_context.counter = 0;
+
 	image_context.middle_line_top = IMAGE_BUFFER_SIZE/2;; //middle of line
 	image_context.middle_line_bot = IMAGE_BUFFER_SIZE/2;
+	image_context.middle_line_top_temp = IMAGE_BUFFER_SIZE/2;
 
 }
 
