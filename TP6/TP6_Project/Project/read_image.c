@@ -69,7 +69,6 @@ typedef struct {
 	uint8_t image_bot[IMAGE_BUFFER_SIZE];
 	int16_t middle_line_top;
 	int16_t middle_line_bot;
-	uint8_t counter;
 #endif
 
 } VISUAL_CONTEXT_t;
@@ -77,8 +76,6 @@ typedef struct {
 //main structure containing all the visual parameters
 static VISUAL_CONTEXT_t image_context;
 
-static int16_t middle_top_temp = 0;
-static int16_t middle_bot_temp = 0;
 
 //Prototypes of functions used in tuning and demo mode
 
@@ -410,36 +407,23 @@ void calc_line_middle(uint8_t alternator){
 
 	if (alternator == TOP){
 		if (image_context.color_index == RED_IDX){
-			middle_top_temp = calc_middle(image_context.image_red);
+			image_context.middle_line_top = calc_middle(image_context.image_red);
 		}
 		else {
 			if (image_context.color_index == GREEN_IDX){
-				middle_top_temp = calc_middle(image_context.image_green);
+				image_context.middle_line_top = calc_middle(image_context.image_green);
 			}
 
 			else {
 				if (image_context.color_index == BLUE_IDX){
-					middle_top_temp = calc_middle(image_context.image_blue);
+					image_context.middle_line_top = calc_middle(image_context.image_blue);
 				}
 			}
 		}
 
 	}
 	else {
-		middle_bot_temp = calc_middle(image_context.image_bot);
-		if (abs(middle_bot_temp - image_context.middle_line_bot) < 200 ){
-			image_context.middle_line_top = middle_top_temp;
-			image_context.middle_line_bot = middle_bot_temp;
-			image_context.counter = 0;
-		}
-		else {
-			image_context.counter = image_context.counter + 1;
-			if (image_context.counter > 30){
-				image_context.middle_line_top = middle_top_temp;
-				image_context.middle_line_bot = middle_bot_temp;
-				image_context.counter = 0;
-			}
-		}
+		image_context.middle_line_bot = calc_middle(image_context.image_bot);
 	}
 }
 
@@ -549,8 +533,6 @@ void init_visual_context(config_t received_config){
 
 	image_context.color_index = NO_COLOR;
 	image_context.threshold_color = 0;
-
-	image_context.counter = 0;
 
 	image_context.middle_line_top = IMAGE_BUFFER_SIZE/2;; //middle of line
 	image_context.middle_line_bot = IMAGE_BUFFER_SIZE/2;

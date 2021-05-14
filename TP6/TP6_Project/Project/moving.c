@@ -126,8 +126,19 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
-		move_straight_backwards();
+			rolling_context.color = get_color();
+			set_speed_with_color();
+			if (check_ir_front()){
+				rolling_context.mode = OBS_AVOIDANCE;
+			}
+			else{
+				//peut etre rajouter un tres petie controlleur p?
+				right_motor_set_speed(rolling_context.speed);
+				left_motor_set_speed(rolling_context.speed);
+			}
 			break;
+//			move_straight_backwards();
+//			break;
 
 		case PID_FRONTWARDS :
 			pid_front();
@@ -137,13 +148,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 			avoid_obs();
 			break;
 
-		case SEARCH_LINE :
-			find_next_color();
-			break;
-
-		case LOST :
-			help_me_please();
-			break;
+//		case SEARCH_LINE :
+//			find_next_color();
+//			break;
+//
+//		case LOST :
+//			help_me_please();
+//			break;
 
 		case ROTATE_TILL_COLOR :
 			 rotate_till_color(obstacle_context.obstacle_at_left);
@@ -243,7 +254,7 @@ void prepare_pid_front(void){
 
 	rolling_context.mode = PID_FRONTWARDS;
 
-	motor_set_position(10, 10,  MEDIUM_SPEED,  MEDIUM_SPEED);
+	motor_set_position(5, 5,  MEDIUM_SPEED,  MEDIUM_SPEED);
 
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
 
@@ -269,8 +280,10 @@ void pid_front(void){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
-		if ((right_motor_get_pos() >= cm_to_step(3)) && (speed_corr <10)){
+		if ((right_motor_get_pos() >= cm_to_step(10)) && (speed_corr <10)){
 			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
+//			left_motor_set_pos(0); a essayer a la place de motor_init
+//			right_motor_set_pos(0);
 			motors_init();
 			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 
@@ -367,7 +380,7 @@ bool back_to_track(void){
 	if (get_color() != NO_COLOR){
 		if(!obstacle_context.first_line_passed){
 			obstacle_context.first_line_passed = 1;
-			motor_set_position(3.5, 3.5, -2, -2);
+			motor_set_position(4, 4, -2, -2);
 			return 0;
 		}
 		else{
@@ -411,6 +424,8 @@ void set_speed_with_color(void){
 //		left_motor_set_pos(0);
 //		right_motor_set_pos(0);
 //		rolling_context.mode = SEARCH_LINE;
+		prepare_pid_front();
+		rolling_context.mode = PID_FRONTWARDS;
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);
