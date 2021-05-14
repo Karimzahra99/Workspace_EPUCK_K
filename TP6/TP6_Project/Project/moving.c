@@ -391,19 +391,22 @@ void pid_front(void){
 
 	int16_t middle_diff = get_middle_bot()- 320;
 	int16_t speed_corr = pid_regulator(middle_diff);
-	if (abs(get_middle_diff()) > MAX_DIFF_MIDDLE){
-		left_motor_set_pos(0);
-		right_motor_set_pos(0);
-	}
-	if ((right_motor_get_pos() >= cm_to_step(5)) && (speed_corr<2)){
-		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
-		motors_init();
-		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+	right_motor_set_speed(rolling_context.speed - 4*speed_corr);
+	left_motor_set_speed(rolling_context.speed + 4*speed_corr);
 
+
+	if (abs(get_middle_diff())<MAX_MID_DIFF){
+
+		rolling_context.counter = rolling_context.counter + 1;
+
+		if (rolling_context.counter >= STRAIGHT_LINE_COUNT/2){
+			right_motor_set_speed(0);
+			left_motor_set_speed(0);
+			prepare_to_follow_line();
+		}
 	}
 	else {
-		right_motor_set_speed(rolling_context.speed - 4*speed_corr);
-		left_motor_set_speed(rolling_context.speed + 4*speed_corr);
+		rolling_context.counter = 0;
 	}
 }
 
@@ -600,8 +603,8 @@ void motor_set_position(float position_r, float position_l, int16_t speed_r, int
 	rolling_context.position_reached = NOT_REACHED;
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
-	int position_to_reach_left = left_motor_get_pos()+ cm_to_step(position_l);
-	int position_to_reach_right = right_motor_get_pos() - cm_to_step(position_r);
+	int position_to_reach_left = cm_to_step(position_l);
+	int position_to_reach_right = - cm_to_step(position_r);
 
 	left_motor_set_speed(cms_to_steps(speed_l));
 	right_motor_set_speed(cms_to_steps(speed_r));
