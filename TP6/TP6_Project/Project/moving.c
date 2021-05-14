@@ -125,35 +125,29 @@ static THD_FUNCTION(PidRegulator, arg) {
 //						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
-//		case STRAIGHT_LINE_BACKWARDS :
-//			if (check_ir_front()){
-//				rolling_context.mode = OBS_AVOIDANCE;
-//			}
-//			else{
-//			left_motor_set_speed(cms_to_steps(-4));
-//			right_motor_set_speed(cms_to_steps(-4));
-//			}
-//			break;
+		case STRAIGHT_LINE_BACKWARDS :
+		move_straight_backwards();
+			break;
 
 		case PID_FRONTWARDS :
 			pid_front();
 			break;
 
-//		case OBS_AVOIDANCE :
-//			avoid_obs();
-//			break;
+		case OBS_AVOIDANCE :
+			avoid_obs();
+			break;
 
-//		case SEARCH_LINE :
-//			find_next_color();
-//			break;
+		case SEARCH_LINE :
+			find_next_color();
+			break;
 
-//		case LOST :
-//			help_me_please();
-//			break;
+		case LOST :
+			help_me_please();
+			break;
 
-//		case ROTATE_TILL_COLOR :
-//			 rotate_till_color(obstacle_context.obstacle_at_left);
-//			 break;
+		case ROTATE_TILL_COLOR :
+			 rotate_till_color(obstacle_context.obstacle_at_left);
+			 break;
 
 		default :
 			rotate_till_color(obstacle_context.obstacle_at_left);
@@ -251,7 +245,7 @@ void prepare_pid_front(void){
 
 	motor_set_position(10, 10,  MEDIUM_SPEED,  MEDIUM_SPEED);
 
-	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, MEDIUM_SPEED, -MEDIUM_SPEED);
+	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
 
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
@@ -271,20 +265,20 @@ void pid_front(void){
 
 	int16_t middle_diff = get_middle_bot()- 320;
 	int16_t speed_corr = pid_regulator(middle_diff);
-//	if (abs(get_middle_diff())>30){
-//		left_motor_set_pos(0);
-//		right_motor_set_pos(0);
-//	}
-//		if ((right_motor_get_pos() >= cm_to_step(5)) && (speed_corr <2)){
-//			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
-//			motors_init();
-//			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-//
-//		}
-//		else {
+	if (abs(get_middle_diff())>30){
+		left_motor_set_pos(0);
+		right_motor_set_pos(0);
+	}
+		if ((right_motor_get_pos() >= cm_to_step(3)) && (speed_corr <10)){
+			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
+			motors_init();
+			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+
+		}
+		else {
 			right_motor_set_speed(rolling_context.speed - speed_corr);
 			left_motor_set_speed(rolling_context.speed + speed_corr);
-//		}
+		}
 	}
 
 //		rolling_context.counter = rolling_context.counter + 1;
