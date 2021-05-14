@@ -112,7 +112,7 @@ void avoid_obs(void);
 void set_speed_with_color(void);
 void find_next_color(void);
 void help_me_please(void);
-
+void init_pid_front(void);
 bool back_to_track(void);
 void adjust (void);
 void reset_obstacle_context(void);
@@ -275,7 +275,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 			//			break;
 
 		default :
-			move_straight_backwards();
+			init_pid_front();
 			break;
 		}
 
@@ -299,7 +299,7 @@ bool check_ir_front(void){
 }
 
 void init_context(void){
-	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+	rolling_context.mode = PID_FRONTWARDS;
 	rolling_context.counter = 0;
 	rolling_context.color = get_color();
 
@@ -372,9 +372,6 @@ void prepare_pid_front(void){
 	motor_set_position(10, 10,  MEDIUM_SPEED,  MEDIUM_SPEED);
 
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, MEDIUM_SPEED, -MEDIUM_SPEED);
-
-	left_motor_set_pos(0);
-	right_motor_set_pos(0);
 
 }
 
