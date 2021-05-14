@@ -14,8 +14,8 @@
 #include <sensors/proximity.h>
 #include <leds.h>
 #include <spi_comm.h>
-#include "moving.h"
-#include "read_image.h"
+#include <moving.h>
+#include <read_image.h>
 #include <audio/play_melody.h>
 #include <audio/microphone.h>
 #include <audio/audio_thread.h>
