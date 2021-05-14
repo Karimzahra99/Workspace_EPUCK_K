@@ -28,7 +28,7 @@
 #define KD_G						0.0f
 #define KP_B						100.0f
 #define KI_B						3.5f
-#define KD_B						0.0f¨
+#define KD_B						0.0f
 #define KP_IR						0.2f
 #define KI_IR						0
 #define KD_IR						0.2f
@@ -50,11 +50,20 @@
 #define IR_OBS_OFFSET				5
 
 //Color speeds
+#define ADJUST_SPEED 				0.8f
 #define OBS_CALIBRATION_SPEED		1
 #define SEARCH_SPEED				2
 #define LOW_SPEED					5.20f
 #define MEDIUM_SPEED				6
 #define HIGH_SPEED 					7
+
+//middle position boundaries
+#define MIN_MIDDLE					250
+#define MAX_MIDDLE					420
+#define MAX_DIFF_MIDDLE					30
+
+//Blinking counter
+#define DUTY_CYCLE_50				10
 
 typedef enum {
 	SENSOR_IR1 = 1,
@@ -294,6 +303,8 @@ void init_context(void){
 	rolling_context.counter = 0;
 	rolling_context.color = get_color();
 
+	reset_obstacle_context();
+
 	rolling_context.speed = LOW_SPEED;
 	rolling_context.position_reached = NOT_REACHED;
 	left_motor_set_pos(0);
@@ -315,13 +326,13 @@ void move_straight_backwards(void){
 		}
 		else {
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
-				if (get_middle_diff()<0){
+				if (get_middle_diff() < 0){
 					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
 						rolling_context.color = get_color();
 						right_motor_set_speed(0);
-						left_motor_set_speed(cms_to_steps(0.8));
+						left_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
 					}
-					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < 250) || (get_middle_bot() < 250) || (get_middle_top() > 420) || (get_middle_bot() > 420)) {
+					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < MIN_MIDDLE) || (get_middle_bot() < MIN_MIDDLE) || (get_middle_top() > MAX_MIDDLE) || (get_middle_bot() > MAX_MIDDLE)) {
 
 						prepare_pid_front();
 					}
@@ -329,10 +340,10 @@ void move_straight_backwards(void){
 				else {
 					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
 						rolling_context.color = get_color();
-						right_motor_set_speed(cms_to_steps(0.8));
+						right_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
 						left_motor_set_speed(0);
 					}
-					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < 250) || (get_middle_bot() < 250) || (get_middle_top() > 420) || (get_middle_bot() > 420)) {
+					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < MIN_MIDDLE) || (get_middle_bot() < MIN_MIDDLE) || (get_middle_top() > MAX_MIDDLE) || (get_middle_bot() > MAX_MIDDLE)) {
 						prepare_pid_front();
 					}
 				}
@@ -378,12 +389,12 @@ void pid_front(void){
 
 	int16_t middle_diff = get_middle_bot()- 320;
 	int16_t speed_corr = pid_regulator(middle_diff);
-	if (abs(get_middle_diff())>30){
+	if (abs(get_middle_diff()) > MAX_DIFF_MIDDLE){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
 	if ((right_motor_get_pos() >= cm_to_step(5)) && (speed_corr<2)){
-		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
+		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
 		motors_init();
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 
@@ -400,7 +411,7 @@ void avoid_obs(void){
 	set_leds(YELLOW_IDX);
 	if (rolling_context.obstacle_context.obstacle_at_left){
 		speed_correction = pid_regulator_IR(rolling_context.obstacle_context.ir2_adjusted);
-		uint32_t ir3_new = get_calibrated_prox(SENSOR_IR3);
+		int16_t ir3_new = get_calibrated_prox(SENSOR_IR3);
 		if (ir3_new < rolling_context.obstacle_context.ir3_adjusted - IR_BRUIT_BLANC){
 			left_motor_set_speed(-cms_to_steps(SEARCH_SPEED) + speed_correction);
 			right_motor_set_speed(-cms_to_steps(SEARCH_SPEED) - speed_correction);
@@ -417,19 +428,19 @@ void avoid_obs(void){
 	}
 	else{
 		speed_correction = pid_regulator_IR(rolling_context.obstacle_context.ir5_adjusted);
-		uint32_t ir4_new = get_calibrated_prox(SENSOR_IR4);
+		int16_t ir4_new = get_calibrated_prox(SENSOR_IR4);
 		//				chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, obstacle_context.ir4_adjusted, speed_correction);
 		if (ir4_new < rolling_context.obstacle_context.ir4_adjusted - IR_BRUIT_BLANC){
-			left_motor_set_speed(-cms_to_steps(2) - speed_correction);
-			right_motor_set_speed(-cms_to_steps(2) + speed_correction);
+			left_motor_set_speed(-cms_to_steps(SEARCH_SPEED) - speed_correction);
+			right_motor_set_speed(-cms_to_steps(SEARCH_SPEED) + speed_correction);
 		}
 		else if (ir4_new > rolling_context.obstacle_context.ir4_adjusted + IR_BRUIT_BLANC){
-			left_motor_set_speed(-cms_to_steps(2)+ speed_correction);
-			right_motor_set_speed(-cms_to_steps(2)- speed_correction);
+			left_motor_set_speed(-cms_to_steps(SEARCH_SPEED)+ speed_correction);
+			right_motor_set_speed(-cms_to_steps(SEARCH_SPEED)- speed_correction);
 		}
 		else {
-			left_motor_set_speed(-cms_to_steps(2));
-			right_motor_set_speed(-cms_to_steps(2));
+			left_motor_set_speed(-cms_to_steps(SEARCH_SPEED));
+			right_motor_set_speed(-cms_to_steps(SEARCH_SPEED));
 		}
 
 	}
@@ -463,20 +474,20 @@ void adjust (void){
 
 bool back_to_track(void){
 	if (get_color() != NO_COLOR){
-		if (!obstacle_context.first_line_passed){
-			obstacle_context.first_line_passed = 1;
-			motor_set_position(5, 5, -2, -2);
+		if (!rolling_context.obstacle_context.first_line_passed){
+			rolling_context.obstacle_context.first_line_passed = 1;
+			motor_set_position(5, 5, -SEARCH_SPEED, -SEARCH_SPEED);
 		}
 		else{
-			if (obstacle_context.obstacle_at_left){
+			if (rolling_context.obstacle_context.obstacle_at_left){
 				left_motor_set_speed(-cms_to_steps(0));
 				right_motor_set_speed(-cms_to_steps(0));
-				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  3, -3);
+				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4, SEARCH_SPEED, -SEARCH_SPEED);
 			}
 			else {
 				left_motor_set_speed(-cms_to_steps(0));
 				right_motor_set_speed(-cms_to_steps(0));
-				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4,  -3, +3);
+				motor_set_position(PERIMETER_EPUCK/4, PERIMETER_EPUCK/4, -SEARCH_SPEED, SEARCH_SPEED);
 			}
 			return 1;
 		}
@@ -552,7 +563,7 @@ void find_next_color(void){
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	}
 	else {
-		if (abs(rolling_context.counter) > 500){
+		if (abs(rolling_context.counter) > STRAIGHT_LINE_COUNT){
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
 			rolling_context.counter = 0;
@@ -566,14 +577,14 @@ void help_me_please(void){
 	set_leds(NO_COLOR);
 
 	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
-	if (rolling_context.counter < 10){
-		set_body_led(1);
+	if (rolling_context.counter < DUTY_CYCLE_50){
+		set_body_led(LED_ON);
 		rolling_context.counter ++;
 	}
 	else{
-		set_body_led(0);
+		set_body_led(LED_OFF);
 		rolling_context.counter ++;
-		if (rolling_context.counter == 20){
+		if (rolling_context.counter == 2*DUTY_CYCLE_50){
 			rolling_context.counter = 0;
 		}
 	}
