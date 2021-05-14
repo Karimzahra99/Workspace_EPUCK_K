@@ -20,14 +20,15 @@
 #define PERIMETER_EPUCK     		(PI * WHEEL_DISTANCE)
 
 //PID Parameters
-#define KP_R						0.2f
-#define KI_R						0.02f
-#define KD_R						0.01f
-#define KP_G						100.0f
-#define KI_G						3.5f
+//0.2 pour 100 pas
+#define KP_R						0.8f
+#define KI_R						0.0f//4*0.02f
+#define KD_R						0.0f
+#define KP_G						0.7f
+#define KI_G						0.0f
 #define KD_G						0.0f
-#define KP_B						100.0f
-#define KI_B						3.5f
+#define KP_B						0.6f
+#define KI_B						0.0f
 #define KD_B						0.0f
 #define MAX_SUM_ERROR_R 			(MOTOR_SPEED_LIMIT/KI_R)
 #define MAX_SUM_ERROR_G 			(MOTOR_SPEED_LIMIT/KI_G)
@@ -48,8 +49,8 @@
 //Color speeds
 #define SEARCH_SPEED				2
 #define LOW_SPEED					5.2
-#define MEDIUM_SPEED				4
-#define HIGH_SPEED 					5
+#define MEDIUM_SPEED				7.15
+#define HIGH_SPEED 					9.1
 
 typedef enum {
 	SENSOR_IR1 = 1,
@@ -124,23 +125,23 @@ static THD_FUNCTION(PidRegulator, arg) {
 //						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
-		case STRAIGHT_LINE_BACKWARDS :
-			if (check_ir_front()){
-				rolling_context.mode = OBS_AVOIDANCE;
-			}
-			else{
-			left_motor_set_speed(cms_to_steps(-4));
-			right_motor_set_speed(cms_to_steps(-4));
-			}
-			break;
+//		case STRAIGHT_LINE_BACKWARDS :
+//			if (check_ir_front()){
+//				rolling_context.mode = OBS_AVOIDANCE;
+//			}
+//			else{
+//			left_motor_set_speed(cms_to_steps(-4));
+//			right_motor_set_speed(cms_to_steps(-4));
+//			}
+//			break;
 
 		case PID_FRONTWARDS :
 			pid_front();
 			break;
 
-		case OBS_AVOIDANCE :
-			avoid_obs();
-			break;
+//		case OBS_AVOIDANCE :
+//			avoid_obs();
+//			break;
 
 //		case SEARCH_LINE :
 //			find_next_color();
@@ -150,9 +151,9 @@ static THD_FUNCTION(PidRegulator, arg) {
 //			help_me_please();
 //			break;
 
-		case ROTATE_TILL_COLOR :
-			 rotate_till_color(obstacle_context.obstacle_at_left);
-			 break;
+//		case ROTATE_TILL_COLOR :
+//			 rotate_till_color(obstacle_context.obstacle_at_left);
+//			 break;
 
 		default :
 			rotate_till_color(obstacle_context.obstacle_at_left);
@@ -270,20 +271,20 @@ void pid_front(void){
 
 	int16_t middle_diff = get_middle_bot()- 320;
 	int16_t speed_corr = pid_regulator(middle_diff);
-	if (abs(get_middle_diff())>30){
-		left_motor_set_pos(0);
-		right_motor_set_pos(0);
-	}
-		if ((right_motor_get_pos() >= cm_to_step(5)) && (speed_corr <2)){
-			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
-			motors_init();
-			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-
-		}
-		else {
-			right_motor_set_speed(rolling_context.speed - 4*speed_corr);
-			left_motor_set_speed(rolling_context.speed + 4*speed_corr);
-		}
+//	if (abs(get_middle_diff())>30){
+//		left_motor_set_pos(0);
+//		right_motor_set_pos(0);
+//	}
+//		if ((right_motor_get_pos() >= cm_to_step(5)) && (speed_corr <2)){
+//			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
+//			motors_init();
+//			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+//
+//		}
+//		else {
+			right_motor_set_speed(rolling_context.speed - speed_corr);
+			left_motor_set_speed(rolling_context.speed + speed_corr);
+//		}
 	}
 
 //		rolling_context.counter = rolling_context.counter + 1;
