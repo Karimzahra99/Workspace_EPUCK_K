@@ -10,22 +10,22 @@
 #include <selector.h>
 
 
-//Longeur d'une ligne de pixels de la camera et tolerance pour les comptages du nombre de pixels egaux a l'intensite maximal
+//Length of a line of pixels from the camera and tolerance for counts of the number of pixels equal to the maximum intensity
 #define IMAGE_BUFFER_SIZE			640
 #define TOLERANCE					3
 
-//Pour alterner lors du traitement des deux lignes de la camera
+//To alternate when processing the two lines of the camera
 #define TOP							0
 #define BOTTOM						1
 
 //Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
 #define MIN_COUNT					5
 
-//Pour trouver le milieu de la ligne, condition sur largeur de ligne et "trous" dans une ligne
+//The minimum number of pixels and holes (null intensity) to validate a line detection for a certain color
 #define MIN_LINE_WIDTH				70
 #define MIN_HOLE_WIDTH				20
 
-//Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
+//Shift to put the bits of the colors back in order when extracting the RGB565 format
 #define SHIFT_2						2
 #define SHIFT_3						3
 #define SHIFT_6						6
@@ -33,6 +33,10 @@
 //Thresholds use for color detection in rainy_day, super_rainy_day and ultra_rainy_day
 #define MAX_INTENSITY_THRESHOLD 	29
 #define MIN_COLOR_DIFF				2
+
+//Avoid middle position to change drastically due to rolling oscillations
+#define COUNTER_MAX					10
+#define MAX_DIFF					200
 
 typedef struct {
 
@@ -434,23 +438,19 @@ void calc_line_middle(uint8_t alternator){
 	}
 	else {
 		middle_bot_temp = calc_middle(image_context.image_bot);
-		if (abs(middle_bot_temp - image_context.middle_line_bot) < 200 ){
+		if (abs(middle_bot_temp - image_context.middle_line_bot) < MAX_DIFF ){
 			image_context.middle_line_top = middle_top_temp;
 			image_context.middle_line_bot = middle_bot_temp;
 			image_context.counter = 0;
 		}
 		else {
 			image_context.counter = image_context.counter + 1;
-			if (image_context.counter > 30){
+			if (image_context.counter > COUNTER_MAX){
 				image_context.middle_line_top = middle_top_temp;
 				image_context.middle_line_bot = middle_bot_temp;
 				image_context.counter = 0;
 			}
 		}
-
-		chprintf((BaseSequentialStream *)&SD3, "Top =%-7d TempTop =%-7d Bot =%-7d BotTemp =%-7d \r\n\n",
-				image_context.middle_line_top, image_context.middle_line_bot, middle_top_temp, middle_bot_temp);
-
 	}
 }
 
