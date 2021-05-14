@@ -53,7 +53,7 @@ int main(void)
 	set_front_led(0);
 
 	//starts the serial communication / can be removed if communication not needed
-//	serial_start();
+	serial_start();
 	//start the USB communication / can be removed if communication not needed
 	usb_start();
 	//starts the camera

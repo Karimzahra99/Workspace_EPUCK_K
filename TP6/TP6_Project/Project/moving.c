@@ -103,7 +103,7 @@ bool check_ir_front(void);
 bool back_to_track(void);
 void adjust (void);
 void reset_obstacle_context(void);
-void rotate_till_color(_Bool left_obs);
+void rotate_till_color(bool left_obs);
 int16_t pid_regulator(int16_t middle_diff);
 int16_t pid_regulator_S(int middle);
 int rotate_until_irmax_left(void);
@@ -302,7 +302,6 @@ void pid_front(void){
 
 void avoid_obs(void){
 	if(back_to_track()){
-		reset_obstacle_context();
 		motor_set_position(5, 5, 2, 2);
 		rolling_context.mode= ROTATE_TILL_COLOR;
 	}
@@ -509,17 +508,20 @@ STATE_t get_rolling_mode (void){
 	return rolling_context.mode;
 }
 
-void rotate_till_color(_Bool left_obs){
+void rotate_till_color(bool left_obs){
 	set_leds(RED_IDX);
 	// TURN WHILE YOU DONT SEE LINE AND WHILE THE LINE IS NOT IN MIDDLE
 	if (get_color() == NO_COLOR){
 		if (left_obs){
 			left_motor_set_speed(cms_to_steps(-1));
 			right_motor_set_speed(cms_to_steps(1));
+					chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+									get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 		}
-		else {
+		else { //ir4
 			left_motor_set_speed(cms_to_steps(1));
 			right_motor_set_speed(cms_to_steps(-1));
+			set_body_led(1);
 		}
 	}
 	//encore un pas stp et pid
@@ -533,6 +535,7 @@ void rotate_till_color(_Bool left_obs){
 					right_motor_set_speed(cms_to_steps(-1));
 				}
 		rolling_context.mode = PID_FRONTWARDS;
+		reset_obstacle_context();
 	}
 
 
