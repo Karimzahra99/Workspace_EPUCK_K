@@ -60,7 +60,7 @@
 //middle position boundaries
 #define MIN_MIDDLE					250
 #define MAX_MIDDLE					420
-#define MAX_DIFF_MIDDLE					30
+#define MAX_DIFF_MIDDLE				30
 
 //Blinking counter
 #define DUTY_CYCLE_50				10
@@ -147,6 +147,11 @@ int16_t rotate_until_irmax_right(void)
 	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16, -OBS_CALIBRATION_SPEED, OBS_CALIBRATION_SPEED);
 	return ir_right_ancien;
 }
+
+void init_pid_front(void){
+	rolling_context.counter = 0;
+	pid_front();
+};
 
 int16_t pid_regulator_IR(int16_t middle){
 
@@ -517,14 +522,13 @@ void set_speed_with_color(void){
 	{
 	case 0: //NO COLOR
 		set_leds(FIND_COLOR);
-		//		reset_middle_positions();
-		//		rolling_context.counter = 0;
-		//		rolling_context.speed = 0;
-		//		left_motor_set_speed(0);
-		//		right_motor_set_speed(0);
-		//		left_motor_set_pos(0);
-		//		right_motor_set_pos(0);
-		//		rolling_context.mode = SEARCH_LINE;
+				rolling_context.counter = 0;
+				rolling_context.speed = 0;
+				left_motor_set_speed(0);
+				right_motor_set_speed(0);
+				left_motor_set_pos(0);
+				right_motor_set_pos(0);
+				rolling_context.mode = SEARCH_LINE;
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);

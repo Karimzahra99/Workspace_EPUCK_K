@@ -15,9 +15,10 @@ int16_t get_middle_top(void);
 int16_t get_middle_bot(void);
 
 //reset both middle position of top and bottom line to 0
-void reset_middle_positions(void);
+
 
 //remove if not needed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+void reset_middle_positions(void);
 void set_middle_top(uint16_t top_middle);
 void set_middle_bot(uint16_t bot_middle);
 
