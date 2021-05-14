@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 
-//start the PID regulator thread
-void moving_start(void);
-
 typedef enum {
 	STRAIGHT_LINE_BACKWARDS = 0,
 	PID_FRONTWARDS,
@@ -14,9 +11,10 @@ typedef enum {
 	LOST
 } STATE_t;
 
+//start the moving thread
+void moving_start(void);
 
-
-//remove from .h when finished debuging
+//remove from .h when finished debugging
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 STATE_t get_rolling_mode(void);
 
