@@ -30,6 +30,10 @@
 #define SHIFT_3						3
 #define SHIFT_6						6
 
+//Thresholds use for color detection in rainy_day, super_rainy_day and ultra_rainy_day
+#define MAX_INTENSITY_THRESHOLD 	29
+#define MIN_COLOR_DIFF				2
+
 typedef struct {
 
 	//After tuning adjust to the desired detection mode
