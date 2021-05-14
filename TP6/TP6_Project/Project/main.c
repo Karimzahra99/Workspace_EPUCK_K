@@ -48,7 +48,7 @@ int main(void)
 	mpu_init();
 
 	//Initialize DAC : digital analog converter (needed to use microphones)
-	dac_start();
+	//dac_start();
 
 	//Initialize message bus (needed for proximity thread)
 	messagebus_init(&bus, &bus_lock, &bus_condvar);
@@ -71,7 +71,7 @@ int main(void)
 	po8030_start();
 
 	//Initialize SPI : serial peripheral interface, to use RGB LEDs
-	spi_comm_start();
+	//spi_comm_start();
 
 	//Tuning / demo configuration, to switch between both modes just uncomment / comment "TUNE" in main.h
 	//Tuning procedure at end of file
@@ -123,7 +123,7 @@ int main(void)
 	chThdSleepMilliseconds(500);
 
 	//Initialize speakers
-	mic_start(NULL);
+	//mic_start(NULL);
 
 	//Initialize Melody thread to play songs
 	//playMelodyStart();
@@ -142,9 +142,11 @@ int main(void)
 //
 //		chprintf((BaseSequentialStream *)&SD3, "Prox3 =%-7d Prox4 =%-7d \r\n\n",
 //						get_prox(3), get_prox(4));
+
 		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
-//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-//				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+
+		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		//		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
 		//					, get_middle_diff(),get_color(),get_rolling_mode());
