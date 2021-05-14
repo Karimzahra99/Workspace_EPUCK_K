@@ -28,10 +28,14 @@
 #define KD_G						0.0f
 #define KP_B						100.0f
 #define KI_B						3.5f
-#define KD_B						0.0f
+#define KD_B						0.0f¨
+#define KP_IR						0.2f
+#define KI_IR						0
+#define KD_IR						0.2f
 #define MAX_SUM_ERROR_R 			(MOTOR_SPEED_LIMIT/KI_R)
 #define MAX_SUM_ERROR_G 			(MOTOR_SPEED_LIMIT/KI_G)
 #define MAX_SUM_ERROR_B 			(MOTOR_SPEED_LIMIT/KI_B)
+#define MAX_SUM_ERROR_IR 			100
 
 // Straight line correction zone
 #define STRAIGHT_ZONE_WIDTH_MAX		200
@@ -42,14 +46,15 @@
 
 //Threshold des IR
 #define	IR_THRESHOLD				250
-#define IR_BRUIT_BLANC                                10
-
+#define IR_BRUIT_BLANC              10
+#define IR_OBS_OFFSET				5
 
 //Color speeds
+#define OBS_CALIBRATION_SPEED		1
 #define SEARCH_SPEED				2
-#define LOW_SPEED					5.2
-#define MEDIUM_SPEED				4
-#define HIGH_SPEED 					5
+#define LOW_SPEED					5.20f
+#define MEDIUM_SPEED				6
+#define HIGH_SPEED 					7
 
 typedef enum {
 	SENSOR_IR1 = 1,
@@ -66,25 +71,24 @@ typedef enum {
 } position_status_t;
 
 typedef struct {
+	int16_t ir3_adjusted;
+	int16_t ir2_adjusted;
+	int16_t ir4_adjusted;
+	int16_t ir5_adjusted;
+	bool first_line_passed;
+	bool obstacle_at_left;
+} OBSTACLE_CONTEXT_t;
+
+typedef struct {
 	STATE_t mode;
 	uint32_t counter;
 	color_index_t color;
 	int16_t speed;
 	position_status_t position_reached;
+	OBSTACLE_CONTEXT_t obstacle_context;
 } MOVE_CONTEXT_t;
 
-typedef struct {
-bool first_line_passed;
-uint32_t ir3_adjusted;
-uint32_t ir2_adjusted;
-bool obstacle_at_left;
-uint32_t ir4_adjusted;
-uint32_t ir5_adjusted;
-} OBSTACLE_CONTEXT_t;
-
-static OBSTACLE_CONTEXT_t obstacle_context;
 static MOVE_CONTEXT_t rolling_context;
-
 
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
 void set_leds(uint8_t color_index);
@@ -105,50 +109,47 @@ void adjust (void);
 void reset_obstacle_context(void);
 
 //PID Implementation
-int rotate_until_irmax_left(void)
+int16_t rotate_until_irmax_left(void)
 {
-	int	ir_left_ancien =0;
-	int	ir_left_nouvau =0;
-	int start = 0;
-	while ((ir_left_nouvau > ir_left_ancien + 5 ) || start==0){
-			start =1;
-			ir_left_ancien = get_calibrated_prox(SENSOR_IR2);
-			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
-			ir_left_nouvau = get_calibrated_prox(SENSOR_IR2);
-
-		}
-	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
-
-return ir_left_ancien;
+	int16_t	ir_left_ancien = 0;
+	int16_t	ir_left_nouvau = 0;
+	uint8_t start = 0;
+	while ((ir_left_nouvau > ir_left_ancien + IR_OBS_OFFSET) || start == 0){
+		start = 1;
+		ir_left_ancien = get_calibrated_prox(SENSOR_IR2);
+		motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16, -OBS_CALIBRATION_SPEED, OBS_CALIBRATION_SPEED);
+		ir_left_nouvau = get_calibrated_prox(SENSOR_IR2);
+	}
+	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16, OBS_CALIBRATION_SPEED, -OBS_CALIBRATION_SPEED);
+	return ir_left_ancien;
 }
 
-int rotate_until_irmax_right(void)
+int16_t rotate_until_irmax_right(void)
 {
-	int	ir_right_ancien =0;
-	int	ir_right_nouvau =0;
-	int start = 0;
-	while ((ir_right_nouvau > ir_right_ancien + 5 ) || start==0){
-			start =1;
-			ir_right_ancien = get_calibrated_prox(SENSOR_IR5);
-			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
-			ir_right_nouvau = get_calibrated_prox(SENSOR_IR5);
-
-		}
-	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
-
-return ir_right_ancien;
+	int16_t	ir_right_ancien = 0;
+	int16_t	ir_right_nouvau = 0;
+	uint8_t start = 0;
+	while ((ir_right_nouvau > ir_right_ancien + IR_OBS_OFFSET) || start == 0){
+		start = 1;
+		ir_right_ancien = get_calibrated_prox(SENSOR_IR5);
+		motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16, OBS_CALIBRATION_SPEED, -OBS_CALIBRATION_SPEED);
+		ir_right_nouvau = get_calibrated_prox(SENSOR_IR5);
+	}
+	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16, -OBS_CALIBRATION_SPEED, OBS_CALIBRATION_SPEED);
+	return ir_right_ancien;
 }
 
-int16_t pid_regulator_S(int middle){
+int16_t pid_regulator_IR(int16_t middle){
 
-	int goal = middle; //milieu theorique d'une ligne parfaitement centre sur le robot ou 350 ?
+	int16_t goal = middle;
 	float error = 0;
 	float speed = 0;
 	float derivative = 0;
 
 	static float sum_error = 0;
 	static float last_error = 0;
-	if (obstacle_context.obstacle_at_left){
+
+	if (rolling_context.obstacle_context.obstacle_at_left){
 		error =  get_calibrated_prox(SENSOR_IR2) - goal;
 	}
 	else{
@@ -156,19 +157,18 @@ int16_t pid_regulator_S(int middle){
 	}
 	sum_error += error;
 
-	if(sum_error > 100){
-		sum_error = 100;
-	}else if(sum_error < -100){
-		sum_error = -100;
+	if(sum_error > MAX_SUM_ERROR_IR){
+		sum_error = MAX_SUM_ERROR_IR;
+	}else if(sum_error < -MAX_SUM_ERROR_IR){
+		sum_error = -MAX_SUM_ERROR_IR;
 	}
 
 	derivative = error - last_error ;
 
 	last_error = error;
 
-	speed = 0.2 * error + 0.2 * derivative; //0.01 * sum_error; //+ 0.1 * derivative;
-
-    return (int16_t) speed;
+	speed = KP_IR * error + KI_IR * sum_error + KD_IR * derivative;
+	return (int16_t) speed;
 }
 
 
@@ -241,8 +241,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 	while(1){
 		time = chVTGetSystemTime();
 
-//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+		//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+		//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
@@ -257,13 +257,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 			avoid_obs();
 			break;
 
-//		case SEARCH_LINE :
-//			find_next_color();
-//			break;
+			//		case SEARCH_LINE :
+			//			find_next_color();
+			//			break;
 
-//		case LOST :
-//			help_me_please();
-//			break;
+			//		case LOST :
+			//			help_me_please();
+			//			break;
 
 		default :
 			move_straight_backwards();
@@ -276,18 +276,17 @@ static THD_FUNCTION(PidRegulator, arg) {
 }
 
 bool check_ir_front(void){
-	int ir_front_left = get_calibrated_prox(SENSOR_IR3);
-	int ir_front_right = get_calibrated_prox(SENSOR_IR4);
+	int16_t ir_front_left = get_calibrated_prox(SENSOR_IR3);
+	int16_t ir_front_right = get_calibrated_prox(SENSOR_IR4);
 
 	if ((ir_front_left > IR_THRESHOLD) || (ir_front_right > IR_THRESHOLD)){
 		if (ir_front_left > ir_front_right){
-			obstacle_context.obstacle_at_left = 1;
+			rolling_context.obstacle_context.obstacle_at_left = 1;
 		}
 		adjust();
 		return true;
 	}
 	else return false;
-
 }
 
 void init_context(void){
@@ -366,8 +365,6 @@ void prepare_pid_front(void){
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 
-
-
 }
 
 void prepare_to_follow_line(void){
@@ -385,61 +382,48 @@ void pid_front(void){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
-		if ((right_motor_get_pos() >= cm_to_step(5)) && (speed_corr<2)){
-			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
-			motors_init();
-			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+	if ((right_motor_get_pos() >= cm_to_step(5)) && (speed_corr<2)){
+		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
+		motors_init();
+		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 
-		}
-		else {
-			right_motor_set_speed(rolling_context.speed - 4*speed_corr);
-			left_motor_set_speed(rolling_context.speed + 4*speed_corr);
-		}
 	}
-
-//		rolling_context.counter = rolling_context.counter + 1;
-//		if (rolling_context.counter >= STRAIGHT_LINE_COUNT){
-//			prepare_to_follow_line();
-//			right_motor_set_speed(0);
-//			left_motor_set_speed(0);
-//			rolling_context.counter = 0;
-//		}
-//	}
-//			rolling_context.counter = 0;
-//			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-//		}
-//	}
+	else {
+		right_motor_set_speed(rolling_context.speed - 4*speed_corr);
+		left_motor_set_speed(rolling_context.speed + 4*speed_corr);
+	}
+}
 
 
 void avoid_obs(void){
 	int16_t speed_correction=0;
 	set_leds(YELLOW_IDX);
-	if (obstacle_context.obstacle_at_left){
-		speed_correction = pid_regulator_S(obstacle_context.ir2_adjusted);
+	if (rolling_context.obstacle_context.obstacle_at_left){
+		speed_correction = pid_regulator_IR(rolling_context.obstacle_context.ir2_adjusted);
 		uint32_t ir3_new = get_calibrated_prox(SENSOR_IR3);
-		if (ir3_new < obstacle_context.ir3_adjusted - IR_BRUIT_BLANC){
-			left_motor_set_speed(-cms_to_steps(2) + speed_correction);
-			right_motor_set_speed(-cms_to_steps(2) - speed_correction);
+		if (ir3_new < rolling_context.obstacle_context.ir3_adjusted - IR_BRUIT_BLANC){
+			left_motor_set_speed(-cms_to_steps(SEARCH_SPEED) + speed_correction);
+			right_motor_set_speed(-cms_to_steps(SEARCH_SPEED) - speed_correction);
 		}
-		else if (ir3_new > obstacle_context.ir3_adjusted + IR_BRUIT_BLANC  ){
-			left_motor_set_speed(-cms_to_steps(2)- speed_correction);
-			right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
+		else if (ir3_new > rolling_context.obstacle_context.ir3_adjusted + IR_BRUIT_BLANC  ){
+			left_motor_set_speed(-cms_to_steps(SEARCH_SPEED)- speed_correction);
+			right_motor_set_speed(-cms_to_steps(SEARCH_SPEED)+ speed_correction);
 		}
 		else {
-			left_motor_set_speed(-cms_to_steps(2));
-			right_motor_set_speed(-cms_to_steps(2));
+			left_motor_set_speed(-cms_to_steps(SEARCH_SPEED));
+			right_motor_set_speed(-cms_to_steps(SEARCH_SPEED));
 		}
 
 	}
 	else{
-		speed_correction = pid_regulator_S(obstacle_context.ir5_adjusted);
+		speed_correction = pid_regulator_IR(rolling_context.obstacle_context.ir5_adjusted);
 		uint32_t ir4_new = get_calibrated_prox(SENSOR_IR4);
-//				chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, obstacle_context.ir4_adjusted, speed_correction);
-		if (ir4_new < obstacle_context.ir4_adjusted - IR_BRUIT_BLANC){
+		//				chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, obstacle_context.ir4_adjusted, speed_correction);
+		if (ir4_new < rolling_context.obstacle_context.ir4_adjusted - IR_BRUIT_BLANC){
 			left_motor_set_speed(-cms_to_steps(2) - speed_correction);
 			right_motor_set_speed(-cms_to_steps(2) + speed_correction);
 		}
-		else if (ir4_new > obstacle_context.ir4_adjusted + IR_BRUIT_BLANC){
+		else if (ir4_new > rolling_context.obstacle_context.ir4_adjusted + IR_BRUIT_BLANC){
 			left_motor_set_speed(-cms_to_steps(2)+ speed_correction);
 			right_motor_set_speed(-cms_to_steps(2)- speed_correction);
 		}
@@ -454,26 +438,25 @@ void avoid_obs(void){
 		reset_obstacle_context();
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	}
-
 }
 
 void reset_obstacle_context(void){
-	obstacle_context.first_line_passed=0;
-	obstacle_context.ir3_adjusted=0;
-	obstacle_context.ir2_adjusted=0;
-	obstacle_context.obstacle_at_left=0;
-	obstacle_context.ir4_adjusted=0;
-	obstacle_context.ir5_adjusted=0;
+	rolling_context.obstacle_context.ir2_adjusted = 0;
+	rolling_context.obstacle_context.ir3_adjusted = 0;
+	rolling_context.obstacle_context.ir4_adjusted = 0;
+	rolling_context.obstacle_context.ir5_adjusted = 0;
+	rolling_context.obstacle_context.first_line_passed = 0;
+	rolling_context.obstacle_context.obstacle_at_left = 0;
 }
 
 void adjust (void){
-	if (obstacle_context.obstacle_at_left){
-		obstacle_context.ir2_adjusted = rotate_until_irmax_left();
-		obstacle_context.ir3_adjusted = get_calibrated_prox(SENSOR_IR3);
+	if (rolling_context.obstacle_context.obstacle_at_left){
+		rolling_context.obstacle_context.ir2_adjusted = rotate_until_irmax_left();
+		rolling_context.obstacle_context.ir3_adjusted = get_calibrated_prox(SENSOR_IR3);
 	}
 	else {
-		obstacle_context.ir5_adjusted = rotate_until_irmax_right();
-		obstacle_context.ir4_adjusted = get_calibrated_prox(SENSOR_IR4);
+		rolling_context.obstacle_context.ir5_adjusted = rotate_until_irmax_right();
+		rolling_context.obstacle_context.ir4_adjusted = get_calibrated_prox(SENSOR_IR4);
 	}
 }
 
@@ -526,14 +509,14 @@ void set_speed_with_color(void){
 	{
 	case 0: //NO COLOR
 		set_leds(FIND_COLOR);
-//		reset_middle_positions();
-//		rolling_context.counter = 0;
-//		rolling_context.speed = 0;
-//		left_motor_set_speed(0);
-//		right_motor_set_speed(0);
-//		left_motor_set_pos(0);
-//		right_motor_set_pos(0);
-//		rolling_context.mode = SEARCH_LINE;
+		//		reset_middle_positions();
+		//		rolling_context.counter = 0;
+		//		rolling_context.speed = 0;
+		//		left_motor_set_speed(0);
+		//		right_motor_set_speed(0);
+		//		left_motor_set_pos(0);
+		//		right_motor_set_pos(0);
+		//		rolling_context.mode = SEARCH_LINE;
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);

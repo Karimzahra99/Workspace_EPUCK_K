@@ -108,12 +108,12 @@ int main(void)
 	//Initialize motors
 	motors_init();
 
+	//3 seconds to remove hands and obstacles near the robot for IR calibration
+	chThdSleepMilliseconds(3000);
+
 	//Initialize IR sensors and calibrate them
 	proximity_start();
 	calibrate_ir();
-
-	//waiting time to position the robot on the track after IR calibration
-	chThdSleepMilliseconds(5000);
 
 	//Initialize camera with given configuration
 	config_t config = {rgb_gains, contrast, brightness, line_index_top, line_index_bot, mode_detect, send_params};
@@ -137,9 +137,14 @@ int main(void)
 		//waits 1 second
 		//	chThdSleepMilliseconds(1000);
 
+//		chprintf((BaseSequentialStream *)&SD3, "Cali3 =%-7d Cali4 =%-7d \r\n\n",
+//				get_calibrated_prox(3), get_calibrated_prox(4));
+//
+//		chprintf((BaseSequentialStream *)&SD3, "Prox3 =%-7d Prox4 =%-7d \r\n\n",
+//						get_prox(3), get_prox(4));
 		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+//				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		//		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
 		//					, get_middle_diff(),get_color(),get_rolling_mode());
