@@ -81,6 +81,8 @@ typedef struct {
 //main structure containing all the visual parameters
 static VISUAL_CONTEXT_t image_context;
 
+static int16_t middle_top_temp = 0;
+static int16_t middle_bot_temp = 0;
 
 //Prototypes of functions used in tuning and demo mode
 
@@ -412,28 +414,27 @@ int16_t calc_middle(uint8_t *buffer){
 
 //sends to calc_middle the appropriate buffer to find the middle position
 void calc_line_middle(uint8_t alternator){
-	int16_t middle_top_temp = 0;
-	int16_t middle_bot_temp = 0;
+
 	if (alternator == TOP){
 		if (image_context.color_index == RED_IDX){
-			image_context.middle_line_top_temp = calc_middle(image_context.image_red);
+			middle_top_temp = calc_middle(image_context.image_red);
 		}
 		else {
 			if (image_context.color_index == GREEN_IDX){
-				image_context.middle_line_top_temp = calc_middle(image_context.image_green);
+				middle_top_temp = calc_middle(image_context.image_green);
 			}
 
 			else {
 				if (image_context.color_index == BLUE_IDX){
-					image_context.middle_line_top_temp = calc_middle(image_context.image_blue);
+					middle_top_temp = calc_middle(image_context.image_blue);
 				}
 			}
 		}
 
 	}
 	else {
-		int16_t middle_bot = calc_middle(image_context.image_bot);
-		if (abs(middle_bot - image_context.middle_line_bot) < 200 ){
+		middle_bot_temp = calc_middle(image_context.image_bot);
+		if (abs(middle_bot_temp - image_context.middle_line_bot) < 200 ){
 			image_context.middle_line_top = middle_top_temp;
 			image_context.middle_line_bot = middle_bot_temp;
 			image_context.counter = 0;
@@ -446,6 +447,10 @@ void calc_line_middle(uint8_t alternator){
 				image_context.counter = 0;
 			}
 		}
+
+		chprintf((BaseSequentialStream *)&SD3, "Top =%-7d TempTop =%-7d Bot =%-7d BotTemp =%-7d \r\n\n",
+				image_context.middle_line_top, image_context.middle_line_bot, middle_top_temp, middle_bot_temp);
+
 	}
 }
 
@@ -464,11 +469,6 @@ void camera_init_top(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-//		po8030_set_awb(0);
-//		po8030_set_brightness(image_context.brightness);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //initialization of camera and dcmi for bot line lecture
@@ -478,11 +478,6 @@ void camera_init_bot(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-//		po8030_set_awb(0);
-//		po8030_set_brightness(image_context.brightness);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //middle position difference between top and bottom lines
