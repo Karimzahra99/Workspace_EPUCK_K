@@ -74,6 +74,7 @@ int main(void)
 	spi_comm_start();
 
 	//Tuning / demo configuration, to switch between both modes just uncomment / comment "TUNE" in main.h
+	//Tuning procedure at end of file
 
 	/* Tuning parameters for camera :
 	 * rgb_gains : [0 255] for each, default : 94, 64, 93
@@ -99,6 +100,7 @@ int main(void)
 #endif
 
 #ifdef TUNE
+	//Initialize camera with given configuration
 	tuning_config_t tunning = {rgb_gains, contrast, brightness, line_index_top, mode_detect, plot_pixels_color, send_params};
 	tune_image_start(tunning);
 #else
@@ -228,3 +230,17 @@ void __stack_chk_fail(void)
 	chSysHalt("Stack smashing detected");
 }
 
+/* Tuning procedure :
+ * 1) Start with default parameters, MAX_ONLY as color detection method and YES_VISUALIZE_PARAMETERS.
+ * 2) Set Selector on position to 2 to have a noise threshold of 10
+ * 3) Show to the camera lines of red, green and blue color on a black background and visualize with a serial terminal the max, mean and count values
+ * 4) The goal is that the RGB component associated with the color of the line returns maximum and mean values ​​are bigger compared to the other two RGB components
+ * 5) If the max values are low progressively increase the RGB gains
+ * 6) If the RGB gains aren't sufficient, increase step by step the contrast up to 100 (more if needed) and each time progressively increase the RGB gains starting from their default values
+ * 7) If the environment is dark, increase the brightness
+ * 8) If for a specific line color, two RGB components have saturated maximum values but the correct RGB component has a higher mean, change the color detection to RAINY_DAY
+ * 9) If for a specific line color, two RGB components have saturated maximum values but the correct RGB component has a higher mean and higher count, change the color detection to SUPER_RAINY_DAY
+ * 10) If for a specific line color, two RGB components have saturated maximum values and similar mean values but the correct RGB component has a higher count value,
+ *     change the color detection to ULTRA_RAINY_DAY
+ * 11) Set set_params to NO_VISUALIZE_PARAMETERS and use plotImage.py to set appropriate threshold value to ensure that only the line appears and no background noise
+ */
