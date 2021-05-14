@@ -395,7 +395,7 @@ void pid_front(void){
 	left_motor_set_speed(rolling_context.speed + 4*speed_corr);
 
 
-	if (abs(get_middle_diff())<MAX_MID_DIFF){
+	if (abs(get_middle_diff())<MAX_DIFF_MIDDLE){
 
 		rolling_context.counter = rolling_context.counter + 1;
 
