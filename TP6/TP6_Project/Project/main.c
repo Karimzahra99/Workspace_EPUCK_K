@@ -32,106 +32,122 @@ static void serial_start(void)
 			0,
 			0,
 	};
-
-	sdStart(&SD3, &ser_cfg); // UART3.
+	// UART3
+	sdStart(&SD3, &ser_cfg);
 }
 
 int main(void)
 {
-
+	//Initialize hardware abstraction layer
 	halInit();
+
+	//Initialize ChibiOs (RTOS : real time operating system)
 	chSysInit();
+
+	//Initialize mpu : memory protection unit
 	mpu_init();
+
+	//Initialize DAC : digital analog converter (needed to use microphones)
 	dac_start();
 
-	//Initialisation bus
+	//Initialize message bus (needed for proximity thread)
 	messagebus_init(&bus, &bus_lock, &bus_condvar);
 
-	// Init the peripherals.
+	//Clear all LEDs at start up
 	clear_leds();
 	set_body_led(0);
 	set_front_led(0);
 
-	//starts the serial communication / can be removed if communication not needed
+	//starts the serial communication / can be removed if bluetooth not needed
 	serial_start();
+
 	//start the USB communication / can be removed if communication not needed
 	usb_start();
-	//starts the camera
+
+	//Initialize DCMI : digital camera interface
 	dcmi_start();
+
+	//Initialize camera PO8030D
 	po8030_start();
-	//For RGB LEDS
+
+	//Initialize SPI : serial peripheral interface, to use RGB LEDs
 	spi_comm_start();
+
+	//Tuning / demo configuration, to switch between both modes just uncomment / comment "TUNE" in main.h
 
 	/* Tuning parameters for camera :
 	 * rgb_gains : [0 255] for each, default : 94, 64, 93
 	 * contrast : [0 255], default 64
-	 * birghtness : [-128 127], default 0, careful function of po8030.c takes an uint8_t but the format is the following [7]:[6:0] = Sign : Magnitude
-	 * line_index_top : [0 480]
-	 * mode_detect : MAX_ONLY, MEAN_ONLY, MAX_N_MEANS
+	 * Brightness : [-128 127], default 0, careful function of po8030.c takes an uint8_t but the format is the following [7]:[6:0] = Sign : Magnitude
+	 * line_index_top : [0 489], above 413 image becomes noisy
+	 * mode_detect : MAX_ONLY, MEAN_ONLY, MAX_N_MEANS, MAX_N_COUNT, RAINY_DAY, SUPER_RAINY_DAY, ULTRA_RAINY_DAY
 	 * plot_pixels_color : RED_IDX, GREEND_IDX, BLUE_IDX
-	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
+	 * send_params : NO_VISUALIZE_PARAMS, YES_VISUALIZE_PARAMS
 	 */
 
+	//Declaration of camera configuration
 	rgb_gain_t rgb_gains = {94, 80, 93};
 	uint8_t contrast = 64;
 	uint8_t brightness = 0;
-	//tuning uses line_index_top for plot visualization
-	uint16_t line_index_top = 10;
+	uint16_t line_index_top = 10; //tuning uses line_index_top for plot visualization
 	detect_mode_t mode_detect = MAX_ONLY;
 	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
 #ifdef TUNE
-	//chose which color intensity to plot with plot_image.py
-	color_index_t plot_pixels_color = GREEN_IDX;
+	color_index_t plot_pixels_color = GREEN_IDX; //chose which color intensity to plot with plot_image.py
 #else
 	uint16_t line_index_bot = 400;
 #endif
 
-
-	//TUNE is defined in main.h
 #ifdef TUNE
-	//Contrast level, camera line index, detect_mode, image color, visualize parameters such as means, maxs, counts on terminal
-	//Adjust Contrast, Line_Idx and detection mode  in Main.h
 	tuning_config_t tunning = {rgb_gains, contrast, brightness, line_index_top, mode_detect, plot_pixels_color, send_params};
 	tune_image_start(tunning);
 #else
 
-	//inits the motors
+	//Initialize motors
 	motors_init();
 
-	config_t config = {rgb_gains, contrast, brightness, line_index_top, line_index_bot, mode_detect, send_params};
-	read_image_start(config);
-
+	//Initialize IR sensors and calibrate them
 	proximity_start();
 	calibrate_ir();
 
-	//give sime time to find the color if there is one
-	chThdSleepMilliseconds(1000);
+	//waiting time to position the robot on the track after IR calibration
+	chThdSleepMilliseconds(5000);
 
+	//Initialize camera with given configuration
+	config_t config = {rgb_gains, contrast, brightness, line_index_top, line_index_bot, mode_detect, send_params};
+	read_image_start(config);
+
+	//Give some time to the camera to find a color if there is one
+	chThdSleepMilliseconds(500);
+
+	//Initialize speakers
 	mic_start(NULL);
 
+	//Initialize Melody thread to play songs
 	//playMelodyStart();
 
+	//Initialize Moving thread to follow lines of different color and avoid obstacles
 	//moving_start();
 
 #endif
 
 	while (1) {
 		//waits 1 second
-//	chThdSleepMilliseconds(1000);
+		//	chThdSleepMilliseconds(1000);
 
 		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
 		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
-//		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
-//					, get_middle_diff(),get_color(),get_rolling_mode());
+		//		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
+		//					, get_middle_diff(),get_color(),get_rolling_mode());
 
 	}
 }
 
-//Led setting function
+//RGB LEDs setting function
 void set_leds(color_index_t color_index){
-	if (color_index == RED_IDX){
+	if (color_index == RED_IDX){ //red
 		set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
 		set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_OFF);
 		set_rgb_led(LED_RGB_6, LED_ON, LED_OFF, LED_OFF);
@@ -139,7 +155,7 @@ void set_leds(color_index_t color_index){
 		return;
 	}
 	else {
-		if (color_index == GREEN_IDX){
+		if (color_index == GREEN_IDX){ //green
 			set_rgb_led(LED_RGB_2, LED_OFF, LED_ON, LED_OFF);
 			set_rgb_led(LED_RGB_4, LED_OFF, LED_ON, LED_OFF);
 			set_rgb_led(LED_RGB_6, LED_OFF, LED_ON, LED_OFF);
@@ -147,7 +163,7 @@ void set_leds(color_index_t color_index){
 			return;
 		}
 		else {
-			if (color_index == BLUE_IDX){
+			if (color_index == BLUE_IDX){ //blue
 				set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_ON);
 				set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_ON);
 				set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_ON);
@@ -155,7 +171,7 @@ void set_leds(color_index_t color_index){
 				return;
 			}
 			else {
-				if (color_index == YELLOW_IDX){
+				if (color_index == YELLOW_IDX){ //yellow
 					set_rgb_led(LED_RGB_2, LED_ON, LED_ON, LED_OFF);
 					set_rgb_led(LED_RGB_4, LED_ON, LED_ON, LED_OFF);
 					set_rgb_led(LED_RGB_6, LED_ON, LED_ON, LED_OFF);
@@ -163,7 +179,7 @@ void set_leds(color_index_t color_index){
 					return;
 				}
 				else {
-					if (color_index == PURPLE_IDX){
+					if (color_index == PURPLE_IDX){ //purple
 						set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_ON);
 						set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_ON);
 						set_rgb_led(LED_RGB_6, LED_ON, LED_OFF, LED_ON);
@@ -171,7 +187,7 @@ void set_leds(color_index_t color_index){
 						return;
 					}
 					else {
-						if (color_index == NO_LINE){
+						if (color_index == NO_LINE){ //cyan
 							set_rgb_led(LED_RGB_2, LED_OFF, LED_ON, LED_ON);
 							set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_OFF);
 							set_rgb_led(LED_RGB_6, LED_OFF, LED_ON, LED_ON);
@@ -179,7 +195,7 @@ void set_leds(color_index_t color_index){
 							return;
 						}
 						else {
-							if (color_index == FIND_COLOR){
+							if (color_index == FIND_COLOR){ //blue and red
 								set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
 								set_rgb_led(LED_RGB_4, LED_OFF, LED_ON, LED_OFF);
 								set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_ON);
@@ -187,7 +203,7 @@ void set_leds(color_index_t color_index){
 								return;
 							}
 							else {
-								if (color_index == NO_COLOR){
+								if (color_index == NO_COLOR){//LEDs off
 									set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_OFF);
 									set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_OFF);
 									set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_OFF);
@@ -203,15 +219,7 @@ void set_leds(color_index_t color_index){
 	}
 }
 
-//Function for visualization
-void SendUint8ToComputer(uint8_t* data, uint16_t size)
-{
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
-}
-
-//Security function
+//Security function : terminates the function in case of stack overflow
 #define STACK_CHK_GUARD 0xe2dee396
 uintptr_t __stack_chk_guard = STACK_CHK_GUARD;
 
