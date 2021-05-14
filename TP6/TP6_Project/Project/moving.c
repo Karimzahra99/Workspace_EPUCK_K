@@ -357,8 +357,6 @@ void set_speed_with_color(void){
 	{
 	case 0: //NO COLOR
 		set_leds(FIND_COLOR);
-		//not needed
-		//reset_middle_positions();
 		rolling_context.counter = 0;
 		rolling_context.speed = 0;
 		left_motor_set_speed(0);

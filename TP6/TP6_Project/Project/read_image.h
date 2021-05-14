@@ -12,9 +12,9 @@ int16_t get_middle_diff(void);
 int16_t get_middle_top(void);
 int16_t get_middle_bot(void);
 
-void reset_middle_positions(void);
 
 //remove if not needed :
+void reset_middle_positions(void);
 void set_middle_top(uint16_t top_middle);
 void set_middle_bot(uint16_t bot_middle);
 
