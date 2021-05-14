@@ -53,7 +53,7 @@ int main(void)
 	set_front_led(0);
 
 	//starts the serial communication / can be removed if communication not needed
-	serial_start();
+//	serial_start();
 	//start the USB communication / can be removed if communication not needed
 	usb_start();
 	//starts the camera
@@ -101,6 +101,7 @@ int main(void)
 	config_t config = {rgb_gains, contrast, brightness, line_index_top, line_index_bot, mode_detect, send_params};
 	read_image_start(config);
 
+	chThdSleepMilliseconds(3000);
 	proximity_start();
 	calibrate_ir();
 
