@@ -214,32 +214,33 @@ void move_straight_backwards(void){
 	}
 	else {
 		if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500) ) {
-								rolling_context.color = get_color();
-								prepare_pid_front();
-							}
-//			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
-//				if (get_middle_diff() < 0){
-//					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-//						rolling_context.color = get_color();
-//						right_motor_set_speed(0);
-//						left_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
-//					}
-//					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX)) {
-//						prepare_pid_front();
-//					}
-//				}
-//				else {
-//					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-//						rolling_context.color = get_color();
-//						right_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
-//						left_motor_set_speed(0);
-//					}
-//					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) ) {
-//						rolling_context.color = get_color();
-//						prepare_pid_front();
-//					}
-//				}
-//			}
+			rolling_context.color = get_color();
+			prepare_pid_front();
+		}
+		else {
+			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX/2)){
+				if (get_middle_diff() < 0){
+					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+						rolling_context.color = get_color();
+						right_motor_set_speed(0);
+						left_motor_set_speed(cms_to_steps(ADJUST_SPEED));
+					}
+					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX)) {
+						prepare_pid_front();
+					}
+				}
+				else {
+					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+						rolling_context.color = get_color();
+						right_motor_set_speed(cms_to_steps(ADJUST_SPEED));
+						left_motor_set_speed(0);
+					}
+					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX/2) ) {
+						rolling_context.color = get_color();
+						prepare_pid_front();
+					}
+				}
+			}
 			else {
 				if ((get_color() != NO_COLOR) && (get_color() != rolling_context.color)){
 					rolling_context.counter ++;
@@ -259,7 +260,7 @@ void move_straight_backwards(void){
 				right_motor_set_speed(-rolling_context.speed);
 				left_motor_set_speed(-rolling_context.speed);
 			}
-
+		}
 	}
 }
 
@@ -325,7 +326,7 @@ void prepare_pid_front(void){
 
 	motor_set_position(10, 10,  SEARCH_SPEED,  SEARCH_SPEED);
 
-	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
+	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, MEDIUM_SPEED, -MEDIUM_SPEED);
 
 	right_motor_set_speed(0);
 

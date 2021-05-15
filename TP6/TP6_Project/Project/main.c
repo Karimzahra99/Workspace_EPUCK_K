@@ -59,7 +59,7 @@ int main(void)
 	set_front_led(0);
 
 	//starts the serial communication / can be removed if bluetooth not needed
-	serial_start();
+	//serial_start();
 
 	//start the USB communication / can be removed if communication not needed
 	usb_start();
@@ -87,7 +87,7 @@ int main(void)
 	 */
 
 	//Declaration of camera configuration
-	rgb_gain_t rgb_gains = {94, 80, 93};
+	rgb_gain_t rgb_gains = {94, 0, 0};
 	uint8_t contrast = 64;
 	uint8_t brightness = 0;
 	uint16_t line_index_top = 10; //tuning uses line_index_top for plot visualization
