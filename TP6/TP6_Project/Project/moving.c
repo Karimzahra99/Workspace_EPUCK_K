@@ -148,13 +148,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 			avoid_obs();
 			break;
 
-		case SEARCH_LINE :
-			find_next_color();
-			break;
-
-		case LOST :
-			help_me_please();
-			break;
+//		case SEARCH_LINE :
+//			find_next_color();
+//			break;
+//
+//		case LOST :
+//			help_me_please();
+//			break;
 
 		case ROTATE_TILL_COLOR :
 			 rotate_till_color(obstacle_context.obstacle_at_left);
@@ -330,7 +330,7 @@ void pid_front(void){
 
 void avoid_obs(void){
 	if(back_to_track()){
-		motor_set_position(10, 10, 2, 2);
+		motor_set_position(4, 4, 2, 2);
 		rolling_context.mode= ROTATE_TILL_COLOR;
 	}
 	else{
