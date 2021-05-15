@@ -50,7 +50,7 @@
 #define IR_OBS_OFFSET				5
 
 //Color speeds
-#define ADJUST_SPEED 				2
+#define ADJUST_SPEED 				5
 #define OBS_CALIBRATION_SPEED		1
 #define SEARCH_SPEED				2
 #define LOW_SPEED					5.2f
@@ -219,7 +219,6 @@ void move_straight_backwards(void){
 						rolling_context.color = get_color();
 						right_motor_set_speed(0);
 						left_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
-						chThdSleepMilliseconds(200);
 					}
 					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX)) {
 						prepare_pid_front();
@@ -230,7 +229,6 @@ void move_straight_backwards(void){
 						rolling_context.color = get_color();
 						right_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
 						left_motor_set_speed(0);
-						chThdSleepMilliseconds(200);
 					}
 					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) ) {
 						rolling_context.color = get_color();
