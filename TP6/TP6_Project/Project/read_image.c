@@ -742,8 +742,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 //initializes image_context structure and starts threads
 void read_image_start(config_t arg_config){
 	init_visual_context(arg_config);
-	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO+10, ProcessImage, NULL);
-	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO+10, CaptureImage, NULL);
+	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
+	chThdCreateStatic(waCaptureImage, sizeof(waCaptureImage), NORMALPRIO, CaptureImage, NULL);
 }
 
 #endif

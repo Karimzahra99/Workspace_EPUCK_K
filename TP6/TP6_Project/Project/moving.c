@@ -50,7 +50,7 @@
 #define IR_OBS_OFFSET				5
 
 //Color speeds
-#define ADJUST_SPEED 				5
+#define ADJUST_SPEED 				1
 #define OBS_CALIBRATION_SPEED		1
 #define SEARCH_SPEED				2
 #define LOW_SPEED					5.2f
