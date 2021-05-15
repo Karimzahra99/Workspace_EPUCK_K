@@ -148,13 +148,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 			avoid_obs();
 			break;
 
-//		case SEARCH_LINE :
-//			find_next_color();
-//			break;
-//
-//		case LOST :
-//			help_me_please();
-//			break;
+		case SEARCH_LINE :
+			find_next_color();
+			break;
+
+		case LOST :
+			help_me_please();
+			break;
 
 		case ROTATE_TILL_COLOR :
 			 rotate_till_color(obstacle_context.obstacle_at_left);
@@ -431,7 +431,7 @@ void set_speed_with_color(void){
 //		right_motor_set_speed(0);
 //		left_motor_set_pos(0);
 //		right_motor_set_pos(0);
-//		rolling_context.mode = SEARCH_LINE;
+		rolling_context.mode = SEARCH_LINE;
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);
@@ -537,7 +537,6 @@ void rotate_till_color(bool left_obs){
 		else { //ir4
 			left_motor_set_speed(cms_to_steps(1));
 			right_motor_set_speed(cms_to_steps(-1));
-			set_body_led(1);
 		}
 	}
 	//encore un pas stp et pid
