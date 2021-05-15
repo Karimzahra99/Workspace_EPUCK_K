@@ -50,7 +50,7 @@
 #define IR_OBS_OFFSET				5
 
 //Color speeds
-#define ADJUST_SPEED 				0.8f
+#define ADJUST_SPEED 				2
 #define OBS_CALIBRATION_SPEED		1
 #define SEARCH_SPEED				2
 #define LOW_SPEED					5.2f
@@ -213,34 +213,13 @@ void move_straight_backwards(void){
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
-		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
-			//bad start case : start wasn't performed on a straight line
-//			set_leds(NO_LINE);
-//			rolling_context.counter = rolling_context.counter + 1;
-//			if (rolling_context.counter < 200){
-//				left_motor_set_speed(-1);
-//				right_motor_set_speed(-1);
-//			}
-//			if (rolling_context.counter >= 200){
-//				left_motor_set_speed(1);
-//				right_motor_set_speed(1);
-//			}
-//			if (rolling_context.counter == 400){
-//				rolling_context.counter = 0;
-//				left_motor_set_speed(0);
-//				right_motor_set_speed(0);
-//				rolling_context.mode = LOST;
-//
-//			}
-			prepare_pid_front();
-		}
-		else {
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
 				if (get_middle_diff() < 0){
 					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
 						rolling_context.color = get_color();
 						right_motor_set_speed(0);
 						left_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
+						chThdSleepMilliseconds(200);
 					}
 					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX)) {
 						prepare_pid_front();
@@ -251,6 +230,7 @@ void move_straight_backwards(void){
 						rolling_context.color = get_color();
 						right_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
 						left_motor_set_speed(0);
+						chThdSleepMilliseconds(200);
 					}
 					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) ) {
 						rolling_context.color = get_color();
@@ -277,7 +257,7 @@ void move_straight_backwards(void){
 				right_motor_set_speed(-rolling_context.speed);
 				left_motor_set_speed(-rolling_context.speed);
 			}
-		}
+
 	}
 }
 
