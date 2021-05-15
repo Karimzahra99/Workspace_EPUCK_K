@@ -184,6 +184,7 @@ bool check_ir_front(void){
 
 void init_context(void){
 	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+	set_frontwards_bool(false);
 	rolling_context.counter = 0;
 	rolling_context.counter2 = 0;
 	rolling_context.color = get_color();

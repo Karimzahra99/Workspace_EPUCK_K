@@ -568,7 +568,7 @@ void init_visual_context(config_t received_config){
 	image_context.threshold_color = 0;
 
 	image_context.counter = 0;
-	image_context.frontwards = 0;
+	image_context.frontwards = false;
 	image_context.middle_line_top = IMAGE_BUFFER_SIZE/2;; //middle of line
 	image_context.middle_line_bot = IMAGE_BUFFER_SIZE/2;
 
