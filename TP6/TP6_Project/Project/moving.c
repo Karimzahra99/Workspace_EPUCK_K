@@ -424,13 +424,13 @@ void set_speed_with_color(void){
 	{
 	case 0: //NO COLOR
 		set_leds(FIND_COLOR);
-//		reset_middle_positions();
-//		rolling_context.counter = 0;
-//		rolling_context.speed = 0;
-//		left_motor_set_speed(0);
-//		right_motor_set_speed(0);
-//		left_motor_set_pos(0);
-//		right_motor_set_pos(0);
+		reset_middle_positions();
+		rolling_context.counter = 0;
+		rolling_context.speed = 0;
+		left_motor_set_speed(0);
+		right_motor_set_speed(0);
+		left_motor_set_pos(0);
+		right_motor_set_pos(0);
 		rolling_context.mode = SEARCH_LINE;
 		break;
 	case 1: //RED
