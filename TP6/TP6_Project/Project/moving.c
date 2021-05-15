@@ -148,13 +148,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 			avoid_obs();
 			break;
 
-		case SEARCH_LINE :
-			find_next_color();
-			break;
-
-		case LOST :
-			help_me_please();
-			break;
+//		case SEARCH_LINE :
+//			find_next_color();
+//			break;
+//
+//		case LOST :
+//			help_me_please();
+//			break;
 
 		case ROTATE_TILL_COLOR :
 			 rotate_till_color(obstacle_context.obstacle_at_left);
@@ -202,15 +202,15 @@ void move_straight_backwards(void){
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
-		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
-			//bad start case : start wasn't performed on a straight line
-			set_leds(NO_LINE);
-			left_motor_set_speed(0);
-			right_motor_set_speed(0);
-			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
-		}
-		else {
-			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
+//		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
+//			//bad start case : start wasn't performed on a straight line
+//			set_leds(NO_LINE);
+//			left_motor_set_speed(0);
+//			right_motor_set_speed(0);
+//			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
+//		}
+//		else {
+			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
 				if (get_middle_diff()<0){
 					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
 						rolling_context.color = get_color();
@@ -244,7 +244,7 @@ void move_straight_backwards(void){
 			}
 		}
 	}
-}
+//}
 
 // go back a little and rotate 180 degrees
 void prepare_pid_front(void){
