@@ -148,13 +148,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 			avoid_obs();
 			break;
 
-		case SEARCH_LINE :
-			find_next_color();
-			break;
-
-		case LOST :
-			help_me_please();
-			break;
+//		case SEARCH_LINE :
+//			find_next_color();
+//			break;
+//
+//		case LOST :
+//			help_me_please();
+//			break;
 
 		case ROTATE_TILL_COLOR :
 			 rotate_till_color(obstacle_context.obstacle_at_left);
@@ -198,8 +198,8 @@ void init_context(void){
 }
 
 void move_straight_backwards(void){
-	rolling_context.color = get_color();
-	set_speed_with_color();
+//	rolling_context.color = get_color();
+//	set_speed_with_color();
 	if (check_ir_front()){
 		//		rolling_context.color = get_color();
 		rolling_context.mode = OBS_AVOIDANCE;
@@ -222,8 +222,8 @@ void move_straight_backwards(void){
 					left_motor_set_speed(cms_to_steps(0.8));
 				}
 				else {
-					right_motor_set_speed(-rolling_context.speed);
-					left_motor_set_speed(-rolling_context.speed);
+					right_motor_set_speed(-LOW_SPEED);
+					left_motor_set_speed(-LOW_SPEED);
 				}
 				if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
 
@@ -237,8 +237,8 @@ void move_straight_backwards(void){
 					left_motor_set_speed(0);
 				}
 				else {
-					right_motor_set_speed(-rolling_context.speed);
-					left_motor_set_speed(-rolling_context.speed);
+					right_motor_set_speed(-LOW_SPEED);
+					left_motor_set_speed(-LOW_SPEED);
 				}
 				if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
 					prepare_pid_front();
@@ -251,12 +251,11 @@ void move_straight_backwards(void){
 			//set_speed_with_color();
 
 			//rolling backwards
-			right_motor_set_speed(-rolling_context.speed);
-			left_motor_set_speed(-rolling_context.speed);
-		}
+			left_motor_set_speed(-LOW_SPEED);
+			right_motor_set_speed(-LOW_SPEED);
 	}
 }
-//}
+}
 
 // go back a little and rotate 180 degrees
 void prepare_pid_front(void){
