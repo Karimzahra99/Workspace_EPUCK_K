@@ -72,7 +72,7 @@ int main(void)
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {94, 80, 93};
+	rgb_gain_t rgb_gains = {110, 0, 0};
 	uint8_t contrast = 64;
 	uint8_t brightness = 0;
 	//tuning uses line_index_top for plot visualization
@@ -101,6 +101,8 @@ int main(void)
 	config_t config = {rgb_gains, contrast, brightness, line_index_top, line_index_bot, mode_detect, send_params};
 	read_image_start(config);
 
+	chThdSleepMilliseconds(5000);
+
 	proximity_start();
 	calibrate_ir();
 
@@ -119,12 +121,12 @@ int main(void)
 		//waits 1 second
 	chThdSleepMilliseconds(1000);
 
-		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
-		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
-
-		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
-					, get_middle_diff(),get_color(),get_rolling_mode());
+//		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
+//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+//
+//		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
+//					, get_middle_diff(),get_color(),get_rolling_mode());
 
 	}
 }
