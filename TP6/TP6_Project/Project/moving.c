@@ -213,7 +213,7 @@ void move_straight_backwards(void){
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
-		if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) ) {
+		if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500) ) {
 								rolling_context.color = get_color();
 								prepare_pid_front();
 							}
