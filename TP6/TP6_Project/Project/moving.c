@@ -255,7 +255,7 @@ void prepare_pid_front(void){
 
 	rolling_context.mode = PID_FRONTWARDS;
 
-	motor_set_position(8, 8,  MEDIUM_SPEED,  MEDIUM_SPEED);
+	motor_set_position(10, 10,  MEDIUM_SPEED,  MEDIUM_SPEED);
 
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
 
