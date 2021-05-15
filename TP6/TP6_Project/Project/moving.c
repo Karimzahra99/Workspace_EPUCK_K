@@ -38,7 +38,7 @@
 #define MAX_SUM_ERROR_IR 			100
 
 // Straight line correction zone
-#define STRAIGHT_ZONE_WIDTH_MAX		200
+#define STRAIGHT_ZONE_WIDTH_MAX		100
 #define STRAIGHT_ZONE_WIDTH_MIN		15
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
@@ -137,9 +137,6 @@ static THD_FUNCTION(PidRegulator, arg) {
 	while(1){
 		time = chVTGetSystemTime();
 
-		//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-		//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
-
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
 			move_straight_backwards();
@@ -176,18 +173,17 @@ bool check_ir_front(void){
 	int16_t ir_front_right = get_calibrated_prox(SENSOR_IR4);
 
 	if ((ir_front_left > IR_THRESHOLD) || (ir_front_right > IR_THRESHOLD)){
-		set_leds(YELLOW_IDX);
 		if (ir_front_left > ir_front_right){
 			rolling_context.obstacle_context.obstacle_at_left = 1;
 		}
-		//adjust();
+
 		return true;
 	}
 	else return false;
 }
 
 void init_context(void){
-	rolling_context.mode = PID_FRONTWARDS;
+	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	rolling_context.counter = 0;
 	rolling_context.counter2 = 0;
 	rolling_context.color = get_color();
@@ -204,15 +200,30 @@ void init_context(void){
 void move_straight_backwards(void){
 	if (check_ir_front()){
 		rolling_context.color = get_color();
+		set_leds(YELLOW_IDX);
+		//adjust();
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
 		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
 			//bad start case : start wasn't performed on a straight line
 			set_leds(NO_LINE);
-			left_motor_set_speed(0);
-			right_motor_set_speed(0);
-			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
+			rolling_context.counter = rolling_context.counter + 1;
+			if (rolling_context.counter < 200){
+				left_motor_set_speed(1);
+				right_motor_set_speed(1);
+			}
+			if (rolling_context.counter >= 200){
+				left_motor_set_speed(-1);
+				right_motor_set_speed(-1);
+			}
+			if (rolling_context.counter == 400){
+				rolling_context.counter = 0;
+				left_motor_set_speed(0);
+				right_motor_set_speed(0);
+				rolling_context.mode = LOST;
+
+			}
 		}
 		else {
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
@@ -222,8 +233,7 @@ void move_straight_backwards(void){
 						right_motor_set_speed(0);
 						left_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
 					}
-					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < MIN_MIDDLE) || (get_middle_bot() < MIN_MIDDLE) || (get_middle_top() > MAX_MIDDLE) || (get_middle_bot() > MAX_MIDDLE)) {
-						chprintf((BaseSequentialStream *)&SD3, " CALLING PREPARE PID FRONT =%-7d\r\n\n");
+					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX)) {
 						prepare_pid_front();
 					}
 				}
@@ -233,7 +243,7 @@ void move_straight_backwards(void){
 						right_motor_set_speed(cms_to_steps(ADJUST_SPEED ));
 						left_motor_set_speed(0);
 					}
-					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) || (get_middle_top() < MIN_MIDDLE) || (get_middle_bot() < MIN_MIDDLE) || (get_middle_top() > MAX_MIDDLE) || (get_middle_bot() > MAX_MIDDLE)) {
+					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX) ) {
 						rolling_context.color = get_color();
 						prepare_pid_front();
 					}
@@ -268,9 +278,19 @@ void prepare_pid_front(void){
 
 	rolling_context.counter = 0;
 
+	rolling_context.counter2 = 0;
+
 	motor_set_position(10, 10,  SEARCH_SPEED,  SEARCH_SPEED);
 
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
+
+	right_motor_set_speed(0);
+
+	left_motor_set_speed(0);
+
+	set_frontwards_bool(true);
+
+	chThdSleepMilliseconds(1000);
 
 	rolling_context.mode = PID_FRONTWARDS;
 
@@ -280,13 +300,20 @@ void prepare_pid_front(void){
 
 void prepare_to_follow_line(void){
 
-
-
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2,SEARCH_SPEED, -SEARCH_SPEED);
 
+	rolling_context.counter = 0;
+
+	rolling_context.counter2 = 0;
+
 	set_frontwards_bool(false);
+
 	right_motor_set_speed(0);
+
 	left_motor_set_speed(0);
+
+	chThdSleepMilliseconds(1000);
+
 	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 
 }
@@ -307,7 +334,7 @@ void pid_front(void){
 	rolling_context.color = get_color();
 	set_speed_with_color();
 
-	int16_t middle_diff = get_middle_bot()- 320;
+	int16_t middle_diff = get_middle_bot()- 320; //change to top after
 	int16_t speed_corr = pid_regulator(middle_diff);
 	right_motor_set_speed(rolling_context.speed - speed_corr);
 	left_motor_set_speed(rolling_context.speed + speed_corr);
@@ -510,6 +537,9 @@ int step_to_cm (int step) {
 }
 
 void avoid_obs(void){
+	right_motor_set_speed(0);
+	left_motor_set_speed(0);
+
 
 //	int16_t speed_correction=0;
 

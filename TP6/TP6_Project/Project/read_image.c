@@ -436,7 +436,7 @@ void calc_line_middle(uint8_t alternator){
 		}
 		else {
 
-			if (abs(middle_bot_temp - image_context.middle_line_bot) < 200 ){
+			if ((middle_bot_temp == 0) && (image_context.middle_line_bot != 0)){
 				image_context.middle_line_top = middle_top_temp;
 				image_context.middle_line_bot = middle_bot_temp;
 				image_context.counter = 0;
@@ -457,6 +457,7 @@ void calc_line_middle(uint8_t alternator){
 
 void set_frontwards_bool(bool front){
 	image_context.frontwards = front;
+	image_context.counter = 0;
 }
 
 //filters background noise for the bottom line buffer
