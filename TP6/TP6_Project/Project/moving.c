@@ -213,7 +213,7 @@ void move_straight_backwards(void){
 		//			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
 		//		}
 		//		else {
-		chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
+		//chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
 
 		if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
 			if (get_middle_diff()<0){
@@ -222,8 +222,8 @@ void move_straight_backwards(void){
 					left_motor_set_speed(cms_to_steps(0.8));
 				}
 				else {
-					right_motor_set_speed(-LOW_SPEED);
-					left_motor_set_speed(-LOW_SPEED);
+					right_motor_set_speed(-cms_to_steps(LOW_SPEED));
+					left_motor_set_speed(-cms_to_steps(LOW_SPEED));
 				}
 				if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
 
@@ -237,8 +237,8 @@ void move_straight_backwards(void){
 					left_motor_set_speed(0);
 				}
 				else {
-					right_motor_set_speed(-LOW_SPEED);
-					left_motor_set_speed(-LOW_SPEED);
+					right_motor_set_speed(-cms_to_steps(LOW_SPEED));
+					left_motor_set_speed(-cms_to_steps(LOW_SPEED));
 				}
 				if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
 					prepare_pid_front();
@@ -251,8 +251,8 @@ void move_straight_backwards(void){
 			//set_speed_with_color();
 
 			//rolling backwards
-			left_motor_set_speed(-LOW_SPEED);
-			right_motor_set_speed(-LOW_SPEED);
+			left_motor_set_speed(-cms_to_steps(LOW_SPEED));
+			right_motor_set_speed(-cms_to_steps(LOW_SPEED));
 	}
 }
 }
