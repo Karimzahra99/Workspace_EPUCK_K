@@ -198,7 +198,7 @@ void init_context(void){
 }
 
 void move_straight_backwards(void){
-	rolling_context.color = get_color();
+//	rolling_context.color = get_color();
 //	set_speed_with_color();
 	set_leds(RED_IDX);
 	if (check_ir_front()){
