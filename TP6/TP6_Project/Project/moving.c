@@ -148,13 +148,13 @@ static THD_FUNCTION(PidRegulator, arg) {
 			avoid_obs();
 			break;
 
-//		case SEARCH_LINE :
-//			find_next_color();
-//			break;
-//
-//		case LOST :
-//			help_me_please();
-//			break;
+		case SEARCH_LINE :
+			find_next_color();
+			break;
+
+		case LOST :
+			help_me_please();
+			break;
 
 		case ROTATE_TILL_COLOR :
 			 rotate_till_color(obstacle_context.obstacle_at_left);
@@ -178,6 +178,7 @@ bool check_ir_front(void){
 		if (ir_front_left > ir_front_right){
 			obstacle_context.obstacle_at_left = 1;
 		}
+		set_leds(YELLOW_IDX);
 		adjust();
 		return true;
 	}
@@ -334,7 +335,7 @@ void avoid_obs(void){
 	}
 	else{
 		int16_t speed_correction=0;
-		set_leds(YELLOW_IDX);
+
 		if (obstacle_context.obstacle_at_left){
 			speed_correction = pid_regulator_S(obstacle_context.ir2_adjusted);
 			uint32_t ir3_new = get_calibrated_prox(SENSOR_IR3);
@@ -430,7 +431,6 @@ int step_to_cm (int step) {
 }
 
 void set_speed_with_color(void){
-
 	switch (rolling_context.color)
 	{
 	case 0: //NO COLOR
@@ -536,7 +536,7 @@ STATE_t get_rolling_mode (void){
 }
 
 void rotate_till_color(bool left_obs){
-	set_leds(RED_IDX);
+	set_leds(FIND_COLOR);
 	// TURN WHILE YOU DONT SEE LINE AND WHILE THE LINE IS NOT IN MIDDLE
 	if (get_color() == NO_COLOR){
 		if (left_obs){
