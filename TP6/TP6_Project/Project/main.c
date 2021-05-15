@@ -72,13 +72,13 @@ int main(void)
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {94, 80, 93};
+	rgb_gain_t rgb_gains = {94, 0, 3};
 	uint8_t contrast = 64;
 	uint8_t brightness = 0;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
 	detect_mode_t mode_detect = MAX_ONLY;
-	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
+	visualize_mode_t send_params = YES_VISUALIZE_PARAMS;
 #ifdef TUNE
 	//chose which color intensity to plot with plot_image.py
 	color_index_t plot_pixels_color = GREEN_IDX;
@@ -111,20 +111,20 @@ int main(void)
 
 	//playMelodyStart();
 
-	moving_start();
+	//moving_start();
 
 #endif
 
 	while (1) {
 		//waits 1 second
-	chThdSleepMilliseconds(1000);
+	//chThdSleepMilliseconds(1000);
 
 		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
-//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
-
-		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
-					, get_middle_diff(),get_color(),get_rolling_mode());
+		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+//
+//		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
+//					, get_middle_diff(),get_color(),get_rolling_mode());
 
 	}
 }
