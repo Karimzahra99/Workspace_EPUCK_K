@@ -197,55 +197,64 @@ void init_context(void){
 }
 
 void move_straight_backwards(void){
+	rolling_context.color = get_color();
+	set_speed_with_color();
 	if (check_ir_front()){
-		rolling_context.color = get_color();
+		//		rolling_context.color = get_color();
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
-//		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
-//			//bad start case : start wasn't performed on a straight line
-//			set_leds(NO_LINE);
-//			left_motor_set_speed(0);
-//			right_motor_set_speed(0);
-//			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
-//		}
-//		else {
-			chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
+		//		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
+		//			//bad start case : start wasn't performed on a straight line
+		//			set_leds(NO_LINE);
+		//			left_motor_set_speed(0);
+		//			right_motor_set_speed(0);
+		//			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
+		//		}
+		//		else {
+		chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
 
-			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
-				if (get_middle_diff()<0){
-					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-						rolling_context.color = get_color();
-						right_motor_set_speed(0);
-						left_motor_set_speed(cms_to_steps(0.8));
-					}
-					if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
-
-						prepare_pid_front();
-					}
+		if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
+			if (get_middle_diff()<0){
+				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+					right_motor_set_speed(0);
+					left_motor_set_speed(cms_to_steps(0.8));
 				}
 				else {
-					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-						rolling_context.color = get_color();
-						right_motor_set_speed(cms_to_steps(0.8));
-						left_motor_set_speed(0);
-					}
-					if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
-						prepare_pid_front();
-					}
+					right_motor_set_speed(-rolling_context.speed);
+					left_motor_set_speed(-rolling_context.speed);
+				}
+				if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
+
+					prepare_pid_front();
 				}
 			}
 			else {
-				//rolling_context.color = get_color();
-
-				//set_speed_with_color();
-
-				//rolling backwards
-				right_motor_set_speed(-rolling_context.speed);
-				left_motor_set_speed(-rolling_context.speed);
+				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
+					//						rolling_context.color = get_color();
+					right_motor_set_speed(cms_to_steps(0.8));
+					left_motor_set_speed(0);
+				}
+				else {
+					right_motor_set_speed(-rolling_context.speed);
+					left_motor_set_speed(-rolling_context.speed);
+				}
+				if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
+					prepare_pid_front();
+				}
 			}
 		}
+		else {
+			//rolling_context.color = get_color();
+
+			//set_speed_with_color();
+
+			//rolling backwards
+			right_motor_set_speed(-rolling_context.speed);
+			left_motor_set_speed(-rolling_context.speed);
+		}
 	}
+}
 //}
 
 // go back a little and rotate 180 degrees
