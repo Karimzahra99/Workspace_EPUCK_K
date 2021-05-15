@@ -200,11 +200,6 @@ void init_context(void){
 
 void move_straight_backwards(void){
 
-	chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d D =%-7d C =%-7d Mode =%-7d \r\n\n",
-						get_middle_top(),get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
-
-	chprintf((BaseSequentialStream *)&SD3, "Counter1 =%-7d Counter2 =%-7d\r\n\n",
-						rolling_context.counter,rolling_context.counter2);
 
 	if (check_ir_front()){
 		rolling_context.color = get_color();
