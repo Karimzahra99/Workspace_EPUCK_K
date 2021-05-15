@@ -10,33 +10,25 @@
 #include <selector.h>
 
 
-//Length of a line of pixels from the camera and tolerance for counts of the number of pixels equal to the maximum intensity
+//Longeur d'une ligne de pixels de la camera et tolerance pour les comptages du nombre de pixels egaux a l'intensite maximal
 #define IMAGE_BUFFER_SIZE			640
 #define TOLERANCE					3
 
-//To alternate when processing the two lines of the camera
+//Pour alterner lors du traitement des deux lignes de la camera
 #define TOP							0
 #define BOTTOM						1
 
 //Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
 #define MIN_COUNT					5
 
-//The minimum number of pixels and holes (null intensity) to validate a line detection for a certain color
+//Pour trouver le milieu de la ligne, condition sur largeur de ligne et "trous" dans une ligne
 #define MIN_LINE_WIDTH				70
 #define MIN_HOLE_WIDTH				20
 
-//Shift to put the bits of the colors back in order when extracting the RGB565 format
+//Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
 #define SHIFT_2						2
 #define SHIFT_3						3
 #define SHIFT_6						6
-
-//Thresholds use for color detection in rainy_day, super_rainy_day and ultra_rainy_day
-#define MAX_INTENSITY_THRESHOLD 	29
-#define MIN_COLOR_DIFF				2
-
-//Avoid middle position to change drastically due to rolling oscillations
-#define COUNTER_MAX					10
-#define MAX_DIFF					200
 
 typedef struct {
 
@@ -77,7 +69,8 @@ typedef struct {
 	uint8_t image_bot[IMAGE_BUFFER_SIZE];
 	int16_t middle_line_top;
 	int16_t middle_line_bot;
-	uint16_t counter;
+	uint8_t counter;
+	bool frontwards;
 #endif
 
 } VISUAL_CONTEXT_t;
@@ -108,9 +101,6 @@ uint8_t get_color(void);
 
 //calls the appropriate color detection function
 void find_color(void);
-
-//Function used to send image to computer to use plotImage.py for visualization
-void SendUint8ToComputer(uint8_t* data, uint16_t size);
 
 #ifdef TUNE
 
@@ -438,20 +428,35 @@ void calc_line_middle(uint8_t alternator){
 	}
 	else {
 		middle_bot_temp = calc_middle(image_context.image_bot);
-		if (abs(middle_bot_temp - image_context.middle_line_bot) < MAX_DIFF ){
+
+		if (image_context.frontwards == 1){
 			image_context.middle_line_top = middle_top_temp;
 			image_context.middle_line_bot = middle_bot_temp;
 			image_context.counter = 0;
 		}
 		else {
-			image_context.counter = image_context.counter + 1;
-			if (image_context.counter > COUNTER_MAX){
+
+			if (abs(middle_bot_temp - image_context.middle_line_bot) < 200 ){
 				image_context.middle_line_top = middle_top_temp;
 				image_context.middle_line_bot = middle_bot_temp;
 				image_context.counter = 0;
 			}
+			else {
+				image_context.counter = image_context.counter + 1;
+				if (image_context.counter > 10){
+					image_context.middle_line_top = middle_top_temp;
+					image_context.middle_line_bot = middle_bot_temp;
+					image_context.counter = 0;
+				}
+			}
 		}
+
+
 	}
+}
+
+void set_frontwards_bool(bool front){
+	image_context.frontwards = front;
 }
 
 //filters background noise for the bottom line buffer
@@ -469,6 +474,11 @@ void camera_init_top(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
+	//Deactivate auto-white balance
+//		po8030_set_awb(0);
+//		po8030_set_brightness(image_context.brightness);
+//		po8030_set_contrast(image_context.contrast);
+//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //initialization of camera and dcmi for bot line lecture
@@ -478,6 +488,11 @@ void camera_init_bot(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
+	//Deactivate auto-white balance
+//		po8030_set_awb(0);
+//		po8030_set_brightness(image_context.brightness);
+//		po8030_set_contrast(image_context.contrast);
+//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //middle position difference between top and bottom lines
@@ -551,10 +566,10 @@ void init_visual_context(config_t received_config){
 	image_context.color_index = NO_COLOR;
 	image_context.threshold_color = 0;
 
+	image_context.counter = 0;
+	image_context.frontwards = 0;
 	image_context.middle_line_top = IMAGE_BUFFER_SIZE/2;; //middle of line
 	image_context.middle_line_bot = IMAGE_BUFFER_SIZE/2;
-
-	image_context.counter = 0;
 
 }
 
@@ -713,9 +728,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 		// To visualize one image on computer with plotImage.py
 		if(send_to_computer){
 			//sends to the computer the image
-			if (image_context.color_index == RED_IDX) SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
-			if (image_context.color_index == GREEN_IDX) SendUint8ToComputer(image_context.image_green, IMAGE_BUFFER_SIZE);
-			if (image_context.color_index == BLUE_IDX) SendUint8ToComputer(image_context.image_blue, IMAGE_BUFFER_SIZE);
+			SendUint8ToComputer(image_context.image_red, IMAGE_BUFFER_SIZE);
 		}
 
 		//invert the bool
@@ -925,6 +938,60 @@ uint8_t get_color(void){
 //List of color detection functions :
 
 
+//max and mean conditions
+void find_color_max_n_mean(void){
+
+	if(image_context.send_data){
+		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
+				image_context.max_red, image_context.max_green, image_context.max_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
+				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
+
+		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
+				image_context.count_red, image_context.count_green, image_context.count_blue);
+	}
+
+	if ((((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) || ((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue))) && (image_context.count_red > MIN_COUNT)){
+#ifndef TUNE
+		image_context.color_index = RED_IDX;
+#endif
+#ifdef TUNE
+		set_leds(RED_IDX);
+#endif
+	}
+	else{
+
+		if ((((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) || ((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue))) && (image_context.count_green > MIN_COUNT)){
+#ifndef TUNE
+			image_context.color_index = GREEN_IDX;
+#endif
+#ifdef TUNE
+			set_leds(GREEN_IDX);
+#endif
+		}
+
+		else {
+			if ((((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) || ((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green))) && (image_context.count_blue > MIN_COUNT)){
+#ifndef TUNE
+				image_context.color_index = BLUE_IDX;
+#endif
+#ifdef TUNE
+				set_leds(BLUE_IDX);
+#endif
+			}
+			else {
+#ifndef TUNE
+				image_context.color_index = NO_COLOR;
+#endif
+#ifdef TUNE
+				set_leds(NO_COLOR);
+#endif
+			}
+		}
+	}
+}
+
 //max condition
 void find_color_max(void){
 
@@ -939,9 +1006,7 @@ void find_color_max(void){
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 
-	if (((image_context.max_red > image_context.max_green) &&
-		(image_context.max_red > image_context.max_blue)) &&
-		(image_context.count_red > MIN_COUNT)){
+	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 		image_context.color_index = RED_IDX;
 #endif
@@ -950,9 +1015,7 @@ void find_color_max(void){
 #endif
 	}
 	else{
-		if (((image_context.max_green > image_context.max_red) &&
-			(image_context.max_green > image_context.max_blue)) &&
-			(image_context.count_green > MIN_COUNT)){
+		if (((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 			image_context.color_index = GREEN_IDX;
 #endif
@@ -961,9 +1024,7 @@ void find_color_max(void){
 #endif
 		}
 		else {
-			if (((image_context.max_blue > image_context.max_red) &&
-				(image_context.max_blue > image_context.max_green)) &&
-				(image_context.count_blue > MIN_COUNT)){
+			if (((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 				image_context.color_index = BLUE_IDX;
 #endif
@@ -997,9 +1058,7 @@ void find_color_mean(void){
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 
-	if (((image_context.mean_red > image_context.mean_green) &&
-		(image_context.mean_red > image_context.mean_blue)) &&
-		(image_context.count_red > MIN_COUNT)){
+	if (((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 		image_context.color_index = RED_IDX;
 #endif
@@ -1008,9 +1067,7 @@ void find_color_mean(void){
 #endif
 	}
 	else{
-		if (((image_context.mean_green > image_context.mean_red) &&
-			(image_context.mean_green > image_context.mean_blue)) &&
-			(image_context.count_green > MIN_COUNT)){
+		if (((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 			image_context.color_index = GREEN_IDX;
 #endif
@@ -1019,69 +1076,7 @@ void find_color_mean(void){
 #endif
 		}
 		else {
-			if (((image_context.mean_blue > image_context.mean_red) &&
-				(image_context.mean_blue > image_context.mean_green)) &&
-				(image_context.count_blue > MIN_COUNT)){
-#ifndef TUNE
-				image_context.color_index = BLUE_IDX;
-#endif
-#ifdef TUNE
-				set_leds(BLUE_IDX);
-#endif
-			}
-			else {
-#ifndef TUNE
-				image_context.color_index = NO_COLOR;
-#endif
-#ifdef TUNE
-				set_leds(NO_COLOR);
-#endif
-			}
-		}
-	}
-}
-
-//max and mean conditions
-void find_color_max_n_mean(void){
-
-	if(image_context.send_data){
-		chprintf((BaseSequentialStream *)&SD3, "R Max =%-7d G Max =%-7d B Max =%-7d \r\n\n",
-				image_context.max_red, image_context.max_green, image_context.max_blue);
-
-		chprintf((BaseSequentialStream *)&SD3, "R Mean =%-7d G Mean =%-7d B Mean =%-7d \r\n\n",
-				image_context.mean_red, image_context.mean_green, image_context.mean_blue);
-
-		chprintf((BaseSequentialStream *)&SD3, "R Count =%-7d G Count =%-7d B Count =%-7d \r\n\n",
-				image_context.count_red, image_context.count_green, image_context.count_blue);
-	}
-
-	if ((((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) ||
-		((image_context.mean_red > image_context.mean_green) && (image_context.mean_red > image_context.mean_blue))) &&
-		(image_context.count_red > MIN_COUNT)){
-#ifndef TUNE
-		image_context.color_index = RED_IDX;
-#endif
-#ifdef TUNE
-		set_leds(RED_IDX);
-#endif
-	}
-	else{
-
-		if ((((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) ||
-			((image_context.mean_green > image_context.mean_red) && (image_context.mean_green > image_context.mean_blue))) &&
-			(image_context.count_green > MIN_COUNT)){
-#ifndef TUNE
-			image_context.color_index = GREEN_IDX;
-#endif
-#ifdef TUNE
-			set_leds(GREEN_IDX);
-#endif
-		}
-
-		else {
-			if ((((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) ||
-				((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green))) &&
-				(image_context.count_blue > MIN_COUNT)){
+			if (((image_context.mean_blue > image_context.mean_red) && (image_context.mean_blue > image_context.mean_green)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 				image_context.color_index = BLUE_IDX;
 #endif
@@ -1115,11 +1110,7 @@ void find_color_max_n_count(void){
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 
-	if (((image_context.max_red > image_context.max_green) &&
-			(image_context.max_red > image_context.max_blue)) &&
-			(image_context.count_red > MIN_COUNT) &&
-			(image_context.count_red > image_context.count_green) &&
-			(image_context.count_red > image_context.count_blue)){
+	if (((image_context.max_red > image_context.max_green) && (image_context.max_red > image_context.max_blue)) && (image_context.count_red > MIN_COUNT)  && (image_context.count_red > image_context.count_green)  && (image_context.count_red > image_context.count_blue)){
 #ifndef TUNE
 		image_context.color_index = RED_IDX;
 #endif
@@ -1128,11 +1119,7 @@ void find_color_max_n_count(void){
 #endif
 	}
 	else{
-		if (((image_context.max_green > image_context.max_red) &&
-			(image_context.max_green > image_context.max_blue)) &&
-			(image_context.count_green > MIN_COUNT) &&
-			(image_context.count_green > image_context.count_red) &&
-			(image_context.count_green > image_context.count_blue)){
+		if (((image_context.max_green > image_context.max_red) && (image_context.max_green > image_context.max_blue)) && (image_context.count_green > MIN_COUNT)  && (image_context.count_green > image_context.count_red)  && (image_context.count_green > image_context.count_blue)){
 #ifndef TUNE
 			image_context.color_index = GREEN_IDX;
 #endif
@@ -1141,11 +1128,7 @@ void find_color_max_n_count(void){
 #endif
 		}
 		else {
-			if (((image_context.max_blue > image_context.max_red) &&
-				(image_context.max_blue > image_context.max_green)) &&
-				(image_context.count_blue > MIN_COUNT) &&
-				(image_context.count_blue > image_context.count_red) &&
-				(image_context.count_blue > image_context.count_green)){
+			if (((image_context.max_blue > image_context.max_red) && (image_context.max_blue > image_context.max_green)) && (image_context.count_blue > MIN_COUNT)  && (image_context.count_blue > image_context.count_red)  && (image_context.count_blue > image_context.count_green)){
 #ifndef TUNE
 				image_context.color_index = BLUE_IDX;
 #endif
@@ -1179,9 +1162,7 @@ void find_color_rainy_day(void){
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 
-	if ((image_context.max_red < MAX_INTENSITY_THRESHOLD) &&
-		(image_context.max_green < MAX_INTENSITY_THRESHOLD) &&
-		(image_context.max_blue < MAX_INTENSITY_THRESHOLD)){
+	if ((image_context.max_red < 29) && (image_context.max_green < 29) && (image_context.max_blue < 29)){
 #ifndef TUNE
 		image_context.color_index = NO_COLOR;
 #endif
@@ -1195,8 +1176,7 @@ void find_color_rainy_day(void){
 
 	else {
 		//red case
-		if ((image_context.max_red - image_context.max_green > MIN_COLOR_DIFF) &&
-			(image_context.max_red - image_context.max_blue > MIN_COLOR_DIFF)){
+		if ((image_context.max_red - image_context.max_green > 2) && (image_context.max_red - image_context.max_blue > 2)){
 #ifndef TUNE
 			image_context.color_index = RED_IDX;
 #endif
@@ -1206,10 +1186,8 @@ void find_color_rainy_day(void){
 			return;
 		}
 		else {
-			if ((image_context.max_red - image_context.max_green < MIN_COLOR_DIFF) &&
-				(image_context.max_red - image_context.max_blue > MIN_COLOR_DIFF)){
-				if ((image_context.mean_red > image_context.mean_green) &&
-					(image_context.count_red > MIN_COUNT)){
+			if ((image_context.max_red - image_context.max_green < 2) && (image_context.max_red - image_context.max_blue > 2)){
+				if ((image_context.mean_red > image_context.mean_green) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = RED_IDX;
 #endif
@@ -1219,8 +1197,7 @@ void find_color_rainy_day(void){
 					return;
 				}
 				else {
-					if ((image_context.mean_red < image_context.mean_green) &&
-						(image_context.count_green > MIN_COUNT)){
+					if ((image_context.mean_red < image_context.mean_green) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = GREEN_IDX;
 #endif
@@ -1232,10 +1209,8 @@ void find_color_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_red - image_context.max_blue < MIN_COLOR_DIFF) &&
-					(image_context.max_red - image_context.max_green > MIN_COLOR_DIFF)){
-					if ((image_context.mean_red > image_context.mean_blue) &&
-						(image_context.count_red > MIN_COUNT)){
+				if ((image_context.max_red - image_context.max_blue < 2) && (image_context.max_red - image_context.max_green > 2)){
+					if ((image_context.mean_red > image_context.mean_blue) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1245,8 +1220,7 @@ void find_color_rainy_day(void){
 						return;
 					}
 					else {
-						if ((image_context.mean_blue > image_context.mean_red) &&
-							(image_context.count_blue > MIN_COUNT)){
+						if ((image_context.mean_blue > image_context.mean_red) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = BLUE_IDX;
 #endif
@@ -1261,8 +1235,7 @@ void find_color_rainy_day(void){
 		}
 
 		//green case
-		if ((image_context.max_green - image_context.max_red > MIN_COLOR_DIFF) &&
-			(image_context.max_green - image_context.max_blue > MIN_COLOR_DIFF)){
+		if ((image_context.max_green - image_context.max_red > 2) && (image_context.max_green - image_context.max_blue > 2)){
 #ifndef TUNE
 			image_context.color_index = GREEN_IDX;
 #endif
@@ -1272,10 +1245,8 @@ void find_color_rainy_day(void){
 			return;
 		}
 		else {
-			if ((image_context.max_green - image_context.max_red < MIN_COLOR_DIFF) &&
-				(image_context.max_green - image_context.max_blue > MIN_COLOR_DIFF)){
-				if ((image_context.mean_green > image_context.mean_red) &&
-					(image_context.count_green > MIN_COUNT)){
+			if ((image_context.max_green - image_context.max_red < 2) && (image_context.max_green - image_context.max_blue > 2)){
+				if ((image_context.mean_green > image_context.mean_red) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = GREEN_IDX;
 #endif
@@ -1285,8 +1256,7 @@ void find_color_rainy_day(void){
 					return;
 				}
 				else {
-					if ((image_context.mean_green < image_context.mean_red) &&
-						(image_context.count_red > MIN_COUNT)){
+					if ((image_context.mean_green < image_context.mean_red) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1298,10 +1268,8 @@ void find_color_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_green - image_context.max_blue < MIN_COLOR_DIFF) &&
-					(image_context.max_green - image_context.max_red > MIN_COLOR_DIFF)){
-					if ((image_context.mean_green > image_context.mean_blue) &&
-						(image_context.count_green > MIN_COUNT)){
+				if ((image_context.max_green - image_context.max_blue < 2) && (image_context.max_green - image_context.max_red > 2)){
+					if ((image_context.mean_green > image_context.mean_blue) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = GREEN_IDX;
 #endif
@@ -1311,8 +1279,7 @@ void find_color_rainy_day(void){
 						return;
 					}
 					else {
-						if ((image_context.mean_blue > image_context.mean_green) &&
-							(image_context.count_blue > MIN_COUNT)){
+						if ((image_context.mean_blue > image_context.mean_green) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = BLUE_IDX;
 #endif
@@ -1326,8 +1293,7 @@ void find_color_rainy_day(void){
 			}
 		}
 		//blue case
-		if ((image_context.max_blue - image_context.max_red > MIN_COLOR_DIFF) &&
-			(image_context.max_blue - image_context.max_green > MIN_COLOR_DIFF)){
+		if ((image_context.max_blue - image_context.max_red > 2) && (image_context.max_blue - image_context.max_green > 2)){
 #ifndef TUNE
 			image_context.color_index = BLUE_IDX;
 #endif
@@ -1338,10 +1304,8 @@ void find_color_rainy_day(void){
 		}
 
 		else {
-			if ((image_context.max_blue - image_context.max_red < MIN_COLOR_DIFF) &&
-				(image_context.max_blue - image_context.max_green > MIN_COLOR_DIFF)){
-				if ((image_context.mean_blue > image_context.mean_red) &&
-					(image_context.count_blue > MIN_COUNT)){
+			if ((image_context.max_blue - image_context.max_red < 2) && (image_context.max_blue - image_context.max_green > 2)){
+				if ((image_context.mean_blue > image_context.mean_red) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = BLUE_IDX;
 #endif
@@ -1351,8 +1315,7 @@ void find_color_rainy_day(void){
 					return;
 				}
 				else {
-					if ((image_context.mean_blue < image_context.mean_red) &&
-						(image_context.count_red > MIN_COUNT)){
+					if ((image_context.mean_blue < image_context.mean_red) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1364,10 +1327,8 @@ void find_color_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_blue - image_context.max_green < MIN_COLOR_DIFF) &&
-					(image_context.max_blue - image_context.max_red > MIN_COLOR_DIFF)){
-					if ((image_context.mean_blue > image_context.mean_green) &&
-						(image_context.count_blue > MIN_COUNT)){
+				if ((image_context.max_blue - image_context.max_green < 2) && (image_context.max_blue - image_context.max_red > 2)){
+					if ((image_context.mean_blue > image_context.mean_green) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = BLUE_IDX;
 #endif
@@ -1377,8 +1338,7 @@ void find_color_rainy_day(void){
 						return;
 					}
 					else {
-						if ((image_context.mean_green > image_context.mean_blue) &&
-							(image_context.count_green > MIN_COUNT)){
+						if ((image_context.mean_green > image_context.mean_blue) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = GREEN_IDX;
 #endif
@@ -1408,9 +1368,7 @@ void find_color_super_rainy_day(void){
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 
-	if ((image_context.max_red < MAX_INTENSITY_THRESHOLD) &&
-		(image_context.max_green < MAX_INTENSITY_THRESHOLD) &&
-		(image_context.max_blue < MAX_INTENSITY_THRESHOLD)){
+	if ((image_context.max_red < 29) && (image_context.max_green < 29) && (image_context.max_blue < 29)){
 #ifndef TUNE
 		image_context.color_index = NO_COLOR;
 #endif
@@ -1423,8 +1381,7 @@ void find_color_super_rainy_day(void){
 
 	else {
 		//red case
-		if ((image_context.max_red - image_context.max_green > MIN_COLOR_DIFF) &&
-			(image_context.max_red - image_context.max_blue > MIN_COLOR_DIFF)){
+		if ((image_context.max_red - image_context.max_green > 2) && (image_context.max_red - image_context.max_blue > 2)){
 #ifndef TUNE
 			image_context.color_index = RED_IDX;
 #endif
@@ -1434,11 +1391,8 @@ void find_color_super_rainy_day(void){
 			return;
 		}
 		else {
-			if ((image_context.max_red - image_context.max_green < MIN_COLOR_DIFF) &&
-				(image_context.max_red - image_context.max_blue > MIN_COLOR_DIFF)){
-				if (((image_context.mean_red > image_context.mean_green) ||
-					(image_context.count_red > image_context.count_green)) &&
-					(image_context.count_red > MIN_COUNT)){
+			if ((image_context.max_red - image_context.max_green < 2) && (image_context.max_red - image_context.max_blue > 2)){
+				if (((image_context.mean_red > image_context.mean_green) || (image_context.count_red > image_context.count_green)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = RED_IDX;
 #endif
@@ -1448,9 +1402,7 @@ void find_color_super_rainy_day(void){
 					return;
 				}
 				else {
-					if (((image_context.mean_red < image_context.mean_green) ||
-						(image_context.count_red < image_context.count_green)) &&
-						(image_context.count_green > MIN_COUNT)){
+					if (((image_context.mean_red < image_context.mean_green) || (image_context.count_red < image_context.count_green)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = GREEN_IDX;
 #endif
@@ -1462,11 +1414,8 @@ void find_color_super_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_red - image_context.max_blue < MIN_COLOR_DIFF) &&
-					(image_context.max_red - image_context.max_green > MIN_COLOR_DIFF)){
-					if (((image_context.mean_red > image_context.mean_blue) ||
-						(image_context.count_red > image_context.count_blue)) &&
-						(image_context.count_red > MIN_COUNT)){
+				if ((image_context.max_red - image_context.max_blue < 2) && (image_context.max_red - image_context.max_green > 2)){
+					if (((image_context.mean_red > image_context.mean_blue) || (image_context.count_red > image_context.count_blue)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1476,9 +1425,7 @@ void find_color_super_rainy_day(void){
 						return;
 					}
 					else {
-						if (((image_context.mean_red < image_context.mean_blue) ||
-							(image_context.count_red < image_context.count_blue)) &&
-							(image_context.count_blue > MIN_COUNT)){
+						if (((image_context.mean_red < image_context.mean_blue) || (image_context.count_red < image_context.count_blue)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = BLUE_IDX;
 #endif
@@ -1493,8 +1440,7 @@ void find_color_super_rainy_day(void){
 		}
 
 		//green case
-		if ((image_context.max_green - image_context.max_red > MIN_COLOR_DIFF) &&
-			(image_context.max_green - image_context.max_blue > MIN_COLOR_DIFF)){
+		if ((image_context.max_green - image_context.max_red > 2) && (image_context.max_green - image_context.max_blue > 2)){
 #ifndef TUNE
 			image_context.color_index = GREEN_IDX;
 #endif
@@ -1504,11 +1450,8 @@ void find_color_super_rainy_day(void){
 			return;
 		}
 		else {
-			if ((image_context.max_green - image_context.max_red < MIN_COLOR_DIFF) &&
-				(image_context.max_green - image_context.max_blue > MIN_COLOR_DIFF)){
-				if (((image_context.mean_green > image_context.mean_red) ||
-					(image_context.count_green > image_context.count_red)) &&
-					(image_context.count_green > MIN_COUNT)){
+			if ((image_context.max_green - image_context.max_red < 2) && (image_context.max_green - image_context.max_blue > 2)){
+				if (((image_context.mean_green > image_context.mean_red) || (image_context.count_green > image_context.count_red)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = GREEN_IDX;
 #endif
@@ -1518,9 +1461,7 @@ void find_color_super_rainy_day(void){
 					return;
 				}
 				else {
-					if (((image_context.mean_green < image_context.mean_red) ||
-						(image_context.count_green < image_context.count_red)) &&
-						(image_context.count_red > MIN_COUNT)){
+					if (((image_context.mean_green < image_context.mean_red) || (image_context.count_green < image_context.count_red)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1532,11 +1473,8 @@ void find_color_super_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_green - image_context.max_blue < MIN_COLOR_DIFF) &&
-					(image_context.max_green - image_context.max_red > MIN_COLOR_DIFF)){
-					if (((image_context.mean_green > image_context.mean_blue) ||
-						(image_context.count_green > image_context.count_blue)) &&
-						(image_context.count_green > MIN_COUNT)){
+				if ((image_context.max_green - image_context.max_blue < 2) && (image_context.max_green - image_context.max_red > 2)){
+					if (((image_context.mean_green > image_context.mean_blue) || (image_context.count_green > image_context.count_blue)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = GREEN_IDX;
 #endif
@@ -1546,9 +1484,7 @@ void find_color_super_rainy_day(void){
 						return;
 					}
 					else {
-						if (((image_context.mean_green < image_context.mean_blue) ||
-							(image_context.count_green < image_context.count_blue)) &&
-							(image_context.count_blue > MIN_COUNT)){
+						if (((image_context.mean_green < image_context.mean_blue) || (image_context.count_green < image_context.count_blue)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = BLUE_IDX;
 #endif
@@ -1562,8 +1498,7 @@ void find_color_super_rainy_day(void){
 			}
 		}
 		//blue case
-		if ((image_context.max_blue - image_context.max_red > MIN_COLOR_DIFF) &&
-			(image_context.max_blue - image_context.max_green > MIN_COLOR_DIFF)){
+		if ((image_context.max_blue - image_context.max_red > 2) && (image_context.max_blue - image_context.max_green > 2)){
 #ifndef TUNE
 			image_context.color_index = BLUE_IDX;
 #endif
@@ -1574,11 +1509,8 @@ void find_color_super_rainy_day(void){
 		}
 
 		else {
-			if ((image_context.max_blue - image_context.max_red < MIN_COLOR_DIFF) &&
-				(image_context.max_blue - image_context.max_green > MIN_COLOR_DIFF)){
-				if (((image_context.mean_blue > image_context.mean_red) ||
-					(image_context.count_blue > image_context.count_red)) &&
-					(image_context.count_blue > MIN_COUNT)){
+			if ((image_context.max_blue - image_context.max_red < 2) && (image_context.max_blue - image_context.max_green > 2)){
+				if (((image_context.mean_blue > image_context.mean_red) || (image_context.count_blue > image_context.count_red)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = BLUE_IDX;
 #endif
@@ -1588,9 +1520,7 @@ void find_color_super_rainy_day(void){
 					return;
 				}
 				else {
-					if (((image_context.mean_blue < image_context.mean_red) ||
-						(image_context.count_blue < image_context.count_red)) &&
-						(image_context.count_red > MIN_COUNT)){
+					if (((image_context.mean_blue < image_context.mean_red) || (image_context.count_blue < image_context.count_red)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1602,11 +1532,8 @@ void find_color_super_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_blue - image_context.max_green < MIN_COLOR_DIFF) &&
-					(image_context.max_blue - image_context.max_red > MIN_COLOR_DIFF)){
-					if (((image_context.mean_blue > image_context.mean_green) ||
-						(image_context.count_blue > image_context.count_green)) &&
-						(image_context.count_blue > MIN_COUNT)){
+				if ((image_context.max_blue - image_context.max_green < 2) && (image_context.max_blue - image_context.max_red > 2)){
+					if (((image_context.mean_blue > image_context.mean_green) || (image_context.count_blue > image_context.count_green)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = BLUE_IDX;
 #endif
@@ -1616,9 +1543,7 @@ void find_color_super_rainy_day(void){
 						return;
 					}
 					else {
-						if (((image_context.mean_blue < image_context.mean_green) ||
-							(image_context.count_blue < image_context.count_green)) &&
-							(image_context.count_green > MIN_COUNT)){
+						if (((image_context.mean_blue < image_context.mean_green) || (image_context.count_blue < image_context.count_green)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = GREEN_IDX;
 #endif
@@ -1649,9 +1574,7 @@ void find_color_ultra_rainy_day(void){
 				image_context.count_red, image_context.count_green, image_context.count_blue);
 	}
 
-	if ((image_context.max_red < MAX_INTENSITY_THRESHOLD) &&
-		(image_context.max_green < MAX_INTENSITY_THRESHOLD) &&
-		(image_context.max_blue < MAX_INTENSITY_THRESHOLD)){
+	if ((image_context.max_red < 29) && (image_context.max_green < 29) && (image_context.max_blue < 29)){
 #ifndef TUNE
 		image_context.color_index = NO_COLOR;
 #endif
@@ -1664,8 +1587,7 @@ void find_color_ultra_rainy_day(void){
 
 	else {
 		//red case
-		if ((image_context.max_red - image_context.max_green > MIN_COLOR_DIFF) &&
-			(image_context.max_red - image_context.max_blue > MIN_COLOR_DIFF)){
+		if ((image_context.max_red - image_context.max_green > 2) && (image_context.max_red - image_context.max_blue > 2)){
 #ifndef TUNE
 			image_context.color_index = RED_IDX;
 #endif
@@ -1675,11 +1597,8 @@ void find_color_ultra_rainy_day(void){
 			return;
 		}
 		else {
-			if ((image_context.max_red - image_context.max_green < MIN_COLOR_DIFF) &&
-				(image_context.max_red - image_context.max_blue > MIN_COLOR_DIFF)){
-				if (((image_context.mean_red > image_context.mean_green) &&
-					(image_context.count_red > image_context.count_green)) &&
-					(image_context.count_red > MIN_COUNT)){
+			if ((image_context.max_red - image_context.max_green < 2) && (image_context.max_red - image_context.max_blue > 2)){
+				if (((image_context.mean_red > image_context.mean_green) && (image_context.count_red > image_context.count_green)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = RED_IDX;
 #endif
@@ -1689,9 +1608,7 @@ void find_color_ultra_rainy_day(void){
 					return;
 				}
 				else {
-					if (((image_context.mean_red < image_context.mean_green) &&
-						(image_context.count_red < image_context.count_green)) &&
-						(image_context.count_green > MIN_COUNT)){
+					if (((image_context.mean_red < image_context.mean_green) && (image_context.count_red < image_context.count_green)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = GREEN_IDX;
 #endif
@@ -1703,11 +1620,8 @@ void find_color_ultra_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_red - image_context.max_blue < MIN_COLOR_DIFF) &&
-					(image_context.max_red - image_context.max_green > MIN_COLOR_DIFF)){
-					if (((image_context.mean_red > image_context.mean_blue) &&
-						(image_context.count_red > image_context.count_blue)) &&
-						(image_context.count_red > MIN_COUNT)){
+				if ((image_context.max_red - image_context.max_blue < 2) && (image_context.max_red - image_context.max_green > 2)){
+					if (((image_context.mean_red > image_context.mean_blue) && (image_context.count_red > image_context.count_blue)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1717,9 +1631,7 @@ void find_color_ultra_rainy_day(void){
 						return;
 					}
 					else {
-						if (((image_context.mean_red < image_context.mean_blue) &&
-							(image_context.count_red < image_context.count_blue)) &&
-							(image_context.count_blue > MIN_COUNT)){
+						if (((image_context.mean_red < image_context.mean_blue) && (image_context.count_red < image_context.count_blue)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = BLUE_IDX;
 #endif
@@ -1734,8 +1646,7 @@ void find_color_ultra_rainy_day(void){
 		}
 
 		//green case
-		if ((image_context.max_green - image_context.max_red > MIN_COLOR_DIFF) &&
-			(image_context.max_green - image_context.max_blue > MIN_COLOR_DIFF)){
+		if ((image_context.max_green - image_context.max_red > 2) && (image_context.max_green - image_context.max_blue > 2)){
 #ifndef TUNE
 			image_context.color_index = GREEN_IDX;
 #endif
@@ -1745,11 +1656,8 @@ void find_color_ultra_rainy_day(void){
 			return;
 		}
 		else {
-			if ((image_context.max_green - image_context.max_red < MIN_COLOR_DIFF) &&
-				(image_context.max_green - image_context.max_blue > MIN_COLOR_DIFF)){
-				if (((image_context.mean_green > image_context.mean_red) &&
-					(image_context.count_green > image_context.count_red)) &&
-					(image_context.count_green > MIN_COUNT)){
+			if ((image_context.max_green - image_context.max_red < 2) && (image_context.max_green - image_context.max_blue > 2)){
+				if (((image_context.mean_green > image_context.mean_red) && (image_context.count_green > image_context.count_red)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = GREEN_IDX;
 #endif
@@ -1759,9 +1667,7 @@ void find_color_ultra_rainy_day(void){
 					return;
 				}
 				else {
-					if (((image_context.mean_green < image_context.mean_red) &&
-						(image_context.count_green < image_context.count_red)) &&
-						(image_context.count_red > MIN_COUNT)){
+					if (((image_context.mean_green < image_context.mean_red) && (image_context.count_green < image_context.count_red)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1773,11 +1679,8 @@ void find_color_ultra_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_green - image_context.max_blue < MIN_COLOR_DIFF) &&
-					(image_context.max_green - image_context.max_red > MIN_COLOR_DIFF)){
-					if (((image_context.mean_green > image_context.mean_blue) &&
-						(image_context.count_green > image_context.count_blue)) &&
-						(image_context.count_green > MIN_COUNT)){
+				if ((image_context.max_green - image_context.max_blue < 2) && (image_context.max_green - image_context.max_red > 2)){
+					if (((image_context.mean_green > image_context.mean_blue) && (image_context.count_green > image_context.count_blue)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = GREEN_IDX;
 #endif
@@ -1787,9 +1690,7 @@ void find_color_ultra_rainy_day(void){
 						return;
 					}
 					else {
-						if (((image_context.mean_green < image_context.mean_blue) &&
-							(image_context.count_green < image_context.count_blue)) &&
-							(image_context.count_blue > MIN_COUNT)){
+						if (((image_context.mean_green < image_context.mean_blue) && (image_context.count_green < image_context.count_blue)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = BLUE_IDX;
 #endif
@@ -1803,8 +1704,7 @@ void find_color_ultra_rainy_day(void){
 			}
 		}
 		//blue case
-		if ((image_context.max_blue - image_context.max_red > MIN_COLOR_DIFF) &&
-			(image_context.max_blue - image_context.max_green > MIN_COLOR_DIFF)){
+		if ((image_context.max_blue - image_context.max_red > 2) && (image_context.max_blue - image_context.max_green > 2)){
 #ifndef TUNE
 			image_context.color_index = BLUE_IDX;
 #endif
@@ -1815,11 +1715,8 @@ void find_color_ultra_rainy_day(void){
 		}
 
 		else {
-			if ((image_context.max_blue - image_context.max_red < MIN_COLOR_DIFF) &&
-				(image_context.max_blue - image_context.max_green > MIN_COLOR_DIFF)){
-				if (((image_context.mean_blue > image_context.mean_red) &&
-					(image_context.count_blue > image_context.count_red)) &&
-					(image_context.count_blue > MIN_COUNT)){
+			if ((image_context.max_blue - image_context.max_red < 2) && (image_context.max_blue - image_context.max_green > 2)){
+				if (((image_context.mean_blue > image_context.mean_red) && (image_context.count_blue > image_context.count_red)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 					image_context.color_index = BLUE_IDX;
 #endif
@@ -1829,9 +1726,7 @@ void find_color_ultra_rainy_day(void){
 					return;
 				}
 				else {
-					if (((image_context.mean_blue < image_context.mean_red) &&
-						(image_context.count_blue < image_context.count_red)) &&
-						(image_context.count_red > MIN_COUNT)){
+					if (((image_context.mean_blue < image_context.mean_red) && (image_context.count_blue < image_context.count_red)) && (image_context.count_red > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = RED_IDX;
 #endif
@@ -1843,11 +1738,8 @@ void find_color_ultra_rainy_day(void){
 				}
 			}
 			else {
-				if ((image_context.max_blue - image_context.max_green < MIN_COLOR_DIFF) &&
-					(image_context.max_blue - image_context.max_red > MIN_COLOR_DIFF)){
-					if (((image_context.mean_blue > image_context.mean_green) &&
-						(image_context.count_blue > image_context.count_green)) &&
-						(image_context.count_blue > MIN_COUNT)){
+				if ((image_context.max_blue - image_context.max_green < 2) && (image_context.max_blue - image_context.max_red > 2)){
+					if (((image_context.mean_blue > image_context.mean_green) && (image_context.count_blue > image_context.count_green)) && (image_context.count_blue > MIN_COUNT)){
 #ifndef TUNE
 						image_context.color_index = BLUE_IDX;
 #endif
@@ -1857,9 +1749,7 @@ void find_color_ultra_rainy_day(void){
 						return;
 					}
 					else {
-						if (((image_context.mean_blue < image_context.mean_green) &&
-							(image_context.count_blue < image_context.count_green)) &&
-							(image_context.count_green > MIN_COUNT)){
+						if (((image_context.mean_blue < image_context.mean_green) && (image_context.count_blue < image_context.count_green)) && (image_context.count_green > MIN_COUNT)){
 #ifndef TUNE
 							image_context.color_index = GREEN_IDX;
 #endif
@@ -1904,12 +1794,4 @@ void find_color(void){
 		find_color_rainy_day();
 		break;
 	}
-}
-
-//Function used to send image to computer to use plotImage.py for visualization
-void SendUint8ToComputer(uint8_t* data, uint16_t size)
-{
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
 }

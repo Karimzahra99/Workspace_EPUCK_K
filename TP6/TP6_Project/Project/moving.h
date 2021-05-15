@@ -14,8 +14,7 @@ typedef enum {
 //start the moving thread
 void moving_start(void);
 
-//remove from .h when finished debugging
-void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
+//for debug remove after
 STATE_t get_rolling_mode(void);
 
 #endif /* MOVING_H_ */
