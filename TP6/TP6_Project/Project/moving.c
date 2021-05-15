@@ -126,7 +126,7 @@ int16_t rotate_until_irmax_right(void);
 
 
 
-static THD_WORKING_AREA(waPidRegulator, 512);
+static THD_WORKING_AREA(waPidRegulator, 1024);
 static THD_FUNCTION(PidRegulator, arg) {
 	chRegSetThreadName(__FUNCTION__);
 	(void)arg;
