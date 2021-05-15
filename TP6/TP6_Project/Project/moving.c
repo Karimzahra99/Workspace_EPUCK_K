@@ -36,7 +36,7 @@
 
 // Straight line correction zone
 #define STRAIGHT_ZONE_WIDTH_MAX		300
-#define STRAIGHT_ZONE_WIDTH_MIN		15
+#define STRAIGHT_ZONE_WIDTH_MIN		20
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
 #define STRAIGHT_LINE_COUNT			500
@@ -255,7 +255,7 @@ void prepare_pid_front(void){
 
 	rolling_context.mode = PID_FRONTWARDS;
 
-	motor_set_position(5, 5,  MEDIUM_SPEED,  MEDIUM_SPEED);
+	motor_set_position(8, 8,  MEDIUM_SPEED,  MEDIUM_SPEED);
 
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
 
@@ -287,7 +287,7 @@ void pid_front(void){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
-		if ((right_motor_get_pos() >= cm_to_step(8)) && (speed_corr<2)){
+		if ((right_motor_get_pos() >= cm_to_step(6)) && (speed_corr<2)){
 			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
 //			left_motor_set_pos(0); a essayer a la place de motor_init
 //			right_motor_set_pos(0);
@@ -318,7 +318,7 @@ void pid_front(void){
 
 void avoid_obs(void){
 	if(back_to_track()){
-		motor_set_position(5, 5, 2, 2);
+		motor_set_position(10, 10, 2, 2);
 		rolling_context.mode= ROTATE_TILL_COLOR;
 	}
 	else{
