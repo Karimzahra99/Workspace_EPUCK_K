@@ -330,12 +330,11 @@ void pid_front(void){
 
 void avoid_obs(void){
 	if(back_to_track()){
-		motor_set_position(4, 4, 2, 2);
+		motor_set_position(10, 10, 2, 2);
 		rolling_context.mode= ROTATE_TILL_COLOR;
 	}
 	else{
 		int16_t speed_correction=0;
-
 		if (obstacle_context.obstacle_at_left){
 			speed_correction = pid_regulator_S(obstacle_context.ir2_adjusted);
 			uint32_t ir3_new = get_calibrated_prox(SENSOR_IR3);
@@ -431,6 +430,7 @@ int step_to_cm (int step) {
 }
 
 void set_speed_with_color(void){
+
 	switch (rolling_context.color)
 	{
 	case 0: //NO COLOR
