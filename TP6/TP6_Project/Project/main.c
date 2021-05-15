@@ -135,7 +135,7 @@ int main(void)
 
 	while (1) {
 		//waits 1 second
-//			chThdSleepMilliseconds(1000);
+			chThdSleepMilliseconds(1000);
 
 //		chprintf((BaseSequentialStream *)&SD3, "Cali3 =%-7d Cali4 =%-7d \r\n\n",
 //				get_calibrated_prox(3), get_calibrated_prox(4));
@@ -148,8 +148,8 @@ int main(void)
 //		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
 //				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
-			chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d D =%-7d C =%-7d Mode =%-7d \r\n\n",
-					get_middle_top(),get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
+//			chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d D =%-7d C =%-7d Mode =%-7d \r\n\n",
+//					get_middle_top(),get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
 
 	}
 }

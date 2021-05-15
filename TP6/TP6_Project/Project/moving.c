@@ -38,7 +38,7 @@
 #define MAX_SUM_ERROR_IR 			100
 
 // Straight line correction zone
-#define STRAIGHT_ZONE_WIDTH_MAX		100
+#define STRAIGHT_ZONE_WIDTH_MAX		200
 #define STRAIGHT_ZONE_WIDTH_MIN		15
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
@@ -199,6 +199,13 @@ void init_context(void){
 }
 
 void move_straight_backwards(void){
+
+	chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d D =%-7d C =%-7d Mode =%-7d \r\n\n",
+						get_middle_top(),get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
+
+	chprintf((BaseSequentialStream *)&SD3, "Counter1 =%-7d Counter2 =%-7d\r\n\n",
+						rolling_context.counter,rolling_context.counter2);
+
 	if (check_ir_front()){
 		rolling_context.color = get_color();
 		set_leds(YELLOW_IDX);
@@ -208,23 +215,24 @@ void move_straight_backwards(void){
 	else {
 		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
 			//bad start case : start wasn't performed on a straight line
-			set_leds(NO_LINE);
-			rolling_context.counter = rolling_context.counter + 1;
-			if (rolling_context.counter < 200){
-				left_motor_set_speed(-1);
-				right_motor_set_speed(-1);
-			}
-			if (rolling_context.counter >= 200){
-				left_motor_set_speed(-1);
-				right_motor_set_speed(-1);
-			}
-			if (rolling_context.counter == 400){
-				rolling_context.counter = 0;
-				left_motor_set_speed(0);
-				right_motor_set_speed(0);
-				rolling_context.mode = LOST;
-
-			}
+//			set_leds(NO_LINE);
+//			rolling_context.counter = rolling_context.counter + 1;
+//			if (rolling_context.counter < 200){
+//				left_motor_set_speed(-1);
+//				right_motor_set_speed(-1);
+//			}
+//			if (rolling_context.counter >= 200){
+//				left_motor_set_speed(1);
+//				right_motor_set_speed(1);
+//			}
+//			if (rolling_context.counter == 400){
+//				rolling_context.counter = 0;
+//				left_motor_set_speed(0);
+//				right_motor_set_speed(0);
+//				rolling_context.mode = LOST;
+//
+//			}
+			prepare_pid_front();
 		}
 		else {
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN) && (abs(get_middle_diff())<STRAIGHT_ZONE_WIDTH_MAX)){
