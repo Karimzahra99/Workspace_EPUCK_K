@@ -304,7 +304,7 @@ void pid_front(void){
 //			right_motor_set_pos(0);
 			motors_init();
 			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-			chThdSleepMilliseconds(3000);
+			chThdSleepMilliseconds(500);
 
 		}
 		else {
