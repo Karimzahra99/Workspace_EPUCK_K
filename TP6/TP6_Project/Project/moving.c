@@ -18,6 +18,7 @@
 #define NSTEP_ONE_TURN      		1000	// number of step for 1 turn of the motor
 #define WHEEL_DISTANCE      		5.30f    //cm
 #define PERIMETER_EPUCK     		(PI * WHEEL_DISTANCE)
+#define MAX_LINE_WIDTH 				4
 
 //PID Parameters
 //0.2 pour 100 pas
@@ -33,17 +34,20 @@
 #define MAX_SUM_ERROR_R 			(MOTOR_SPEED_LIMIT/KI_R)
 #define MAX_SUM_ERROR_G 			(MOTOR_SPEED_LIMIT/KI_G)
 #define MAX_SUM_ERROR_B 			(MOTOR_SPEED_LIMIT/KI_B)
+#define BACKWARD_CORR_SPEED			0.8
 
 // Straight line correction zone
 #define STRAIGHT_ZONE_WIDTH_MAX		300
 #define STRAIGHT_ZONE_WIDTH_MIN		20
+#define MIDDLE_LINE_MIN				100
+#define MIDDLE_LINE_MAX				500
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
-#define STRAIGHT_LINE_COUNT			500
+#define STRAIGHT_LINE_COUNT			1000
 
 //Threshold des IR
 #define	IR_THRESHOLD				250
-#define IR_BRUIT_BLANC                                10
+#define IR_BRUIT_BLANC              10
 
 
 //Color speeds
@@ -86,30 +90,64 @@ uint32_t ir5_adjusted;
 static OBSTACLE_CONTEXT_t obstacle_context;
 static MOVE_CONTEXT_t rolling_context;
 
+///////////// INTERN FUNCTIONS /////////////
 
+// motor goes to defined position at defines speed
 void motor_set_position(float position_r, float position_l, int16_t speed_r, int16_t speed_l);
+// set leds depending on color observed
 void set_leds(uint8_t color_index);
+//converts cm/sec speed to motor step/sec
 int16_t cms_to_steps (float speed_cms);
+//converts cm to motor step
 int cm_to_step (float cm);
+//converts motor step to step
 int step_to_cm (int step);
+// move backwards untill difference between botom and top is too big
 void move_straight_backwards(void);
+//follow line with camera on front and if line is straight for a while turn 180 degrees and start moving backwards
 void pid_front(void);
+// give initial values to rolling context structure parameters
 void init_context(void);
+// go back a little and rotate 180 degrees
 void prepare_pid_front(void);
+// turn around any obstacle until back to track
 void avoid_obs(void);
+// each color has a different speed
 void set_speed_with_color(void);
+// move backward until a color is found, if not you're lost
 void find_next_color(void);
+// I'm lost in the dark
 void help_me_please(void);
+// check if an obstacle is ahead (while moving backwards)
 bool check_ir_front(void);
+// neglige first line and look for the second one
 bool back_to_track(void);
+// adjust parallel to obstacle
 void adjust (void);
+// reset all obstacle context structures to zero
 void reset_obstacle_context(void);
+// rotate until a color is found
 void rotate_till_color(bool left_obs);
-int16_t pid_regulator(int16_t middle_diff);
-int16_t pid_regulator_S(int middle);
+//PID regulator implementation to manage line alignment in front
+int16_t pid_regulator_line(int16_t middle_diff);
+//PID regulator implementation to manage distance between obstacle and IR sensors
+int16_t pid_regulator_ir(int middle);
+// scanning of obstacle surface and return the maximum value found when positioned parallel
+//to obstacle at left and right
 int rotate_until_irmax_left(void);
 int rotate_until_irmax_right(void);
 
+
+//////////// THREAD /////////////
+
+/*
+*	Main Finite State Machine
+*   Determines the robot behavior depending on its environment
+*
+*	params :
+*   -
+*
+*/
 static THD_WORKING_AREA(waPidRegulator, 512);
 static THD_FUNCTION(PidRegulator, arg) {
 	chRegSetThreadName(__FUNCTION__);
@@ -126,17 +164,6 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
-//			rolling_context.color = get_color();
-//			set_speed_with_color();
-//			if (check_ir_front()){
-//				rolling_context.mode = OBS_AVOIDANCE;
-//			}
-//			else{
-//				//peut etre rajouter un tres petie controlleur p?
-//				right_motor_set_speed(rolling_context.speed);
-//				left_motor_set_speed(rolling_context.speed);
-//			}
-//			break;
 			move_straight_backwards();
 			break;
 
@@ -148,20 +175,20 @@ static THD_FUNCTION(PidRegulator, arg) {
 			avoid_obs();
 			break;
 
-//		case SEARCH_LINE :
-//			find_next_color();
-//			break;
-//
-//		case LOST :
-//			help_me_please();
-//			break;
+		case SEARCH_LINE :	// continue moving backwards a little more while searching for a line
+			find_next_color();
+			break;
+
+		case LOST :
+			help_me_please();
+			break;
 
 		case ROTATE_TILL_COLOR :
 			 rotate_till_color(obstacle_context.obstacle_at_left);
 			 break;
 
 		default :
-			rotate_till_color(obstacle_context.obstacle_at_left);
+			find_next_color();;
 			break;
 		}
 
@@ -175,6 +202,7 @@ bool check_ir_front(void){
 	int ir_front_right = get_calibrated_prox(SENSOR_IR4);
 
 	if ((ir_front_left > IR_THRESHOLD) || (ir_front_right > IR_THRESHOLD)){
+		//obstacle found in front
 		if (ir_front_left > ir_front_right){
 			obstacle_context.obstacle_at_left = 1;
 		}
@@ -201,74 +229,43 @@ void move_straight_backwards(void){
 	rolling_context.color = get_color();
 	set_speed_with_color();
 	if (check_ir_front()){
-		//		rolling_context.color = get_color();
 		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
-		//		if (abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX){
-		//			//bad start case : start wasn't performed on a straight line
-		//			set_leds(NO_LINE);
-		//			left_motor_set_speed(0);
-		//			right_motor_set_speed(0);
-		//			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
-		//		}
-		//		else {
-		chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
-
-		if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
-			if (get_middle_diff()<0){
-				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-					right_motor_set_speed(0);
-					left_motor_set_speed(cms_to_steps(0.8));
-				}
-				else {
-					right_motor_set_speed(-rolling_context.speed);
-					left_motor_set_speed(-rolling_context.speed);
-				}
-				if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
-
-					prepare_pid_front();
-				}
+		//chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
+		if ((get_middle_top() < MIDDLE_LINE_MIN) || (get_middle_bot() < MIDDLE_LINE_MIN) || (get_middle_top() > MIDDLE_LINE_MAX) || (get_middle_bot() > MIDDLE_LINE_MAX)) {
+			// error too big
+			prepare_pid_front();
 			}
-			else {
-				if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
-					//						rolling_context.color = get_color();
-					right_motor_set_speed(cms_to_steps(0.8));
+		else if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
+			// perform very small error correction
+			if (get_middle_diff()<0){
+					right_motor_set_speed(0);
+					left_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
+			}
+				else {
+					right_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
 					left_motor_set_speed(0);
 				}
-				else {
-					right_motor_set_speed(-rolling_context.speed);
-					left_motor_set_speed(-rolling_context.speed);
-				}
-				if ((get_middle_top() < 100) || (get_middle_bot() < 100) || (get_middle_top() > 500) || (get_middle_bot() > 500)) {
-					prepare_pid_front();
-				}
-			}
 		}
 		else {
-			//rolling_context.color = get_color();
-
-			//set_speed_with_color();
-
-			//rolling backwards
+			//rolling straight backwards
 			right_motor_set_speed(-rolling_context.speed);
 			left_motor_set_speed(-rolling_context.speed);
 		}
 	}
 }
-//}
 
-// go back a little and rotate 180 degrees
+
 void prepare_pid_front(void){
 
 	set_leds(PURPLE_IDX);
 
 	rolling_context.counter = 0;
-
 	rolling_context.mode = PID_FRONTWARDS;
 
+	// go back a little and rotate 180 degrees
 	motor_set_position(10, 10,  MEDIUM_SPEED,  MEDIUM_SPEED);
-
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, SEARCH_SPEED, -SEARCH_SPEED);
 
 	left_motor_set_pos(0);
@@ -279,33 +276,28 @@ void prepare_pid_front(void){
 
 
 }
-// a eliminer peut etre ?
-void prepare_to_follow_line(void){
-	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
-}
 
-// follow line with camera on front and if line is straight for a while turn 180 degrees
-// and start moving backwards
+
 void pid_front(void){
 
 	rolling_context.color = get_color();
 	set_speed_with_color();
 
-	int16_t middle_diff = get_middle_bot()- 320;
-	int16_t speed_corr = pid_regulator(middle_diff);
-	// if middle diff between top and bottom camera lines is >threshold,
-	//then it's not a straight line.
+	int16_t middle_diff = get_middle_bot()- IMAGE_BUFFER_SIZE/2;
+	int16_t speed_corr = pid_regulator_line(middle_diff);
+	// if middle diff between top and bottom camera lines is > threshold, then it's not a straight line.
 	if (abs(get_middle_diff())>30){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
-		if ((right_motor_get_pos() >= cm_to_step(6)) && (speed_corr<2)){
-			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 2, -2);
+		if ((right_motor_get_pos() >= cm_to_step(7))){
+			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
 //			left_motor_set_pos(0); a essayer a la place de motor_init
 //			right_motor_set_pos(0);
 			motors_init();
 			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-			chThdSleepMilliseconds(500);
+			// wait for camera to get botom and top middle
+			chThdSleepMilliseconds(3000);
 
 		}
 		else {
@@ -314,59 +306,46 @@ void pid_front(void){
 		}
 	}
 
-//		rolling_context.counter = rolling_context.counter + 1;
-//		if (rolling_context.counter >= STRAIGHT_LINE_COUNT){
-//			prepare_to_follow_line();
-//			right_motor_set_speed(0);
-//			left_motor_set_speed(0);
-//			rolling_context.counter = 0;
-//		}
-//	}
-//			rolling_context.counter = 0;
-//			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-//		}
-//	}
-
 
 void avoid_obs(void){
 	if(back_to_track()){
-		motor_set_position(4, 4, 2, 2);
+		motor_set_position(MAX_LINE_WIDTH, MAX_LINE_WIDTH, SEARCH_SPEED, SEARCH_SPEED);
 		rolling_context.mode= ROTATE_TILL_COLOR;
 	}
 	else{
 		int16_t speed_correction=0;
 		if (obstacle_context.obstacle_at_left){
-			speed_correction = pid_regulator_S(obstacle_context.ir2_adjusted);
+			speed_correction = pid_regulator_ir(obstacle_context.ir2_adjusted);
 			uint32_t ir3_new = get_calibrated_prox(SENSOR_IR3);
 			if (ir3_new < obstacle_context.ir3_adjusted - IR_BRUIT_BLANC){
-				left_motor_set_speed(-cms_to_steps(2) + speed_correction);
-				right_motor_set_speed(-cms_to_steps(2) - speed_correction);
+				left_motor_set_speed(-cms_to_steps(SEARCH_SPEED) + speed_correction);
+				right_motor_set_speed(-cms_to_steps(SEARCH_SPEED) - speed_correction);
 			}
-			else if (ir3_new > obstacle_context.ir3_adjusted + IR_BRUIT_BLANC  ){
-				left_motor_set_speed(-cms_to_steps(2)- speed_correction);
-				right_motor_set_speed(-cms_to_steps(2)+ speed_correction);
+			else if (ir3_new > obstacle_context.ir3_adjusted + IR_BRUIT_BLANC){
+				left_motor_set_speed(-cms_to_steps(SEARCH_SPEED)- speed_correction);
+				right_motor_set_speed(-cms_to_steps(SEARCH_SPEED)+ speed_correction);
 			}
 			else {
-				left_motor_set_speed(-cms_to_steps(2));
-				right_motor_set_speed(-cms_to_steps(2));
+				left_motor_set_speed(-cms_to_steps(SEARCH_SPEED));
+				right_motor_set_speed(-cms_to_steps(SEARCH_SPEED));
 			}
 
 		}
 		else{
-			speed_correction = pid_regulator_S(obstacle_context.ir5_adjusted);
+			speed_correction = pid_regulator_ir(obstacle_context.ir5_adjusted);
 			uint32_t ir4_new = get_calibrated_prox(SENSOR_IR4);
 			//				chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, obstacle_context.ir4_adjusted, speed_correction);
 			if (ir4_new < obstacle_context.ir4_adjusted - IR_BRUIT_BLANC){
-				left_motor_set_speed(-cms_to_steps(2) - speed_correction);
-				right_motor_set_speed(-cms_to_steps(2) + speed_correction);
+				left_motor_set_speed(-cms_to_steps(SEARCH_SPEED) - speed_correction);
+				right_motor_set_speed(-cms_to_steps(SEARCH_SPEED) + speed_correction);
 			}
 			else if (ir4_new > obstacle_context.ir4_adjusted + IR_BRUIT_BLANC){
-				left_motor_set_speed(-cms_to_steps(2)+ speed_correction);
-				right_motor_set_speed(-cms_to_steps(2)- speed_correction);
+				left_motor_set_speed(-cms_to_steps(SEARCH_SPEED)+ speed_correction);
+				right_motor_set_speed(-cms_to_steps(SEARCH_SPEED)- speed_correction);
 			}
 			else {
-				left_motor_set_speed(-cms_to_steps(2));
-				right_motor_set_speed(-cms_to_steps(2));
+				left_motor_set_speed(-cms_to_steps(SEARCH_SPEED));
+				right_motor_set_speed(-cms_to_steps(SEARCH_SPEED));
 			}
 
 		}
@@ -399,7 +378,7 @@ bool back_to_track(void){
 	if (get_color() != NO_COLOR){
 		if(!obstacle_context.first_line_passed){
 			obstacle_context.first_line_passed = 1;
-			motor_set_position(4, 4, -2, -2);
+			motor_set_position(MAX_LINE_WIDTH, MAX_LINE_WIDTH, -SEARCH_SPEED, -SEARCH_SPEED);
 			return 0;
 		}
 		else{
@@ -440,9 +419,10 @@ void set_speed_with_color(void){
 //		rolling_context.speed = 0;
 //		left_motor_set_speed(0);
 //		right_motor_set_speed(0);
-//		left_motor_set_pos(0);
-//		right_motor_set_pos(0);
-//		rolling_context.mode = SEARCH_LINE;
+		rolling_context.speed = cms_to_steps(SEARCH_SPEED);
+		left_motor_set_pos(0);
+		right_motor_set_pos(0);
+		rolling_context.mode = SEARCH_LINE;
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);
@@ -465,16 +445,11 @@ void set_speed_with_color(void){
 
 void find_next_color(void){
 
-	rolling_context.speed = cms_to_steps(SEARCH_SPEED);
 	right_motor_set_speed(-rolling_context.speed);
 	left_motor_set_speed(-rolling_context.speed);
 	rolling_context.counter = right_motor_get_pos();
 
 	if (get_color() != NO_COLOR){
-		rolling_context.color = get_color();
-		right_motor_set_speed(0);
-		left_motor_set_speed(0);
-		rolling_context.color = get_color();
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	}
 	else {
@@ -492,17 +467,7 @@ void help_me_please(void){
 	set_leds(NO_COLOR);
 
 	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
-	if (rolling_context.counter < 10){
 		set_body_led(1);
-		rolling_context.counter ++;
-	}
-	else{
-		set_body_led(0);
-		rolling_context.counter ++;
-		if (rolling_context.counter == 20){
-			rolling_context.counter = 0;
-		}
-	}
 
 }
 
@@ -535,6 +500,7 @@ STATE_t get_rolling_mode (void){
 	return rolling_context.mode;
 }
 
+/////////////////////////////////////////////
 void rotate_till_color(bool left_obs){
 	set_leds(FIND_COLOR);
 	// TURN WHILE YOU DONT SEE LINE AND WHILE THE LINE IS NOT IN MIDDLE
@@ -542,8 +508,8 @@ void rotate_till_color(bool left_obs){
 		if (left_obs){
 			left_motor_set_speed(cms_to_steps(-1));
 			right_motor_set_speed(cms_to_steps(1));
-					chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-									get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+//					chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+//									get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 		}
 		else { //ir4
 			left_motor_set_speed(cms_to_steps(1));
@@ -567,7 +533,8 @@ void rotate_till_color(bool left_obs){
 
 }
 
-//PID Implementation
+//replace 1 SEARCH_SPEED
+
 int rotate_until_irmax_left(void)
 {
 	int	ir_left_ancien =0;
@@ -602,9 +569,9 @@ int rotate_until_irmax_right(void)
 return ir_right_ancien;
 }
 
-int16_t pid_regulator_S(int middle){
+int16_t pid_regulator_ir(int middle){
 
-	int goal = middle; //milieu theorique d'une ligne parfaitement centre sur le robot ou 350 ?
+	int goal = middle;
 	float error = 0;
 	float speed = 0;
 	float derivative = 0;
@@ -636,7 +603,7 @@ int16_t pid_regulator_S(int middle){
 
 
 //PID Implementation
-int16_t pid_regulator(int16_t middle_diff){
+int16_t pid_regulator_line(int16_t middle_diff){
 
 	float speed_correction = 0;
 
