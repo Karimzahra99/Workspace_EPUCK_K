@@ -435,14 +435,14 @@ void set_speed_with_color(void){
 	{
 	case 0: //NO COLOR
 		set_leds(FIND_COLOR);
-		reset_middle_positions();
-		rolling_context.counter = 0;
-		rolling_context.speed = 0;
-		left_motor_set_speed(0);
-		right_motor_set_speed(0);
-		left_motor_set_pos(0);
-		right_motor_set_pos(0);
-		rolling_context.mode = SEARCH_LINE;
+//		reset_middle_positions();
+//		rolling_context.counter = 0;
+//		rolling_context.speed = 0;
+//		left_motor_set_speed(0);
+//		right_motor_set_speed(0);
+//		left_motor_set_pos(0);
+//		right_motor_set_pos(0);
+//		rolling_context.mode = SEARCH_LINE;
 		break;
 	case 1: //RED
 		set_leds(RED_IDX);
@@ -478,7 +478,7 @@ void find_next_color(void){
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 	}
 	else {
-		if (abs(rolling_context.counter) > 500){
+		if (abs(rolling_context.counter) > 1000){
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
 			rolling_context.counter = 0;
