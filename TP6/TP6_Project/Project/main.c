@@ -87,7 +87,7 @@ int main(void)
 	 */
 
 	//Declaration of camera configuration
-	rgb_gain_t rgb_gains = {110, 0, 0};
+	rgb_gain_t rgb_gains = {94, 0, 0};
 	uint8_t contrast = 64;
 	uint8_t brightness = 0;
 	uint16_t line_index_top = 10; //tuning uses line_index_top for plot visualization

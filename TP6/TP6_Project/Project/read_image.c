@@ -102,6 +102,9 @@ uint8_t get_color(void);
 //calls the appropriate color detection function
 void find_color(void);
 
+//Function for visualization
+void SendUint8ToComputer(uint8_t* data, uint16_t size);
+
 #ifdef TUNE
 
 
@@ -1795,4 +1798,12 @@ void find_color(void){
 		find_color_rainy_day();
 		break;
 	}
+}
+
+//Function for visualization
+void SendUint8ToComputer(uint8_t* data, uint16_t size)
+{
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
 }
