@@ -39,7 +39,7 @@
 
 // Straight line correction zone
 #define STRAIGHT_ZONE_WIDTH_MAX		200
-#define STRAIGHT_ZONE_WIDTH_MIN		15
+#define STRAIGHT_ZONE_WIDTH_MIN		50
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
 #define STRAIGHT_LINE_COUNT			500
