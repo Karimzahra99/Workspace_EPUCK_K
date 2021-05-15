@@ -211,8 +211,8 @@ void move_straight_backwards(void){
 			set_leds(NO_LINE);
 			rolling_context.counter = rolling_context.counter + 1;
 			if (rolling_context.counter < 200){
-				left_motor_set_speed(1);
-				right_motor_set_speed(1);
+				left_motor_set_speed(-1);
+				right_motor_set_speed(-1);
 			}
 			if (rolling_context.counter >= 200){
 				left_motor_set_speed(-1);
