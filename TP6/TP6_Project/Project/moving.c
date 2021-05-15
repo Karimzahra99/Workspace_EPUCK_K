@@ -210,6 +210,8 @@ void move_straight_backwards(void){
 //			playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
 //		}
 //		else {
+			chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
+
 			if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
 				if (get_middle_diff()<0){
 					if(abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MIN){
@@ -234,9 +236,9 @@ void move_straight_backwards(void){
 				}
 			}
 			else {
-				rolling_context.color = get_color();
+				//rolling_context.color = get_color();
 
-				set_speed_with_color();
+				//set_speed_with_color();
 
 				//rolling backwards
 				right_motor_set_speed(-rolling_context.speed);
