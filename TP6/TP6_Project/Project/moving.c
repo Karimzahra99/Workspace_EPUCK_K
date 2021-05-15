@@ -220,7 +220,7 @@ void move_straight_backwards(void){
 						right_motor_set_speed(0);
 						left_motor_set_speed(cms_to_steps(ADJUST_SPEED));
 					}
-					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX)) {
+					else {
 						prepare_pid_front();
 					}
 				}
@@ -230,7 +230,7 @@ void move_straight_backwards(void){
 						right_motor_set_speed(cms_to_steps(ADJUST_SPEED));
 						left_motor_set_speed(0);
 					}
-					if ((abs(get_middle_diff()) > STRAIGHT_ZONE_WIDTH_MAX/2) ) {
+					else {
 						rolling_context.color = get_color();
 						prepare_pid_front();
 					}
