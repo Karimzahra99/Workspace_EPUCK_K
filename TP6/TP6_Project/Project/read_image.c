@@ -445,7 +445,7 @@ void calc_line_middle(uint8_t alternator){
 			}
 			else {
 				image_context.counter = image_context.counter + 1;
-				if (image_context.counter > 1){
+				if (image_context.counter > 5){
 					image_context.middle_line_top = image_context.middle_top_temp;
 					image_context.middle_line_bot = image_context.middle_bot_temp;
 					image_context.counter = 0;
