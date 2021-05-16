@@ -164,14 +164,14 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
-			move_straight_backwards(); // follow line backwards
+			move_straight_backwards();
 			break;
 
 		case PID_FRONTWARDS :
-			pid_front(); // follow line forwards
+			pid_front();
 			break;
 
-		case OBS_AVOIDANCE : // turn aroun obstacle
+		case OBS_AVOIDANCE :
 			avoid_obs();
 			break;
 
@@ -180,7 +180,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 			break;
 
 		case LOST :
-			help_me_please(); // music as a cry for help
+			help_me_please();
 			break;
 
 		case ROTATE_TILL_COLOR :
@@ -226,42 +226,32 @@ void init_context(void){
 }
 
 void move_straight_backwards(void){
-	if (rolling_context.color != get_color()){
-		rolling_context.color = get_color();
-		set_speed_with_color();
-		motor_set_position(3, 3,  -LOW_SPEED,  -LOW_SPEED);
-		chThdSleepMilliseconds(500);
-		rolling_context.color = get_color();
-		set_speed_with_color();
+	rolling_context.color = get_color();
+	set_speed_with_color();
+	if (check_ir_front()){
+		rolling_context.mode = OBS_AVOIDANCE;
 	}
 	else {
-		rolling_context.color = get_color();
-		set_speed_with_color();
-		if (check_ir_front()){
-			rolling_context.mode = OBS_AVOIDANCE;
+		//chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
+		if ((get_middle_top() < MIDDLE_LINE_MIN) || (get_middle_bot() < MIDDLE_LINE_MIN) || (get_middle_top() > MIDDLE_LINE_MAX) || (get_middle_bot() > MIDDLE_LINE_MAX)) {
+			// error too big
+			prepare_pid_front();
 		}
-		else {
-			//chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
-			if ((get_middle_top() < MIDDLE_LINE_MIN) || (get_middle_bot() < MIDDLE_LINE_MIN) || (get_middle_top() > MIDDLE_LINE_MAX) || (get_middle_bot() > MIDDLE_LINE_MAX)) {
-				// error too big
-				prepare_pid_front();
-			}
-			else if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
-				// perform very small error correction
-				if (get_middle_diff()<0){
-					right_motor_set_speed(0);
-					left_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
-				}
-				else {
-					right_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
-					left_motor_set_speed(0);
-				}
+		else if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
+			// perform very small error correction
+			if (get_middle_diff()<0){
+				right_motor_set_speed(0);
+				left_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
 			}
 			else {
-				//rolling straight backwards
-				right_motor_set_speed(-rolling_context.speed);
-				left_motor_set_speed(-rolling_context.speed);
+				right_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
+				left_motor_set_speed(0);
 			}
+		}
+		else {
+			//rolling straight backwards
+			right_motor_set_speed(-rolling_context.speed);
+			left_motor_set_speed(-rolling_context.speed);
 		}
 	}
 }
