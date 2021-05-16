@@ -164,14 +164,14 @@ static THD_FUNCTION(PidRegulator, arg) {
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
-			move_straight_backwards();
+			move_straight_backwards(); // follow line backwards
 			break;
 
 		case PID_FRONTWARDS :
-			pid_front();
+			pid_front(); // follow line forwards
 			break;
 
-		case OBS_AVOIDANCE :
+		case OBS_AVOIDANCE : // turn aroun obstacle
 			avoid_obs();
 			break;
 
@@ -180,7 +180,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 			break;
 
 		case LOST :
-			help_me_please();
+			help_me_please(); // music as a cry for help
 			break;
 
 		case ROTATE_TILL_COLOR :
@@ -227,14 +227,14 @@ void init_context(void){
 
 void move_straight_backwards(void){
 	if (rolling_context.color != get_color()){
+		rolling_context.color = get_color();
 		right_motor_set_speed(0);
 		left_motor_set_speed(0);
-		motor_set_position(4, 4,  -rolling_context.speed,  -rolling_context.speed);
-		rolling_context.color = get_color();
+		motor_set_position(4, 4,  -LOW_SPEED,  -LOW_SPEED);
+		chThdSleepMilliseconds(1000);
 		set_speed_with_color();
 	}
 	else {
-		rolling_context.color = get_color();
 		set_speed_with_color();
 		if (check_ir_front()){
 			rolling_context.mode = OBS_AVOIDANCE;
