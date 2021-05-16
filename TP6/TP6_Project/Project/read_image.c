@@ -70,6 +70,8 @@ typedef struct {
 	int16_t middle_line_top;
 	int16_t middle_line_bot;
 	uint8_t counter;
+	int16_t middle_top_temp = 0;
+	int16_t middle_bot_temp = 0;
 	bool frontwards;
 #endif
 
@@ -77,9 +79,6 @@ typedef struct {
 
 //main structure containing all the visual parameters
 static VISUAL_CONTEXT_t image_context;
-
-static int16_t middle_top_temp = 0;
-static int16_t middle_bot_temp = 0;
 
 //Prototypes of functions used in tuning and demo mode
 
