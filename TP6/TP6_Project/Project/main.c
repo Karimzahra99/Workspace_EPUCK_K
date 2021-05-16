@@ -3,9 +3,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
-#include "ch.h"
-#include "hal.h"
-#include "memory_protection.h"
+#include <ch.h>
+#include <hal.h>
+#include <memory_protection.h>
 #include <usbcfg.h>
 #include <main.h>
 #include <motors.h>
@@ -87,12 +87,12 @@ int main(void)
 	 */
 
 	//Declaration of camera configuration
-	rgb_gain_t rgb_gains = {94, 0, 0};
-	uint8_t contrast = 64;
-	uint8_t brightness = 0;
+	rgb_gain_t rgb_gains = {94, 76, 90};
+	uint8_t contrast = 75;
+	uint8_t brightness = 40;
 	uint16_t line_index_top = 10; //tuning uses line_index_top for plot visualization
 	detect_mode_t mode_detect = MAX_ONLY;
-	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
+	visualize_mode_t send_params = ULTRA_RAINY_DAY;
 #ifdef TUNE
 	color_index_t plot_pixels_color = RED_IDX; //chose which color intensity to plot with plot_image.py
 #else
