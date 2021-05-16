@@ -72,7 +72,7 @@ int main(void)
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {94, 64, 93};
+	rgb_gain_t rgb_gains = {94, 64, 64};
 	uint8_t contrast = 64;
 	uint8_t brightness = 0;
 	//tuning uses line_index_top for plot visualization
@@ -174,9 +174,9 @@ void set_leds(color_index_t color_index){
 					}
 					else {
 						if (color_index == NO_LINE){
-							set_rgb_led(LED_RGB_2, LED_OFF, LED_ON, LED_ON);
+							set_rgb_led(LED_RGB_2, LED_OFF, LED_OFF, LED_ON);
 							set_rgb_led(LED_RGB_4, LED_ON, LED_OFF, LED_OFF);
-							set_rgb_led(LED_RGB_6, LED_OFF, LED_ON, LED_ON);
+							set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_ON);
 							set_rgb_led(LED_RGB_8, LED_ON, LED_OFF, LED_OFF);
 							return;
 						}

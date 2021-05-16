@@ -290,14 +290,14 @@ void pid_front(void){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
-		if ((right_motor_get_pos() >= cm_to_step(7))){
-			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, rolling_context.speed, -rolling_context.speed);
-//			left_motor_set_pos(0); a essayer a la place de motor_init
-//			right_motor_set_pos(0);
-			motors_init();
+		if ((right_motor_get_pos() >= cm_to_step(5))){
+			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 5 , -5);
+			left_motor_set_pos(0); //a essayer a la place de motor_init
+			right_motor_set_pos(0);
+			//motors_init();
 			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 			// wait for camera to get botom and top middle
-			chThdSleepMilliseconds(3000);
+			chThdSleepMilliseconds(1000);
 
 		}
 		else {
@@ -502,7 +502,7 @@ STATE_t get_rolling_mode (void){
 
 /////////////////////////////////////////////
 void rotate_till_color(bool left_obs){
-	set_leds(FIND_COLOR);
+	set_leds(NO_LINE);
 	// TURN WHILE YOU DONT SEE LINE AND WHILE THE LINE IS NOT IN MIDDLE
 	if (get_color() == NO_COLOR){
 		if (left_obs){
