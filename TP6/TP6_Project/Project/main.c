@@ -119,7 +119,11 @@ int main(void)
 
 	while (1) {
 		//waits 1 second
-	chThdSleepMilliseconds(1000);
+	//chThdSleepMilliseconds(1000);
+
+	chprintf((BaseSequentialStream *)&SD3, "IR3%-7d IR4 =%-7d Cali =%-7d Cali =%-7d \r\n\n",
+			get_prox(3),get_prox(4),get_calibrated_prox(3),get_calibrated_prox(4));
+
 
 //		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
 //		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
