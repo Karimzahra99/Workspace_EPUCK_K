@@ -229,11 +229,11 @@ void move_straight_backwards(void){
 	if (rolling_context.color != get_color()){
 		right_motor_set_speed(0);
 		left_motor_set_speed(0);
-		motor_set_position(4, 4,  -SEARCH_SPEED,  -SEARCH_SPEED);
+		motor_set_position(4, 4,  -rolling_context.speed,  -rolling_context.speed);
 		rolling_context.color = get_color();
+		set_speed_with_color();
 	}
 	else {
-		set_speed_with_color();
 		if (check_ir_front()){
 			rolling_context.mode = OBS_AVOIDANCE;
 		}
