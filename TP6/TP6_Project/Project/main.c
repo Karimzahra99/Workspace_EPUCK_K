@@ -129,7 +129,7 @@ int main(void)
 	playMelodyStart();
 
 	//Initialize Moving thread to follow lines of different color and avoid obstacles
-	//moving_start();
+	moving_start();
 
 #endif
 

@@ -345,15 +345,6 @@ void prepare_pid_front(void){
 
 void pid_front(void){
 
-	if ((get_color() != rolling_context.color) && (get_color() != NO_COLOR)){
-		rolling_context.counter = rolling_context.counter + 1;
-	}
-
-	if (rolling_context.counter > 50){
-		rolling_context.color = get_color();
-		rolling_context.counter = 0;
-	}
-
 	set_speed_with_color();
 
 	int16_t middle_diff = get_middle_bot()- IMAGE_BUFFER_SIZE/2;
@@ -606,6 +597,17 @@ void rotate_till_color(bool left_obs){
 		chThdSleepMilliseconds(500);
 		rolling_context.mode = FRONTWARDS;
 
+	}
+}
+
+void adjust (void){
+	if (rolling_context.obstacle_context.obstacle_at_left){
+		rolling_context.obstacle_context.ir2_adjusted = rotate_until_irmax_left();
+		rolling_context.obstacle_context.ir3_adjusted = get_calibrated_prox(SENSOR_IR3);
+	}
+	else {
+		rolling_context.obstacle_context.ir5_adjusted = rotate_until_irmax_right();
+		rolling_context.obstacle_context.ir4_adjusted = get_calibrated_prox(SENSOR_IR4);
 	}
 }
 
