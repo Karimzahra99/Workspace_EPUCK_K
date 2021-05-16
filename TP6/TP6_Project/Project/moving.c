@@ -538,7 +538,7 @@ STATE_t get_rolling_mode (void){
 void rotate_till_color(bool left_obs){
 	set_leds(NO_LINE);
 
-	// turn while you dont see a color
+	// turn while you don't see a color
 	if (get_color() == NO_COLOR){
 		if (left_obs){
 			left_motor_set_speed(cms_to_steps(-CALIBRATION_SPEED));
