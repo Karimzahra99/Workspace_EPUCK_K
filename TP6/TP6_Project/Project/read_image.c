@@ -560,7 +560,7 @@ static THD_FUNCTION(CaptureImage, arg) {
 	while(1){
 
 		//top line initialization
-		camera_init_top();
+		camera_init_bot();
 
 		//starts top line capture
 		dcmi_capture_start();
@@ -569,13 +569,13 @@ static THD_FUNCTION(CaptureImage, arg) {
 		wait_image_ready();
 
 		//signals top image has been captured
-		chBSemSignal(&image_ready_top_sem);
+		chBSemSignal(&image_ready_bot_sem);
 
 		//waits for top line process to be finished
-		chBSemWait(&image_process_top_sem);
+		chBSemWait(&image_process_bot_sem);
 
 		//bottom line initialization
-		camera_init_bot();
+		camera_init_top();
 
 		//starts bottom line capture
 		dcmi_capture_start();
@@ -584,10 +584,10 @@ static THD_FUNCTION(CaptureImage, arg) {
 		wait_image_ready();
 
 		//signals bottom image has been captured
-		chBSemSignal(&image_ready_bot_sem);
+		chBSemSignal(&image_ready_top_sem);
 
 		//waits for bottom line process to be finished
-		chBSemWait(&image_process_bot_sem);
+		chBSemWait(&image_process_top_sem);
 	}
 }
 
@@ -609,7 +609,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 	while(1){
 
 		//waits for top line acquisition to be finished
-		chBSemWait(&image_ready_top_sem);
+		chBSemWait(&image_ready_bot_sem);
 
 		//gets the pointer to the array filled with the top image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
@@ -643,13 +643,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 		find_color();
 
 		//searches for a line in the top image and gets it's middle position
-		calc_line_middle(TOP);
+		calc_line_middle(BOTTOM);
 
 		//signals that process of top line has finished
-		chBSemSignal(&image_process_top_sem);
+		chBSemSignal(&image_process_bot_sem);
 
 		//waits for bottom line acquisition to be finished
-		chBSemWait(&image_ready_bot_sem);
+		chBSemWait(&image_ready_top_sem);
 
 		//gets the pointer to the array filled with the bottom image in RGB565
 		img_buff_ptr = dcmi_get_last_image_ptr();
@@ -685,10 +685,10 @@ static THD_FUNCTION(ProcessImage, arg) {
 		}
 
 		//searches for a line in the bottom image and gets it's middle position
-		calc_line_middle(BOTTOM);
+		calc_line_middle(TOP);
 
 		//signals that process of bottom line has finished
-		chBSemSignal(&image_process_bot_sem);
+		chBSemSignal(&image_process_top_sem);
 
 #ifdef PLOT_ON_COMPUTER
 		// To visualize one image on computer with plotImage.py
