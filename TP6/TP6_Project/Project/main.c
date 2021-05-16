@@ -48,7 +48,7 @@ int main(void)
 	mpu_init();
 
 	//Initialize DAC : digital analog converter (needed to use microphones)
-	//dac_start();
+	dac_start();
 
 	//Initialize message bus (needed for proximity thread)
 	messagebus_init(&bus, &bus_lock, &bus_condvar);
@@ -91,7 +91,7 @@ int main(void)
 	uint8_t contrast = 75;
 	uint8_t brightness = 40;
 	uint16_t line_index_top = 10; //tuning uses line_index_top for plot visualization
-	detect_mode_t mode_detect = ULTRA_RAINY_DAY;
+	detect_mode_t mode_detect = MAX_ONLY;
 	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
 #ifdef TUNE
 	color_index_t plot_pixels_color = RED_IDX; //chose which color intensity to plot with plot_image.py

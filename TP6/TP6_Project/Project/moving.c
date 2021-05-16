@@ -259,7 +259,7 @@ void prepare_to_follow_line(void){
 
 	rolling_context.color = get_color();
 
-	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2,SEARCH_SPEED, -SEARCH_SPEED);
+	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, MEDIUM_SPEED, -MEDIUM_SPEED);
 
 	rolling_context.counter = 0;
 
@@ -269,7 +269,7 @@ void prepare_to_follow_line(void){
 
 	left_motor_set_speed(0);
 
-	chThdSleepMilliseconds(1000);
+	chThdSleepMilliseconds(500);
 
 	rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 

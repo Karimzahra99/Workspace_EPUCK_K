@@ -29,7 +29,7 @@
 #define SHIFT_6						6
 
 //In case of bad middle position calculation in rolling backwards mode
-#define MAX_WAITING_TIME			2
+#define MAX_WAITING_TIME			1
 
 typedef struct {
 
