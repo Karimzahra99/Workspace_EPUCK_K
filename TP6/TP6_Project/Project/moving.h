@@ -8,7 +8,8 @@ typedef enum {
 	PID_FRONTWARDS,
 	OBS_AVOIDANCE,
 	SEARCH_LINE,
-	LOST
+	LOST,
+	ROTATE_TILL_COLOR
 } STATE_t;
 
 //start the moving thread

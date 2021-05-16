@@ -12,6 +12,9 @@ extern "C" {
 //Uncomment to tune, comment to go in demo mode
 //#define TUNE
 
+//Number of pixels of one horizontal line of the camera
+#define IMAGE_BUFFER_SIZE			640
+
 //Level intensity of LEDs
 #define LED_ON						10
 #define LED_OFF						0

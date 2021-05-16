@@ -9,8 +9,7 @@
 #include <selector.h>
 #include <read_image.h>
 
-//Length of a line of pixels from the camera and tolerance for counts of the number of pixels equal to the maximum intensity
-#define IMAGE_BUFFER_SIZE			640
+//Tolerance for counts of the number of pixels equal to the maximum intensity
 #define TOLERANCE					3
 
 //To alternate when processing the two lines of the camera
