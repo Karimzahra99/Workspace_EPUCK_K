@@ -283,7 +283,7 @@ void pid_front(void){
 	rolling_context.color = get_color();
 	set_speed_with_color();
 
-	int16_t middle_diff = get_middle_bot()- IMAGE_BUFFER_SIZE/2;
+	int16_t middle_diff = get_middle_top()- IMAGE_BUFFER_SIZE/2;
 	int16_t speed_corr = pid_regulator_line(middle_diff);
 	// if middle diff between top and bottom camera lines is > threshold, then it's not a straight line.
 	if (abs(get_middle_diff())>30){
@@ -294,7 +294,7 @@ void pid_front(void){
 			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 5 , -5);
 			left_motor_set_pos(0); //a essayer a la place de motor_init
 			right_motor_set_pos(0);
-			//motors_init();
+
 			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 			// wait for camera to get botom and top middle
 			chThdSleepMilliseconds(1000);
