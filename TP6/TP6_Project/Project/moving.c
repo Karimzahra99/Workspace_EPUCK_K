@@ -230,8 +230,8 @@ void move_straight_backwards(void){
 		rolling_context.color = get_color();
 		right_motor_set_speed(0);
 		left_motor_set_speed(0);
-		motor_set_position(4, 4,  -LOW_SPEED,  -LOW_SPEED);
-		chThdSleepMilliseconds(1000);
+		motor_set_position(3, 3,  -LOW_SPEED,  -LOW_SPEED);
+		chThdSleepMilliseconds(500);
 		set_speed_with_color();
 	}
 	else {
