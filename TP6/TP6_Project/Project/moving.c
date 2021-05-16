@@ -228,13 +228,14 @@ void init_context(void){
 void move_straight_backwards(void){
 	if (rolling_context.color != get_color()){
 		rolling_context.color = get_color();
-		right_motor_set_speed(0);
-		left_motor_set_speed(0);
+		set_speed_with_color();
 		motor_set_position(3, 3,  -LOW_SPEED,  -LOW_SPEED);
 		chThdSleepMilliseconds(500);
+		rolling_context.color = get_color();
 		set_speed_with_color();
 	}
 	else {
+		rolling_context.color = get_color();
 		set_speed_with_color();
 		if (check_ir_front()){
 			rolling_context.mode = OBS_AVOIDANCE;
