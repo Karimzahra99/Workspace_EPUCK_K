@@ -227,34 +227,36 @@ void init_context(void){
 
 void move_straight_backwards(void){
 	if (rolling_context.color != get_color()){
-		motor_set_position(2,2,-rolling_context.speed,-rolling_context.speed);
-	}
-	rolling_context.color = get_color();
-	set_speed_with_color();
-	if (check_ir_front()){
-		rolling_context.mode = OBS_AVOIDANCE;
+		motor_set_position(3,3,-rolling_context.speed,-rolling_context.speed);
 	}
 	else {
-		//chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
-		if ((get_middle_top() < MIDDLE_LINE_MIN) || (get_middle_bot() < MIDDLE_LINE_MIN) || (get_middle_top() > MIDDLE_LINE_MAX) || (get_middle_bot() > MIDDLE_LINE_MAX)) {
-			// error too big
-			prepare_pid_front();
-		}
-		else if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
-			// perform very small error correction
-			if (get_middle_diff()<0){
-				right_motor_set_speed(0);
-				left_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
-			}
-			else {
-				right_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
-				left_motor_set_speed(0);
-			}
+		rolling_context.color = get_color();
+		set_speed_with_color();
+		if (check_ir_front()){
+			rolling_context.mode = OBS_AVOIDANCE;
 		}
 		else {
-			//rolling straight backwards
-			right_motor_set_speed(-rolling_context.speed);
-			left_motor_set_speed(-rolling_context.speed);
+			//chprintf((BaseSequentialStream *)&SD3, " get_middle_diff() =%-7d \r\n\n", get_middle_diff());
+			if ((get_middle_top() < MIDDLE_LINE_MIN) || (get_middle_bot() < MIDDLE_LINE_MIN) || (get_middle_top() > MIDDLE_LINE_MAX) || (get_middle_bot() > MIDDLE_LINE_MAX)) {
+				// error too big
+				prepare_pid_front();
+			}
+			else if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
+				// perform very small error correction
+				if (get_middle_diff()<0){
+					right_motor_set_speed(0);
+					left_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
+				}
+				else {
+					right_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
+					left_motor_set_speed(0);
+				}
+			}
+			else {
+				//rolling straight backwards
+				right_motor_set_speed(-rolling_context.speed);
+				left_motor_set_speed(-rolling_context.speed);
+			}
 		}
 	}
 }
