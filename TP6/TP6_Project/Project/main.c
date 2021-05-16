@@ -74,7 +74,7 @@ int main(void)
 
 	rgb_gain_t rgb_gains = {94, 64, 64};
 	uint8_t contrast = 64;
-	uint8_t brightness = 0;
+	uint8_t brightness = 50;
 	//tuning uses line_index_top for plot visualization
 	uint16_t line_index_top = 10;
 	detect_mode_t mode_detect = MAX_ONLY;
@@ -126,9 +126,9 @@ int main(void)
 
 
 //		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
-//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
-//
+//		chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d D =%-7d C =%-7d M =%-7d \r\n\n",
+//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
+////
 //		chprintf((BaseSequentialStream *)&SD3, "DIFF =%-7d COLOR =%-7d Mode =%-7d \r\n\n"
 //					, get_middle_diff(),get_color(),get_rolling_mode());
 

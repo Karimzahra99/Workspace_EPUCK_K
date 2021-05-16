@@ -18,7 +18,7 @@
 #define NSTEP_ONE_TURN      		1000	// number of step for 1 turn of the motor
 #define WHEEL_DISTANCE      		5.30f    //cm
 #define PERIMETER_EPUCK     		(PI * WHEEL_DISTANCE)
-#define MAX_LINE_WIDTH 				4
+#define MAX_LINE_WIDTH 				3.5f
 
 //PID Parameters
 //0.2 pour 100 pas
@@ -39,7 +39,7 @@
 // Straight line correction zone
 #define STRAIGHT_ZONE_WIDTH_MAX		300
 #define STRAIGHT_ZONE_WIDTH_MIN		20
-#define MIDDLE_LINE_MIN				100
+#define MIDDLE_LINE_MIN				130
 #define MIDDLE_LINE_MAX				500
 
 //Distance to travel with middle_diff < DEAD_ZONE_WIDTH to go back to STRAIGHT_LINE_BACKWARDS mode
@@ -79,12 +79,12 @@ typedef struct {
 } MOVE_CONTEXT_t;
 
 typedef struct {
-bool first_line_passed;
-uint32_t ir3_adjusted;
-uint32_t ir2_adjusted;
-bool obstacle_at_left;
-uint32_t ir4_adjusted;
-uint32_t ir5_adjusted;
+	bool first_line_passed;
+	uint32_t ir3_adjusted;
+	uint32_t ir2_adjusted;
+	bool obstacle_at_left;
+	uint32_t ir4_adjusted;
+	uint32_t ir5_adjusted;
 } OBSTACLE_CONTEXT_t;
 
 static OBSTACLE_CONTEXT_t obstacle_context;
@@ -141,13 +141,13 @@ int rotate_until_irmax_right(void);
 //////////// THREAD /////////////
 
 /*
-*	Main Finite State Machine
-*   Determines the robot behavior depending on its environment
-*
-*	params :
-*   -
-*
-*/
+ *	Main Finite State Machine
+ *   Determines the robot behavior depending on its environment
+ *
+ *	params :
+ *   -
+ *
+ */
 static THD_WORKING_AREA(waPidRegulator, 512);
 static THD_FUNCTION(PidRegulator, arg) {
 	chRegSetThreadName(__FUNCTION__);
@@ -159,8 +159,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 	while(1){
 		time = chVTGetSystemTime();
 
-//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+		//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+		//						get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 		switch(rolling_context.mode){
 		case STRAIGHT_LINE_BACKWARDS :
@@ -184,11 +184,11 @@ static THD_FUNCTION(PidRegulator, arg) {
 			break;
 
 		case ROTATE_TILL_COLOR :
-			 rotate_till_color(obstacle_context.obstacle_at_left);
-			 break;
+			rotate_till_color(obstacle_context.obstacle_at_left);
+			break;
 
 		default :
-			find_next_color();;
+			find_next_color();
 			break;
 		}
 
@@ -236,17 +236,17 @@ void move_straight_backwards(void){
 		if ((get_middle_top() < MIDDLE_LINE_MIN) || (get_middle_bot() < MIDDLE_LINE_MIN) || (get_middle_top() > MIDDLE_LINE_MAX) || (get_middle_bot() > MIDDLE_LINE_MAX)) {
 			// error too big
 			prepare_pid_front();
-			}
+		}
 		else if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
 			// perform very small error correction
 			if (get_middle_diff()<0){
-					right_motor_set_speed(0);
-					left_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
+				right_motor_set_speed(0);
+				left_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
 			}
-				else {
-					right_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
-					left_motor_set_speed(0);
-				}
+			else {
+				right_motor_set_speed(cms_to_steps(BACKWARD_CORR_SPEED));
+				left_motor_set_speed(0);
+			}
 		}
 		else {
 			//rolling straight backwards
@@ -283,33 +283,34 @@ void pid_front(void){
 	rolling_context.color = get_color();
 	set_speed_with_color();
 
-	int16_t middle_diff = get_middle_top()- IMAGE_BUFFER_SIZE/2;
+	int16_t middle_diff = get_middle_bot()- IMAGE_BUFFER_SIZE/2;
 	int16_t speed_corr = pid_regulator_line(middle_diff);
 	// if middle diff between top and bottom camera lines is > threshold, then it's not a straight line.
 	if (abs(get_middle_diff())>30){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
-		if ((right_motor_get_pos() >= cm_to_step(5))){
-			motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 5 , -5);
-			left_motor_set_pos(0); //a essayer a la place de motor_init
-			right_motor_set_pos(0);
+	if ((right_motor_get_pos() >= cm_to_step(5))){
+		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 5 , -5);
+		left_motor_set_pos(0); //a essayer a la place de motor_init
+		right_motor_set_pos(0);
 
-			rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
-			// wait for camera to get botom and top middle
-			chThdSleepMilliseconds(1000);
+		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
+		// wait for camera to get botom and top middle
+		chThdSleepMilliseconds(1000);
 
-		}
-		else {
-			right_motor_set_speed(rolling_context.speed - speed_corr);
-			left_motor_set_speed(rolling_context.speed + speed_corr);
-		}
 	}
+	else {
+		right_motor_set_speed(rolling_context.speed - speed_corr);
+		left_motor_set_speed(rolling_context.speed + speed_corr);
+	}
+}
 
 
 void avoid_obs(void){
 	if(back_to_track()){
 		motor_set_position(MAX_LINE_WIDTH, MAX_LINE_WIDTH, SEARCH_SPEED, SEARCH_SPEED);
+		rolling_context.counter = 0;
 		rolling_context.mode= ROTATE_TILL_COLOR;
 	}
 	else{
@@ -382,7 +383,7 @@ bool back_to_track(void){
 			return 0;
 		}
 		else{
-				return 1;
+			return 1;
 		}
 	}
 	return 0;
@@ -414,11 +415,11 @@ void set_speed_with_color(void){
 	{
 	case 0: //NO COLOR
 		set_leds(FIND_COLOR);
-//		reset_middle_positions();
-//		rolling_context.counter = 0;
-//		rolling_context.speed = 0;
-//		left_motor_set_speed(0);
-//		right_motor_set_speed(0);
+		//		reset_middle_positions();
+		//		rolling_context.counter = 0;
+		//		rolling_context.speed = 0;
+		//		left_motor_set_speed(0);
+		//		right_motor_set_speed(0);
 		rolling_context.speed = cms_to_steps(SEARCH_SPEED);
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
@@ -467,7 +468,7 @@ void help_me_please(void){
 	set_leds(NO_COLOR);
 
 	playMelody(IMPOSSIBLE_MISSION, ML_SIMPLE_PLAY, NULL);
-		set_body_led(1);
+	set_body_led(1);
 
 }
 
@@ -508,26 +509,63 @@ void rotate_till_color(bool left_obs){
 		if (left_obs){
 			left_motor_set_speed(cms_to_steps(-1));
 			right_motor_set_speed(cms_to_steps(1));
-//					chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-//									get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+			//					chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+			//									get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 		}
 		else { //ir4
 			left_motor_set_speed(cms_to_steps(1));
 			right_motor_set_speed(cms_to_steps(-1));
 		}
 	}
-	//encore un pas stp et pid
+
 	else {
 		if (left_obs){
-					left_motor_set_speed(cms_to_steps(-1));
-					right_motor_set_speed(cms_to_steps(1));
-				}
-				else {
-					left_motor_set_speed(cms_to_steps(1));
-					right_motor_set_speed(cms_to_steps(-1));
-				}
-		rolling_context.mode = PID_FRONTWARDS;
+			rolling_context.counter = rolling_context.counter + 1;
+			left_motor_set_speed(cms_to_steps(-2));
+			right_motor_set_speed(cms_to_steps(2));
+			if (rolling_context.counter > 100){
+				left_motor_set_speed(cms_to_steps(0));
+				right_motor_set_speed(cms_to_steps(0));
+				reset_obstacle_context();
+				rolling_context.counter = 0;
+				chThdSleepMilliseconds(500);
+				rolling_context.mode = PID_FRONTWARDS;
+			}
+		}
+		else {
+			rolling_context.counter = rolling_context.counter + 1;
+			left_motor_set_speed(cms_to_steps(2));
+			right_motor_set_speed(cms_to_steps(-2));
+			if (rolling_context.counter > 100){
+				left_motor_set_speed(cms_to_steps(0));
+				right_motor_set_speed(cms_to_steps(0));
+				reset_obstacle_context();
+				rolling_context.counter = 0;
+				chThdSleepMilliseconds(500);
+				rolling_context.mode = PID_FRONTWARDS;
+			}
+		}
+		//		if (left_obs){
+		//					left_motor_set_speed(cms_to_steps(-2));
+		//					right_motor_set_speed(cms_to_steps(2));
+		//				}
+		//				else {
+		//					left_motor_set_speed(cms_to_steps(2));
+		//					right_motor_set_speed(cms_to_steps(-2));
+		//				}
+
+		//		if ((get_middle_top() > 200) ||  (get_middle_bot() > 200) ||  (get_middle_top() < 400) ||  (get_middle_bot() < 400)){
+		//			left_motor_set_speed(cms_to_steps(0));
+		//			right_motor_set_speed(cms_to_steps(0));
+		//			rolling_context.mode = PID_FRONTWARDS;
+		//			reset_obstacle_context();
+		//		}
+		left_motor_set_speed(cms_to_steps(0));
+		right_motor_set_speed(cms_to_steps(0));
 		reset_obstacle_context();
+		chThdSleepMilliseconds(1000);
+		rolling_context.mode = PID_FRONTWARDS;
+
 	}
 
 
@@ -541,15 +579,15 @@ int rotate_until_irmax_left(void)
 	int	ir_left_nouvau =0;
 	int start = 0;
 	while ((ir_left_nouvau > ir_left_ancien + 5 ) || start==0){
-			start =1;
-			ir_left_ancien = get_calibrated_prox(SENSOR_IR2);
-			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
-			ir_left_nouvau = get_calibrated_prox(SENSOR_IR2);
+		start =1;
+		ir_left_ancien = get_calibrated_prox(SENSOR_IR2);
+		motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
+		ir_left_nouvau = get_calibrated_prox(SENSOR_IR2);
 
-		}
+	}
 	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
 
-return ir_left_ancien;
+	return ir_left_ancien;
 }
 
 int rotate_until_irmax_right(void)
@@ -558,15 +596,15 @@ int rotate_until_irmax_right(void)
 	int	ir_right_nouvau =0;
 	int start = 0;
 	while ((ir_right_nouvau > ir_right_ancien + 5 ) || start==0){
-			start =1;
-			ir_right_ancien = get_calibrated_prox(SENSOR_IR5);
-			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
-			ir_right_nouvau = get_calibrated_prox(SENSOR_IR5);
+		start =1;
+		ir_right_ancien = get_calibrated_prox(SENSOR_IR5);
+		motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
+		ir_right_nouvau = get_calibrated_prox(SENSOR_IR5);
 
-		}
+	}
 	motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
 
-return ir_right_ancien;
+	return ir_right_ancien;
 }
 
 int16_t pid_regulator_ir(int middle){
@@ -598,7 +636,7 @@ int16_t pid_regulator_ir(int middle){
 
 	speed = 0.2 * error + 0.2 * derivative; //0.01 * sum_error; //+ 0.1 * derivative;
 
-    return (int16_t) speed;
+	return (int16_t) speed;
 }
 
 
@@ -645,7 +683,7 @@ int16_t pid_regulator_line(int16_t middle_diff){
 	last_error = error;
 
 	if (rolling_context.color == RED_IDX){
-		speed_correction = KP_R * error; //+ KI_R * sum_error + KD_R * derivative;
+		speed_correction = KP_R * error + KI_R * sum_error;// + KD_R * derivative;
 	}
 
 	if (rolling_context.color == GREEN_IDX){
