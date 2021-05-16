@@ -226,9 +226,6 @@ void init_context(void){
 }
 
 void move_straight_backwards(void){
-	if (rolling_context.color != get_color()){
-		motor_set_position(2,2,-rolling_context.speed,-rolling_context.speed);
-	}
 	rolling_context.color = get_color();
 	set_speed_with_color();
 	if (check_ir_front()){
