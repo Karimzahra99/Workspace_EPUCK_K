@@ -1,16 +1,16 @@
-#include "moving.h"
-#include "ch.h"
-#include "hal.h"
+#include <ch.h>
+#include <hal.h>
 #include <math.h>
 #include <usbcfg.h>
 #include <chprintf.h>
-#include<stdbool.h>
+#include <stdbool.h>
 #include <sensors/proximity.h>
 #include <main.h>
 #include <motors.h>
-#include "read_image.h"
+#include <read_image.h>
 #include <audio/play_melody.h>
 #include <leds.h>
+#include <moving.h>
 
 //Distances parameters
 #define PI                 			3.1415926536f

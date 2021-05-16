@@ -1,6 +1,5 @@
-#include "read_image.h"
-#include "ch.h"
-#include "hal.h"
+#include <ch.h>
+#include <hal.h>
 #include <chprintf.h>
 #include <usbcfg.h>
 #include <string.h>
@@ -8,24 +7,24 @@
 #include <main.h>
 #include <camera/po8030.h>
 #include <selector.h>
+#include <read_image.h>
 
-
-//Longeur d'une ligne de pixels de la camera et tolerance pour les comptages du nombre de pixels egaux a l'intensite maximal
+//Length of a line of pixels from the camera and tolerance for counts of the number of pixels equal to the maximum intensity
 #define IMAGE_BUFFER_SIZE			640
 #define TOLERANCE					3
 
-//Pour alterner lors du traitement des deux lignes de la camera
+//To alternate when processing the two lines of the camera
 #define TOP							0
 #define BOTTOM						1
 
-//Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
+//The minimum number of pixels to validate a line detection for a certain color
 #define MIN_COUNT					5
 
-//Pour trouver le milieu de la ligne, condition sur largeur de ligne et "trous" dans une ligne
+//To find the middle of the line, condition on line width and "holes" in a line
 #define MIN_LINE_WIDTH				70
 #define MIN_HOLE_WIDTH				20
 
-//Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
+//Shift to put the bits of the colors back in order when extracting the RGB565 format
 #define SHIFT_2						2
 #define SHIFT_3						3
 #define SHIFT_6						6
