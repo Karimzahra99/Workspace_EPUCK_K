@@ -234,6 +234,8 @@ void move_straight_backwards(void){
 		set_speed_with_color();
 	}
 	else {
+		rolling_context.color = get_color();
+		set_speed_with_color();
 		if (check_ir_front()){
 			rolling_context.mode = OBS_AVOIDANCE;
 		}
