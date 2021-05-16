@@ -345,6 +345,7 @@ void prepare_pid_front(void){
 
 void pid_front(void){
 
+	rolling_context.color = get_color();
 	set_speed_with_color();
 
 	int16_t middle_diff = get_middle_bot()- IMAGE_BUFFER_SIZE/2;

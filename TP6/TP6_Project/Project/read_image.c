@@ -430,11 +430,6 @@ void calc_line_middle(uint8_t alternator){
 
 	}
 	else {
-		image_context.middle_bot_temp = calc_middle(image_context.image_bot);
-					chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d D =%-7d C =%-7d Counter =%-7d \r\n\n",
-										get_middle_top(),get_middle_bot(), get_middle_diff(),get_color(),image_context.counter);
-					chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d TT =%-7d TB =%-7d \r\n\n",
-							get_middle_top(),get_middle_bot(), image_context.middle_top_temp,image_context.middle_bot_temp);
 
 		if (image_context.frontwards == 1){
 			image_context.middle_line_top = image_context.middle_top_temp;
