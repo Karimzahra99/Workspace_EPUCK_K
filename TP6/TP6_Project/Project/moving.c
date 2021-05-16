@@ -504,6 +504,7 @@ STATE_t get_rolling_mode (void){
 /////////////////////////////////////////////
 void rotate_till_color(bool left_obs){
 	set_leds(NO_LINE);
+//	rolling_context.color = get_color();
 	// TURN WHILE YOU DONT SEE LINE AND WHILE THE LINE IS NOT IN MIDDLE
 	if (get_color() == NO_COLOR){
 		if (left_obs){
@@ -516,43 +517,46 @@ void rotate_till_color(bool left_obs){
 			left_motor_set_speed(cms_to_steps(1));
 			right_motor_set_speed(cms_to_steps(-1));
 		}
+
 	}
 
 	else {
-		if (left_obs){
-			rolling_context.counter = rolling_context.counter + 1;
-			left_motor_set_speed(cms_to_steps(-2));
-			right_motor_set_speed(cms_to_steps(2));
-			if (rolling_context.counter > 100){
-				left_motor_set_speed(cms_to_steps(0));
-				right_motor_set_speed(cms_to_steps(0));
-				reset_obstacle_context();
-				rolling_context.counter = 0;
-				chThdSleepMilliseconds(500);
-				rolling_context.mode = PID_FRONTWARDS;
-			}
-		}
-		else {
-			rolling_context.counter = rolling_context.counter + 1;
-			left_motor_set_speed(cms_to_steps(2));
-			right_motor_set_speed(cms_to_steps(-2));
-			if (rolling_context.counter > 100){
-				left_motor_set_speed(cms_to_steps(0));
-				right_motor_set_speed(cms_to_steps(0));
-				reset_obstacle_context();
-				rolling_context.counter = 0;
-				chThdSleepMilliseconds(500);
-				rolling_context.mode = PID_FRONTWARDS;
-			}
-		}
-		//		if (left_obs){
-		//					left_motor_set_speed(cms_to_steps(-2));
-		//					right_motor_set_speed(cms_to_steps(2));
-		//				}
-		//				else {
-		//					left_motor_set_speed(cms_to_steps(2));
-		//					right_motor_set_speed(cms_to_steps(-2));
-		//				}
+//		chprintf((BaseSequentialStream *)&SD3, "Counter =%-7d \r\n\n",
+//				rolling_context.counter);
+//		if (left_obs){
+//			rolling_context.counter = rolling_context.counter + 1;
+//			left_motor_set_speed(cms_to_steps(-2));
+//			right_motor_set_speed(cms_to_steps(2));
+//			if (rolling_context.counter > 500){
+//				set_body_led(1);
+//				left_motor_set_speed(cms_to_steps(0));
+//				right_motor_set_speed(cms_to_steps(0));
+//				reset_obstacle_context();
+//				rolling_context.counter = 0;
+//				chThdSleepMilliseconds(500);
+//				rolling_context.mode = PID_FRONTWARDS;
+//			}
+//		}
+//		else {
+//			rolling_context.counter = rolling_context.counter + 1;
+//			left_motor_set_speed(cms_to_steps(2));
+//			right_motor_set_speed(cms_to_steps(-2));
+//			if (rolling_context.counter > 500){
+//				set_body_led(1);
+//				left_motor_set_speed(cms_to_steps(0));
+//				right_motor_set_speed(cms_to_steps(0));
+//				reset_obstacle_context();
+//				rolling_context.counter = 0;
+//				chThdSleepMilliseconds(500);
+//				rolling_context.mode = PID_FRONTWARDS;
+//			}
+//		}
+				if (left_obs){
+					motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
+						}
+						else {
+							motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
+						}
 
 		//		if ((get_middle_top() > 200) ||  (get_middle_bot() > 200) ||  (get_middle_top() < 400) ||  (get_middle_bot() < 400)){
 		//			left_motor_set_speed(cms_to_steps(0));
