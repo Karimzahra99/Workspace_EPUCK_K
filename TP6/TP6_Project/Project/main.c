@@ -72,7 +72,7 @@ int main(void)
 	 * send_params : NO_VISUALIZE_PARAMS, VISUALIZE_PARAMS
 	 */
 
-	rgb_gain_t rgb_gains = {94, 0, 0};
+	rgb_gain_t rgb_gains = {94, 64, 93};
 	uint8_t contrast = 64;
 	uint8_t brightness = 0;
 	//tuning uses line_index_top for plot visualization
@@ -81,7 +81,7 @@ int main(void)
 	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
 #ifdef TUNE
 	//chose which color intensity to plot with plot_image.py
-	color_index_t plot_pixels_color = GREEN_IDX;
+	color_index_t plot_pixels_color = RED_IDX;
 #else
 	uint16_t line_index_bot = 400;
 #endif
