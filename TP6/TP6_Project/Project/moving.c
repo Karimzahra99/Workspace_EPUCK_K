@@ -230,7 +230,7 @@ void move_straight_backwards(void){
 		rolling_context.color = get_color();
 		set_speed_with_color();
 		motor_set_position(3, 3,  -LOW_SPEED,  -LOW_SPEED);
-		chThdSleepMilliseconds(500);
+		chThdSleepMilliseconds(200);
 		rolling_context.color = get_color();
 		set_speed_with_color();
 	}
@@ -281,7 +281,7 @@ void prepare_pid_front(void){
 	left_motor_set_pos(0);
 	right_motor_set_pos(0);
 
-	chThdSleepMilliseconds(500);
+	chThdSleepMilliseconds(200);
 
 
 
@@ -296,18 +296,18 @@ void pid_front(void){
 	int16_t middle_diff = get_middle_bot()- IMAGE_BUFFER_SIZE/2;
 	int16_t speed_corr = pid_regulator_line(middle_diff);
 	// if middle diff between top and bottom camera lines is > threshold, then it's not a straight line.
-	if (abs(get_middle_diff())>30){
+	if (abs(get_middle_diff())>35){
 		left_motor_set_pos(0);
 		right_motor_set_pos(0);
 	}
-	if ((right_motor_get_pos() >= cm_to_step(5))){
+	if ((right_motor_get_pos() >= cm_to_step(4.5))){
 		motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, 5 , -5);
 		left_motor_set_pos(0); //a essayer a la place de motor_init
 		right_motor_set_pos(0);
 
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 		// wait for camera to get botom and top middle
-		chThdSleepMilliseconds(1000);
+		chThdSleepMilliseconds(200);
 
 	}
 	else {
@@ -514,7 +514,7 @@ STATE_t get_rolling_mode (void){
 /////////////////////////////////////////////
 void rotate_till_color(bool left_obs){
 	set_leds(NO_LINE);
-//	rolling_context.color = get_color();
+	//	rolling_context.color = get_color();
 	// TURN WHILE YOU DONT SEE LINE AND WHILE THE LINE IS NOT IN MIDDLE
 	if (get_color() == NO_COLOR){
 		if (left_obs){
@@ -531,53 +531,24 @@ void rotate_till_color(bool left_obs){
 	}
 
 	else {
-//		chprintf((BaseSequentialStream *)&SD3, "Counter =%-7d \r\n\n",
-//				rolling_context.counter);
-//		if (left_obs){
-//			rolling_context.counter = rolling_context.counter + 1;
-//			left_motor_set_speed(cms_to_steps(-2));
-//			right_motor_set_speed(cms_to_steps(2));
-//			if (rolling_context.counter > 500){
-//				set_body_led(1);
-//				left_motor_set_speed(cms_to_steps(0));
-//				right_motor_set_speed(cms_to_steps(0));
-//				reset_obstacle_context();
-//				rolling_context.counter = 0;
-//				chThdSleepMilliseconds(500);
-//				rolling_context.mode = PID_FRONTWARDS;
-//			}
-//		}
-//		else {
-//			rolling_context.counter = rolling_context.counter + 1;
-//			left_motor_set_speed(cms_to_steps(2));
-//			right_motor_set_speed(cms_to_steps(-2));
-//			if (rolling_context.counter > 500){
-//				set_body_led(1);
-//				left_motor_set_speed(cms_to_steps(0));
-//				right_motor_set_speed(cms_to_steps(0));
-//				reset_obstacle_context();
-//				rolling_context.counter = 0;
-//				chThdSleepMilliseconds(500);
-//				rolling_context.mode = PID_FRONTWARDS;
-//			}
-//		}
-				if (left_obs){
-					motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
-						}
-						else {
-							motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
-						}
+
+		if (left_obs){
+			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  1, -1);
+		}
+		else {
+			motor_set_position(PERIMETER_EPUCK/16, PERIMETER_EPUCK/16,  -1, 1);
+		}
 
 		//		if ((get_middle_top() > 200) ||  (get_middle_bot() > 200) ||  (get_middle_top() < 400) ||  (get_middle_bot() < 400)){
 		//			left_motor_set_speed(cms_to_steps(0));
 		//			right_motor_set_speed(cms_to_steps(0));
-		//			rolling_context.mode = PID_FRONTWARDS;
+		//			rolling_context.mode = PID_FRONTWARDS;chthd
 		//			reset_obstacle_context();
 		//		}
 		left_motor_set_speed(cms_to_steps(0));
 		right_motor_set_speed(cms_to_steps(0));
 		reset_obstacle_context();
-		chThdSleepMilliseconds(1000);
+		chThdSleepMilliseconds(200);
 		rolling_context.mode = PID_FRONTWARDS;
 
 	}
