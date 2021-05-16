@@ -1,6 +1,5 @@
-#include "read_image.h"
-#include "ch.h"
-#include "hal.h"
+#include <ch.h>
+#include <hal.h>
 #include <chprintf.h>
 #include <usbcfg.h>
 #include <string.h>
@@ -8,24 +7,23 @@
 #include <main.h>
 #include <camera/po8030.h>
 #include <selector.h>
+#include <read_image.h>
 
-
-//Longeur d'une ligne de pixels de la camera et tolerance pour les comptages du nombre de pixels egaux a l'intensite maximal
-#define IMAGE_BUFFER_SIZE			640
+//Tolerance for counts of the number of pixels equal to the maximum intensity
 #define TOLERANCE					3
 
-//Pour alterner lors du traitement des deux lignes de la camera
+//To alternate when processing the two lines of the camera
 #define TOP							0
 #define BOTTOM						1
 
-//Le nombre minimum de pixel pour valider une detection de ligne pour une certaine couleur
+//The minimum number of pixels to validate a line detection for a certain color
 #define MIN_COUNT					5
 
-//Pour trouver le milieu de la ligne, condition sur largeur de ligne et "trous" dans une ligne
+//To find the middle of the line, condition on line width and "holes" in a line
 #define MIN_LINE_WIDTH				70
 #define MIN_HOLE_WIDTH				20
 
-//Shift pour remettre les bits des couleurs dans l'ordre lors de l'extraction du format RGB565
+//Shift to put the bits of the colors back in order when extracting the RGB565 format
 #define SHIFT_2						2
 #define SHIFT_3						3
 #define SHIFT_6						6
@@ -97,6 +95,9 @@ uint8_t get_color(void);
 
 //calls the appropriate color detection function
 void find_color(void);
+
+//Function for visualization
+void SendUint8ToComputer(uint8_t* data, uint16_t size);
 
 #ifdef TUNE
 
@@ -442,11 +443,6 @@ void camera_init_top(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-//		po8030_set_awb(0);
-//		po8030_set_brightness(image_context.brightness);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //initialization of camera and dcmi for bot line lecture
@@ -456,11 +452,6 @@ void camera_init_bot(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-//		po8030_set_awb(0);
-//		po8030_set_brightness(image_context.brightness);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //middle position difference between top and bottom lines
@@ -1760,4 +1751,12 @@ void find_color(void){
 		find_color_rainy_day();
 		break;
 	}
+}
+
+//Function for visualization
+void SendUint8ToComputer(uint8_t* data, uint16_t size)
+{
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
 }

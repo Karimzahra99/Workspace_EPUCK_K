@@ -9,14 +9,14 @@ extern "C" {
 #include "msgbus/messagebus.h"
 #include "parameter/parameter.h"
 
-//Comment after tuning the color detection parameters in read_image.c
+//Uncomment to tune, comment to go in demo mode
 //#define TUNE
 
-//Level des leds
+//Level intensity of LEDs
 #define LED_ON						10
 #define LED_OFF						0
 
-//Difference between middle top and bottom line neglected (used in read_image.c and pid_regulator.c)
+//Difference between middle top and bottom line neglected (used in read_image.c and moving.c)
 #define DEAD_ZONE_WIDTH				100
 
 typedef enum {
@@ -78,11 +78,8 @@ typedef struct {
 	visualize_mode_t send_data_terminal;
 } config_t;
 
-
-void SendUint8ToComputer(uint8_t* data, uint16_t size);
-
+//RGB LEDs settings function
 void set_leds(color_index_t color_index);
-
 
 /** Robot wide IPC bus. */
 extern messagebus_t bus;

@@ -4,9 +4,8 @@
 #include <stdint.h>
 #include <main.h>
 
-//Constant for the image processing
-#define IMAGE_BUFFER_SIZE		640
-
+//Number of pixels of one horizontal line of the camera
+#define IMAGE_BUFFER_SIZE			640
 
 void read_image_start(config_t arg_config);
 void tune_image_start(tuning_config_t arg_tune_settings);
