@@ -22,8 +22,8 @@
 
 //Controllers parameters
 #define KP_R						0.8f
-#define KP_G						0.7f
-#define KP_B						0.6f
+#define KP_G						0.5f
+#define KP_B						0.2f
 #define KP_IR						0.2f
 #define KD_IR						0.2f
 #define MAX_SUM_ERROR_IR 			100
@@ -31,7 +31,7 @@
 // Straight line correction zone
 #define STRAIGHT_ZONE_WIDTH_MAX		250
 #define STRAIGHT_ZONE_WIDTH_MIN		20
-#define MIDDLE_LINE_MIN             130
+#define MIDDLE_LINE_MIN             150
 #define MIDDLE_LINE_MAX             500
 #define MAX_DIFF_MIDDLE				35
 
@@ -324,7 +324,7 @@ void prepare_pid_front(void){
 
 	rolling_context.counter = 0;
 
-	motor_set_position(10, 10,  SEARCH_SPEED,  SEARCH_SPEED);
+	motor_set_position(10, 10,  MEDIUM_SPEED,  MEDIUM_SPEED);
 
 	motor_set_position(PERIMETER_EPUCK/2, PERIMETER_EPUCK/2, MEDIUM_SPEED, -MEDIUM_SPEED);
 
@@ -359,9 +359,9 @@ void pid_front(void){
 		left_motor_set_pos(0); //a essayer a la place de motor_init
 		right_motor_set_pos(0);
 
+		chThdSleepMilliseconds(500);
 		rolling_context.mode = STRAIGHT_LINE_BACKWARDS;
 		// wait for camera to get botom and top middle
-		chThdSleepMilliseconds(1000);
 
 	}
 	else {
