@@ -182,7 +182,7 @@ static THD_FUNCTION(PidRegulator, arg) {
 			move_straight_backwards();
 			break;
 
-		case PID_FRONTWARDS :
+		case FRONTWARDS :
 			pid_front();
 			break;
 
@@ -234,7 +234,7 @@ void init_context(void){
 //
 //	set_frontwards_bool(false);
 
-	rolling_context.mode = PID_FRONTWARDS;
+	rolling_context.mode = FRONTWARDS;
 
 	set_frontwards_bool(true);
 
@@ -336,7 +336,7 @@ void prepare_pid_front(void){
 
 	chThdSleepMilliseconds(500);
 
-	rolling_context.mode = PID_FRONTWARDS;
+	rolling_context.mode = FRONTWARDS;
 
 
 
@@ -604,7 +604,7 @@ void rotate_till_color(bool left_obs){
 		right_motor_set_speed(cms_to_steps(0));
 		reset_obstacle_context();
 		chThdSleepMilliseconds(500);
-		rolling_context.mode = PID_FRONTWARDS;
+		rolling_context.mode = FRONTWARDS;
 
 	}
 }
