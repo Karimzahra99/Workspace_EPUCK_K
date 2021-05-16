@@ -227,7 +227,9 @@ void init_context(void){
 
 void move_straight_backwards(void){
 	if (rolling_context.color != get_color()){
-		motor_set_position(3,3,-rolling_context.speed,-rolling_context.speed);
+		right_motor_set_speed(0);
+		left_motor_set_speed(0);
+		motor_set_position(4, 4,  -SEARCH_SPEED,  -SEARCH_SPEED);
 	}
 	else {
 		rolling_context.color = get_color();
