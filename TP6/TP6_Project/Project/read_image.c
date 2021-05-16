@@ -30,6 +30,9 @@
 #define SHIFT_3						3
 #define SHIFT_6						6
 
+//In case of bad middle position calculation in rolling backwards mode
+#define MAX_WAITING_TIME			2
+
 typedef struct {
 
 	//After tuning adjust to the desired detection mode
@@ -430,6 +433,10 @@ void calc_line_middle(uint8_t alternator){
 	}
 	else {
 		image_context.middle_bot_temp = calc_middle(image_context.image_bot);
+					chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d D =%-7d C =%-7d Counter =%-7d \r\n\n",
+										get_middle_top(),get_middle_bot(), get_middle_diff(),get_color(),image_context.counter);
+					chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d TT =%-7d TB =%-7d \r\n\n",
+							get_middle_top(),get_middle_bot(), image_context.middle_top_temp,image_context.middle_bot_temp);
 
 		if (image_context.frontwards == 1){
 			image_context.middle_line_top = image_context.middle_top_temp;
@@ -438,14 +445,14 @@ void calc_line_middle(uint8_t alternator){
 		}
 		else {
 
-			if ((image_context.middle_bot_temp == 0) && (image_context.middle_line_bot != 0)){
+			if (image_context.middle_bot_temp != 0){
 				image_context.middle_line_top = image_context.middle_top_temp;
 				image_context.middle_line_bot = image_context.middle_bot_temp;
 				image_context.counter = 0;
 			}
 			else {
 				image_context.counter = image_context.counter + 1;
-				if (image_context.counter > 5){
+				if (image_context.counter > MAX_WAITING_TIME){
 					image_context.middle_line_top = image_context.middle_top_temp;
 					image_context.middle_line_bot = image_context.middle_bot_temp;
 					image_context.counter = 0;
