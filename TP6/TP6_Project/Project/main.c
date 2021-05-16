@@ -123,13 +123,13 @@ int main(void)
 	chThdSleepMilliseconds(500);
 
 	//Initialize speakers
-	//mic_start(NULL);
+	mic_start(NULL);
 
 	//Initialize Melody thread to play songs
-	//playMelodyStart();
+	playMelodyStart();
 
 	//Initialize Moving thread to follow lines of different color and avoid obstacles
-	moving_start();
+	//moving_start();
 
 #endif
 
@@ -149,8 +149,8 @@ int main(void)
 
 		//chprintf((BaseSequentialStream *)&SD3, "Mode =%-7d \r\n\n",get_rolling_mode());
 
-//		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
-//				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
+		chprintf((BaseSequentialStream *)&SD3, "TOP =%-7d BOT =%-7d DIFF =%-7d COLOR =%-7d \r\n\n",
+				get_middle_top(), get_middle_bot(), get_middle_diff(),get_color());
 
 //			chprintf((BaseSequentialStream *)&SD3, "T =%-7d B =%-7d D =%-7d C =%-7d Mode =%-7d \r\n\n",
 //					get_middle_top(),get_middle_bot(), get_middle_diff(),get_color(),get_rolling_mode());
@@ -210,9 +210,9 @@ void set_leds(color_index_t color_index){
 						else {
 							if (color_index == FIND_COLOR){ //blue and red
 								set_rgb_led(LED_RGB_2, LED_ON, LED_OFF, LED_OFF);
-								set_rgb_led(LED_RGB_4, LED_OFF, LED_ON, LED_OFF);
-								set_rgb_led(LED_RGB_6, LED_OFF, LED_OFF, LED_ON);
-								set_rgb_led(LED_RGB_8, LED_ON, LED_ON, LED_ON);
+								set_rgb_led(LED_RGB_4, LED_OFF, LED_OFF, LED_ON);
+								set_rgb_led(LED_RGB_6, LED_ON, LED_OFF, LED_OFF);
+								set_rgb_led(LED_RGB_8, LED_OFF, LED_OFF, LED_ON);
 								return;
 							}
 							else {

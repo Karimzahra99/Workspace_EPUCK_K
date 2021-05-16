@@ -70,8 +70,8 @@ typedef struct {
 	int16_t middle_line_top;
 	int16_t middle_line_bot;
 	uint8_t counter;
-	int16_t middle_top_temp = 0;
-	int16_t middle_bot_temp = 0;
+	int16_t middle_top_temp;
+	int16_t middle_bot_temp;
 	bool frontwards;
 #endif
 
@@ -413,41 +413,41 @@ void calc_line_middle(uint8_t alternator){
 
 	if (alternator == TOP){
 		if (image_context.color_index == RED_IDX){
-			middle_top_temp = calc_middle(image_context.image_red);
+			image_context.middle_top_temp = calc_middle(image_context.image_red);
 		}
 		else {
 			if (image_context.color_index == GREEN_IDX){
-				middle_top_temp = calc_middle(image_context.image_green);
+				image_context.middle_top_temp = calc_middle(image_context.image_green);
 			}
 
 			else {
 				if (image_context.color_index == BLUE_IDX){
-					middle_top_temp = calc_middle(image_context.image_blue);
+					image_context.middle_top_temp = calc_middle(image_context.image_blue);
 				}
 			}
 		}
 
 	}
 	else {
-		middle_bot_temp = calc_middle(image_context.image_bot);
+		image_context.middle_bot_temp = calc_middle(image_context.image_bot);
 
 		if (image_context.frontwards == 1){
-			image_context.middle_line_top = middle_top_temp;
-			image_context.middle_line_bot = middle_bot_temp;
+			image_context.middle_line_top = image_context.middle_top_temp;
+			image_context.middle_line_bot = image_context.middle_bot_temp;
 			image_context.counter = 0;
 		}
 		else {
 
-			if ((middle_bot_temp == 0) && (image_context.middle_line_bot != 0)){
-				image_context.middle_line_top = middle_top_temp;
-				image_context.middle_line_bot = middle_bot_temp;
+			if ((image_context.middle_bot_temp == 0) && (image_context.middle_line_bot != 0)){
+				image_context.middle_line_top = image_context.middle_top_temp;
+				image_context.middle_line_bot = image_context.middle_bot_temp;
 				image_context.counter = 0;
 			}
 			else {
 				image_context.counter = image_context.counter + 1;
 				if (image_context.counter > 1){
-					image_context.middle_line_top = middle_top_temp;
-					image_context.middle_line_bot = middle_bot_temp;
+					image_context.middle_line_top = image_context.middle_top_temp;
+					image_context.middle_line_bot = image_context.middle_bot_temp;
 					image_context.counter = 0;
 				}
 			}
@@ -457,6 +457,7 @@ void calc_line_middle(uint8_t alternator){
 	}
 }
 
+//Setting frontwards bool in image_context structure
 void set_frontwards_bool(bool front){
 	image_context.frontwards = front;
 	image_context.counter = 0;
@@ -477,11 +478,6 @@ void camera_init_top(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-//		po8030_set_awb(0);
-//		po8030_set_brightness(image_context.brightness);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //initialization of camera and dcmi for bot line lecture
@@ -491,11 +487,6 @@ void camera_init_bot(void){
 	dcmi_disable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
-	//Deactivate auto-white balance
-//		po8030_set_awb(0);
-//		po8030_set_brightness(image_context.brightness);
-//		po8030_set_contrast(image_context.contrast);
-//		po8030_set_rgb_gain(image_context.rgb_gains.red_gain,image_context.rgb_gains.green_gain,image_context.rgb_gains.blue_gain);
 }
 
 //middle position difference between top and bottom lines
@@ -571,6 +562,8 @@ void init_visual_context(config_t received_config){
 
 	image_context.counter = 0;
 	image_context.frontwards = false;
+	image_context.middle_top_temp = 0;
+	image_context.middle_bot_temp = 0;
 	image_context.middle_line_top = IMAGE_BUFFER_SIZE/2;; //middle of line
 	image_context.middle_line_bot = IMAGE_BUFFER_SIZE/2;
 
