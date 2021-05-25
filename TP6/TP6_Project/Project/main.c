@@ -93,7 +93,7 @@ int main(void)
 	uint8_t brightness = 80;
 	uint16_t line_index_top = 10; //tuning uses line_index_top for plot visualization
 	detect_mode_t mode_detect = MAX_ONLY;
-	visualize_mode_t send_params = YES_VISUALIZE_PARAMS;
+	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
 #ifdef TUNE
 	color_index_t plot_pixels_color = RED_IDX; //chose which color intensity to plot with plot_image.py
 #else
@@ -137,7 +137,8 @@ int main(void)
 	while (1) {
 		//waits 1 second
 		chThdSleepMilliseconds(1000);
-
+//		chprintf((BaseSequentialStream *)&SD3, "IR2 =%-7d IR3 =%-7d IR4 =%-7d IR5 =%-7d \r\n\n",
+//				get_calibrated_prox(2),get_calibrated_prox(3),get_calibrated_prox(4), get_calibrated_prox(5));
 	}
 }
 
