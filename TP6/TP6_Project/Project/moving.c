@@ -42,8 +42,8 @@
 
 //Threshold des IR
 #define	IR_THRESHOLD				250
-#define IR_BRUIT_BLANC              10
-#define IR_OBS_OFFSET				5
+#define IR_BRUIT_BLANC              2
+#define IR_OBS_OFFSET				2
 
 //Color speeds
 #define BACKWARD_CORR_SPEED 		0.8f
@@ -129,7 +129,7 @@ void pid_front(void);
 void init_context(void);
 
 // go back a little and rotate 180 degrees
-void prepare_pid_front(void);
+void prepare_frontwards(void);
 
 // turn around any obstacle until back to track
 void avoid_obs(void);
@@ -267,7 +267,7 @@ void move_straight_backwards(void){
 			(get_middle_top() > MIDDLE_LINE_MAX) ||
 			(get_middle_bot() > MIDDLE_LINE_MAX)) {
 			// error too big
-			prepare_pid_front();
+			prepare_frontwards();
 		}
 		else if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
 			// perform very small error correction
@@ -288,7 +288,7 @@ void move_straight_backwards(void){
 	}
 }
 
-void prepare_pid_front(void){
+void prepare_frontwards(void){
 
 	set_leds(PURPLE_IDX);
 
@@ -588,6 +588,8 @@ int16_t rotate_until_irmax_left(void)
 	int16_t	ir_left_ancien = 0;
 	int16_t	ir_left_nouvau = 0;
 	bool start = 0;
+	motor_set_position(PERIMETER_EPUCK/8, PERIMETER_EPUCK/8,
+								-CALIBRATION_SPEED, CALIBRATION_SPEED);
 	while ((ir_left_nouvau > ir_left_ancien + IR_OBS_OFFSET) || start == 0){
 		start = 1;
 		ir_left_ancien = get_calibrated_prox(SENSOR_IR2);
@@ -607,6 +609,8 @@ int16_t rotate_until_irmax_right(void)
 	int16_t	ir_right_ancien = 0;
 	int16_t	ir_right_nouvau = 0;
 	bool start = 0;
+	motor_set_position(PERIMETER_EPUCK/8, PERIMETER_EPUCK/8,
+									CALIBRATION_SPEED, -CALIBRATION_SPEED);
 	while ((ir_right_nouvau > ir_right_ancien + IR_OBS_OFFSET) || start == 0){
 		start = 1;
 		ir_right_ancien = get_calibrated_prox(SENSOR_IR5);

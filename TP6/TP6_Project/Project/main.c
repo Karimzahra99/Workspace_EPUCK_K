@@ -110,7 +110,7 @@ int main(void)
 	motors_init();
 
 	//3 seconds to remove hands and obstacles near the robot for IR calibration
-	chThdSleepMilliseconds(3000);
+	chThdSleepMilliseconds(5000);
 
 	//Initialize IR sensors and calibrate them
 	proximity_start();
