@@ -69,6 +69,7 @@ int main(void)
 
 	//Initialize camera PO8030D
 	po8030_start();
+
 	//For RGB LEDS
 	//Initialize SPI : serial peripheral interface, to use RGB LEDs
 	spi_comm_start();
@@ -87,9 +88,9 @@ int main(void)
 	 */
 
 	//Declaration of camera configuration
-	rgb_gain_t rgb_gains = {94, 76, 90};
-	uint8_t contrast = 75;
-	uint8_t brightness = 40;
+	rgb_gain_t rgb_gains = {104, 64, 80};
+	uint8_t contrast = 68;
+	uint8_t brightness = 5;
 	uint16_t line_index_top = 10; //tuning uses line_index_top for plot visualization
 	detect_mode_t mode_detect = MAX_ONLY;
 	visualize_mode_t send_params = YES_VISUALIZE_PARAMS;
@@ -135,7 +136,7 @@ int main(void)
 
 	while (1) {
 		//waits 1 second
-//			chThdSleepMilliseconds(1000);
+		chThdSleepMilliseconds(1000);
 
 	}
 }

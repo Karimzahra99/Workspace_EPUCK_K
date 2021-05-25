@@ -313,15 +313,6 @@ int16_t get_middle_top(void);
 //returns the middle position of bottom line (used for debug)
 int16_t get_middle_bot(void);
 
-//set the middle position of top line
-void set_middle_top(uint16_t top_middle);
-
-//set the middle position of bottom line
-void set_middle_bot(uint16_t bot_middle);
-
-//set to 0 both middle positions
-void reset_middle_positions(void);
-
 //initializes the image_context structure with the received configuration
 void init_visual_context(config_t received_config);
 
@@ -467,22 +458,6 @@ int16_t get_middle_top(void) {
 //middle position of bottom line
 int16_t get_middle_bot(void) {
 	return image_context.middle_line_bot;
-}
-
-//set the middle position of top line
-void set_middle_top(uint16_t top_middle){
-	image_context.middle_line_top = top_middle;
-}
-
-//set the middle position of bottom line
-void set_middle_bot(uint16_t bot_middle){
-	image_context.middle_line_bot = bot_middle;
-}
-
-//set to 0 both middle positions
-void reset_middle_positions(void){
-	set_middle_top(0);
-	set_middle_bot(0);
 }
 
 //initialization of image_context
