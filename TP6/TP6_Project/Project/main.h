@@ -10,7 +10,7 @@ extern "C" {
 #include "parameter/parameter.h"
 
 //Uncomment to tune, comment to go in demo mode
-#define TUNE
+//#define TUNE
 
 //Level intensity of LEDs
 #define LED_ON						10
