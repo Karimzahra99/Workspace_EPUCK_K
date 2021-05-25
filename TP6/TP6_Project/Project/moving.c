@@ -129,7 +129,7 @@ void pid_front(void);
 void init_context(void);
 
 // go back a little and rotate 180 degrees
-void prepare_pid_front(void);
+void prepare_frontwards(void);
 
 // turn around any obstacle until back to track
 void avoid_obs(void);
@@ -267,7 +267,7 @@ void move_straight_backwards(void){
 			(get_middle_top() > MIDDLE_LINE_MAX) ||
 			(get_middle_bot() > MIDDLE_LINE_MAX)) {
 			// error too big
-			prepare_pid_front();
+			prepare_frontwards();
 		}
 		else if ((abs(get_middle_diff())>STRAIGHT_ZONE_WIDTH_MIN)){
 			// perform very small error correction
@@ -288,7 +288,7 @@ void move_straight_backwards(void){
 	}
 }
 
-void prepare_pid_front(void){
+void prepare_frontwards(void){
 
 	set_leds(PURPLE_IDX);
 
