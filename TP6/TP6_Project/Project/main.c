@@ -88,9 +88,9 @@ int main(void)
 	 */
 
 	//Declaration of camera configuration
-	rgb_gain_t rgb_gains = {94, 64, 10};
+	rgb_gain_t rgb_gains = {110, 50, 10};
 	uint8_t contrast = 64;
-	uint8_t brightness = 50;
+	uint8_t brightness = 100;
 	uint16_t line_index_top = 10; //tuning uses line_index_top for plot visualization
 	detect_mode_t mode_detect = MEAN_ONLY;
 	visualize_mode_t send_params = NO_VISUALIZE_PARAMS;
@@ -114,7 +114,6 @@ int main(void)
 
 	//Initialize IR sensors and calibrate them
 	proximity_start();
-	calibrate_ir();
 
 	//Initialize camera with given configuration
 	config_t config = {rgb_gains, contrast, brightness, line_index_top, line_index_bot, mode_detect, send_params};

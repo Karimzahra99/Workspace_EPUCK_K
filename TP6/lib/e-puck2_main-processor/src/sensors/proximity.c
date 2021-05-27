@@ -206,11 +206,9 @@ static THD_FUNCTION(proximity_thd, arg)
 
 				case 1:
 					for(int i=0; i<PROXIMITY_NB_CHANNELS; i++) {
+						if ((i == 0) || (i==7)) continue;
 						calibrationSum[i] += get_prox(i);
-						//remove if no effect
-						if ((i == 0)||(i == 7)){
-							continue;
-						}
+
 					}
 					calibrationNumSamples++;
 					if(calibrationNumSamples == 100) {

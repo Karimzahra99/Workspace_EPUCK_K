@@ -18,7 +18,7 @@
 #define NSTEP_ONE_TURN      		1000	// number of step for 1 turn of the motor
 #define WHEEL_DISTANCE      		5.30f    //cm
 #define PERIMETER_EPUCK     		(PI * WHEEL_DISTANCE)
-#define MAX_LINE_WIDTH              3.5f
+#define MAX_LINE_WIDTH              4.5f
 #define REPOSITION_DISTANCE 		10
 #define ROT_STEP_DIST         		PERIMETER_EPUCK/16
 #define STRAIGHT_LINE_DIST			4.5
@@ -42,8 +42,8 @@
 
 //Threshold des IR
 #define	IR_THRESHOLD				250
-#define IR_BRUIT_BLANC              2
-#define IR_OBS_OFFSET				2
+#define IR_BRUIT_BLANC              0
+#define IR_OBS_OFFSET				15
 
 //Color speeds
 #define BACKWARD_CORR_SPEED 		0.8f
@@ -220,8 +220,8 @@ static THD_FUNCTION(PidRegulator, arg) {
 }
 
 bool check_ir_front(void){
-	int ir_front_left = get_calibrated_prox(SENSOR_IR3);
-	int ir_front_right = get_calibrated_prox(SENSOR_IR4);
+	int ir_front_left = get_prox(SENSOR_IR3);
+	int ir_front_right = get_prox(SENSOR_IR4);
 
 	if ((ir_front_left > IR_THRESHOLD) || (ir_front_right > IR_THRESHOLD)){
 		//obstacle found in front
@@ -353,7 +353,7 @@ void avoid_obs(void){
 		int16_t speed_correction=0;
 		if (rolling_context.obstacle_context.obstacle_at_left){
 			speed_correction = pid_regulator_ir(rolling_context.obstacle_context.ir2_adjusted);
-			int16_t ir3_new = get_calibrated_prox(SENSOR_IR3);
+			int16_t ir3_new = abs(get_prox(SENSOR_IR3));
 
 			if (ir3_new < rolling_context.obstacle_context.ir3_adjusted - IR_BRUIT_BLANC){
 				left_motor_set_speed(-cms_to_steps(SEARCH_SPEED) + speed_correction);
@@ -373,7 +373,7 @@ void avoid_obs(void){
 		}
 		else{
 			speed_correction = pid_regulator_ir(rolling_context.obstacle_context.ir5_adjusted);
-			int16_t ir4_new = get_calibrated_prox(SENSOR_IR4);
+			int16_t ir4_new = get_prox(SENSOR_IR4);
 
 			if (ir4_new < rolling_context.obstacle_context.ir4_adjusted - IR_BRUIT_BLANC){
 				left_motor_set_speed(-cms_to_steps(SEARCH_SPEED) - speed_correction);
@@ -575,11 +575,13 @@ void rotate_till_color(bool left_obs){
 void adjust (void){
 	if (rolling_context.obstacle_context.obstacle_at_left){
 		rolling_context.obstacle_context.ir2_adjusted = rotate_until_irmax_left();
-		rolling_context.obstacle_context.ir3_adjusted = get_calibrated_prox(SENSOR_IR3);
+		chThdSleepMilliseconds(300);
+		rolling_context.obstacle_context.ir3_adjusted = abs(get_prox(SENSOR_IR3))+5;
 	}
 	else {
 		rolling_context.obstacle_context.ir5_adjusted = rotate_until_irmax_right();
-		rolling_context.obstacle_context.ir4_adjusted = get_calibrated_prox(SENSOR_IR4);
+		chThdSleepMilliseconds(300);
+		rolling_context.obstacle_context.ir4_adjusted = abs(get_prox(SENSOR_IR4));
 	}
 }
 
@@ -592,10 +594,10 @@ int16_t rotate_until_irmax_left(void)
 								-CALIBRATION_SPEED, CALIBRATION_SPEED);
 	while ((ir_left_nouvau > ir_left_ancien + IR_OBS_OFFSET) || start == 0){
 		start = 1;
-		ir_left_ancien = get_calibrated_prox(SENSOR_IR2);
+		ir_left_ancien = get_prox(SENSOR_IR2);
 		motor_set_position(ROT_STEP_DIST, ROT_STEP_DIST,
 							-CALIBRATION_SPEED, CALIBRATION_SPEED);
-		ir_left_nouvau = get_calibrated_prox(SENSOR_IR2);
+		ir_left_nouvau = get_prox(SENSOR_IR2);
 
 	}
 	motor_set_position(ROT_STEP_DIST, ROT_STEP_DIST,
@@ -613,10 +615,10 @@ int16_t rotate_until_irmax_right(void)
 									CALIBRATION_SPEED, -CALIBRATION_SPEED);
 	while ((ir_right_nouvau > ir_right_ancien + IR_OBS_OFFSET) || start == 0){
 		start = 1;
-		ir_right_ancien = get_calibrated_prox(SENSOR_IR5);
+		ir_right_ancien = get_prox(SENSOR_IR5);
 		motor_set_position(ROT_STEP_DIST, ROT_STEP_DIST,
 							CALIBRATION_SPEED, -CALIBRATION_SPEED);
-		ir_right_nouvau = get_calibrated_prox(SENSOR_IR5);
+		ir_right_nouvau = get_prox(SENSOR_IR5);
 
 	}
 	motor_set_position(ROT_STEP_DIST, ROT_STEP_DIST,
@@ -642,10 +644,10 @@ int16_t pid_regulator_ir(int16_t middle){
 
 	static float last_error = 0;
 	if (rolling_context.obstacle_context.obstacle_at_left){
-		error =  get_calibrated_prox(SENSOR_IR2) - goal;
+		error =  get_prox(SENSOR_IR2) - goal;
 	}
 	else{
-		error =  get_calibrated_prox(SENSOR_IR5) - goal;
+		error =  get_prox(SENSOR_IR5) - goal;
 	}
 
 	derivative = error - last_error ;
