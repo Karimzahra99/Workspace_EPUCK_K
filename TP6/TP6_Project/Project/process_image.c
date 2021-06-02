@@ -8,6 +8,7 @@
 
 #include <process_image.h>
 
+#define NOISE_OFFSET				20
 
 static uint16_t mid_line = IMAGE_BUFFER_SIZE/2;	//middle
 
@@ -26,8 +27,8 @@ void extract_middle_line(uint8_t *buffer){
 		mean /= IMAGE_BUFFER_SIZE;
 
 		for(i = 0 ; i < IMAGE_BUFFER_SIZE ; i++){
-			//detect the beginning of a slope
-			if(buffer[i] > mean+20 && buffer[i-WIDTH_SLOPE] < mean+20 ){
+			//detects the beginning of a slope
+			if(buffer[i] > mean + NOISE_OFFSET && buffer[i-WIDTH_SLOPE] < mean + NOISE_OFFSET ){
 				mid_line=i;
 			}
 		}
@@ -64,7 +65,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 
 	uint8_t *img_buff_ptr;
 	uint8_t image[IMAGE_BUFFER_SIZE] = {0};
-	bool send_to_computer = true;
+//	bool send_to_computer = true;
 
     while(1){
     	//waits until an image has been captured
@@ -82,13 +83,13 @@ static THD_FUNCTION(ProcessImage, arg) {
 		//search for a line in the image and gets its width in pixels
 		extract_middle_line(image);
 
-
-		if(send_to_computer){
-			//sends to the computer the image
-			SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
-		}
-		//invert the bool
-		send_to_computer = !send_to_computer;
+// uncomment to see plot
+//		if(send_to_computer){
+//			//sends to the computer the image
+//			SendUint8ToComputer(image, IMAGE_BUFFER_SIZE);
+//		}
+//		//invert the bool
+//		send_to_computer = !send_to_computer;
     }
 }
 

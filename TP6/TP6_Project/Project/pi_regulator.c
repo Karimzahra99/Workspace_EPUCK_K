@@ -10,24 +10,46 @@
 #include <pi_regulator.h>
 #include <process_image.h>
 #include <proximity.h>
+#include <leds.h>
+#include <spi_comm.h>
+#include <audio/play_melody.h>
 
 #define LOW_SPEED				500
 #define MEDIUM_SPEED			800
+#define HIGH_SPEED				MOTOR_SPEED_LIMIT
+#define LED_ON					50
+#define LED_OFF					0
+#define PROX_THRESH				200
+
+typedef enum {
+	SENSOR_IR1 = 1,
+	SENSOR_IR2,
+	SENSOR_IR3,
+	SENSOR_IR4,
+	SENSOR_IR5,
+	SENSOR_IR6
+} ir_sensors_index_t;
+
 typedef enum {
 	LOW = 0,
 	MEDIUM,
 	STOP,
+	HIGH
 } STATE_t;
 
 static STATE_t speed_context;
 
+// detects proximity and change mode accordingly
 void change_speed(void);
+
+// set led colors for each speed case
+void set_mode_color(void);
 
 //simple PI regulator implementation
 int16_t pi_regulator(void);
 
-static THD_WORKING_AREA(waPiRegulator, 256);
-static THD_FUNCTION(PiRegulator, arg) {
+static THD_WORKING_AREA(wafollow_line, 256);
+static THD_FUNCTION(follow_line, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
@@ -39,6 +61,8 @@ static THD_FUNCTION(PiRegulator, arg) {
 
     while(1){
         time = chVTGetSystemTime();
+        clear_leds();
+        set_mode_color();
 
         switch(speed_context){
 		case LOW :
@@ -47,6 +71,10 @@ static THD_FUNCTION(PiRegulator, arg) {
 
 		case MEDIUM :
 			speed = MEDIUM_SPEED;
+			break;
+
+		case HIGH :
+			speed = HIGH_SPEED;
 			break;
 
 		case STOP :
@@ -66,18 +94,53 @@ static THD_FUNCTION(PiRegulator, arg) {
 }
 
 void change_speed(void){
-	if (get_prox(2) > 200){
-		speed_context = LOW;
-		}
-	if (get_prox(5) > 200){
-		speed_context = MEDIUM;
-		}
-	if (get_prox(3) > 200 || get_prox(4) > 200){
+	if (get_prox(SENSOR_IR2) > PROX_THRESH && get_prox(SENSOR_IR5) > PROX_THRESH ){
 		speed_context = STOP;
+		playMelody(WE_ARE_THE_CHAMPIONS, ML_SIMPLE_PLAY, NULL);
+	}
+	else{
+		if (get_prox(SENSOR_IR2) > PROX_THRESH){
+			speed_context = LOW;
 		}
-//    chprintf((BaseSequentialStream *)&SD3, " ir4new =%-7d ir4old =%-7d speedcorr =%-7d\r\n\n", ir4_new, ir4_old, speed_correction)
+		if (get_prox(SENSOR_IR5) > PROX_THRESH){
+			speed_context = MEDIUM;
+		}
+		if (get_prox(SENSOR_IR3) > PROX_THRESH || get_prox(SENSOR_IR4) > PROX_THRESH){
+			speed_context = HIGH;
+		}
+	}
 
 
+}
+
+void set_mode_color(void){
+
+	if (speed_context == HIGH){
+		set_rgb_led(LED2, LED_OFF, LED_ON, LED_OFF);
+		set_rgb_led(LED4, LED_OFF, LED_ON, LED_OFF);
+		set_rgb_led(LED6, LED_OFF, LED_ON, LED_OFF);
+		set_rgb_led(LED8, LED_OFF, LED_ON, LED_OFF);
+		set_led(LED5,LED_ON);
+	}
+	else if (speed_context == MEDIUM){
+		set_rgb_led(LED2, LED_ON, LED_ON, LED_OFF);
+		set_rgb_led(LED4, LED_ON, LED_ON, LED_OFF);
+		set_rgb_led(LED6, LED_ON, LED_ON, LED_OFF);
+		set_rgb_led(LED8, LED_ON, LED_ON, LED_OFF);
+		set_led(LED7,LED_ON);
+	}
+	else if(speed_context == LOW){
+		set_rgb_led(LED2, LED_ON, LED_OFF, LED_OFF);
+		set_rgb_led(LED4, LED_ON, LED_OFF, LED_OFF);
+		set_rgb_led(LED6, LED_ON, LED_OFF, LED_OFF);
+		set_rgb_led(LED8, LED_ON, LED_OFF, LED_OFF);
+		set_led(LED3,LED_ON);
+	}
+	else if(speed_context == STOP){
+		set_led(LED7,LED_ON);
+		set_led(LED3,LED_ON);
+
+	}
 }
 
 int16_t pi_regulator(void){
@@ -85,43 +148,35 @@ int16_t pi_regulator(void){
 	float error = 0;
 	float speed = 0;
 	float derivative = 0;
-	static float sum_error = 0;
 	static float old_error = 0;
 
 	error = get_middle() - IMAGE_BUFFER_SIZE/2;
 
 
-
-	//disables the PI regulator if the error is to small
-	//this avoids to always move as we cannot exactly be where we want and 
-	//the camera is a bit noisy
+	//camera is little noisy
 	if(fabs(error) < ERROR_THRESHOLD){
+		//disables the PI regulator if error is too small
 		return 0;
 	}
 
-	sum_error += error;
-
-////	//we set a maximum and a minimum for the sum to avoid an uncontrolled growth
-//	if(sum_error > MAX_SUM_ERROR){
-//		sum_error = MAX_SUM_ERROR;
-//	}else if(sum_error < -MAX_SUM_ERROR){
-//		sum_error = -MAX_SUM_ERROR;
-//	}
 	derivative = error - old_error ;
 
 	old_error = error;
 	if (speed_context==MEDIUM){
-	speed = KP_M * error + KD_M * derivative;
+	speed = KP_M * error;
 	}
 	else if (speed_context==LOW){
-	speed = KP_L * error + KD_L * derivative;
+	speed = KP_L * error;
+	}
+	else if (speed_context==HIGH){
+	speed = KP_H * error + KD_H*derivative;
 	}
     return (int16_t)speed;
 }
 
 
-void pi_regulator_start(void){
+void follow_line_start(void){
 	speed_context = STOP;
-	chThdCreateStatic(waPiRegulator, sizeof(waPiRegulator), NORMALPRIO, PiRegulator, NULL);
+	chThdCreateStatic(wafollow_line, sizeof(wafollow_line), NORMALPRIO, follow_line, NULL);
 }
 

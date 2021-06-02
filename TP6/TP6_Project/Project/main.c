@@ -15,6 +15,8 @@
 #include <pi_regulator.h>
 #include <process_image.h>
 #include <proximity.h>
+#include <leds.h>
+#include <spi_comm.h>
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -51,22 +53,36 @@ int main(void)
 	po8030_start();
 
 
-	//to remove if not needed
+	//to uncomment if needed
     //starts the serial communication
-    serial_start();
+	//serial_start();
     //start the USB communication
     usb_start();
 
-    messagebus_init(&bus, &bus_lock, &bus_condvar);
-	//Starts the proximity sensors and calibrate them
-	proximity_start();
-//	calibrate_ir();
+	//Initialize DAC : digital analog converter (needed to use microphones)
+	dac_start();
 
-	//initalize the motors
+	//For RGB LEDS
+	//Initialize SPI : serial peripheral interface, to use RGB LEDs
+	spi_comm_start();
+
+	// bus initialization for proximity sensors
+    messagebus_init(&bus, &bus_lock, &bus_condvar);
+
+    //Starts the proximity sensors and calibrate them
+	proximity_start();
+
+	//Initialize speakers
+	mic_start(NULL);
+
+	//Initialize Melody thread to play songs
+	playMelodyStart();
+
+	//Initialize the motors
 	motors_init();
 
-	//starts the threads for the pi regulator and the processing of the image
-	pi_regulator_start();
+	//starts the threads for the line following and the processing of the image
+	follow_line_start();
 	process_image_start();
 
     /* Infinite loop. */
