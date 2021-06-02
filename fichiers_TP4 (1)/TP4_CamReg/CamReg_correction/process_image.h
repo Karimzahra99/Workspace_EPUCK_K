@@ -1,8 +1,11 @@
 #ifndef PROCESS_IMAGE_H
 #define PROCESS_IMAGE_H
 
-float get_distance_cm(void);
-uint16_t get_line_position(void);
-void process_image_start(void);
+#define IMAGE_BUFFER_SIZE			640
+
+
+uint16_t extract_middle_line(uint8_t *buffer);
+float get_middle(void);
+
 
 #endif /* PROCESS_IMAGE_H */

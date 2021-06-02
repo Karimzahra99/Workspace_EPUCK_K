@@ -14,6 +14,11 @@
 
 #include <pi_regulator.h>
 #include <process_image.h>
+#include <proximity.h>
+
+messagebus_t bus;
+MUTEX_DECL(bus_lock);
+CONDVAR_DECL(bus_condvar);
 
 void SendUint8ToComputer(uint8_t* data, uint16_t size) 
 {
@@ -41,18 +46,27 @@ int main(void)
     chSysInit();
     mpu_init();
 
+    //starts the camera
+    dcmi_start();
+	po8030_start();
+
+
+	//to remove if not needed
     //starts the serial communication
     serial_start();
     //start the USB communication
     usb_start();
-    //starts the camera
-    dcmi_start();
-	po8030_start();
-	//inits the motors
+
+    messagebus_init(&bus, &bus_lock, &bus_condvar);
+	//Starts the proximity sensors and calibrate them
+	proximity_start();
+//	calibrate_ir();
+
+	//initalize the motors
 	motors_init();
 
-	//stars the threads for the pi regulator and the processing of the image
-//	pi_regulator_start();
+	//starts the threads for the pi regulator and the processing of the image
+	pi_regulator_start();
 	process_image_start();
 
     /* Infinite loop. */
