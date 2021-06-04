@@ -1,3 +1,5 @@
+#include "follow_line.h"
+
 #include "ch.h"
 #include "hal.h"
 #include <math.h>
@@ -7,19 +9,31 @@
 
 #include <main.h>
 #include <motors.h>
-#include <pi_regulator.h>
 #include <process_image.h>
 #include <proximity.h>
 #include <leds.h>
 #include <spi_comm.h>
 #include <audio/play_melody.h>
 
-#define LOW_SPEED				500
-#define MEDIUM_SPEED			800
-#define HIGH_SPEED				MOTOR_SPEED_LIMIT
+// constants //
+
+// LED constants
 #define LED_ON					50
 #define LED_OFF					0
+
+// Proximity sensors constant
 #define PROX_THRESH				200
+
+// Regulator constants
+#define LOW_SPEED					500 //step/s
+#define MEDIUM_SPEED				800
+#define HIGH_SPEED					MOTOR_SPEED_LIMIT
+#define ERROR_THRESHOLD				3.0f	//the noise of the camera
+#define KP_L						1.5f
+#define KP_M						2.0f
+#define KP_H						3.6f
+#define KD_H						36.0f
+
 
 typedef enum {
 	SENSOR_IR1 = 1,
@@ -46,7 +60,7 @@ void change_speed(void);
 void set_mode_color(void);
 
 //simple PI regulator implementation
-int16_t pi_regulator(void);
+int16_t pd_regulator(void);
 
 static THD_WORKING_AREA(wafollow_line, 256);
 static THD_FUNCTION(follow_line, arg) {
@@ -85,7 +99,7 @@ static THD_FUNCTION(follow_line, arg) {
 			break;
         }
         change_speed();
-        speed_correction = pi_regulator();
+        speed_correction = pd_regulator();
 		right_motor_set_speed(speed -  speed_correction);
 		left_motor_set_speed(speed + speed_correction);
         //100Hz
@@ -143,7 +157,7 @@ void set_mode_color(void){
 	}
 }
 
-int16_t pi_regulator(void){
+int16_t pd_regulator(void){
 
 	float error = 0;
 	float speed = 0;

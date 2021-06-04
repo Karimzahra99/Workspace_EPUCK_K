@@ -12,22 +12,15 @@
 #include <camera/po8030.h>
 #include <chprintf.h>
 
-#include <pi_regulator.h>
 #include <process_image.h>
 #include <proximity.h>
-#include <leds.h>
 #include <spi_comm.h>
+#include "follow_line.h"
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
 
-void SendUint8ToComputer(uint8_t* data, uint16_t size) 
-{
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
-	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
-}
 
 static void serial_start(void)
 {

@@ -15,6 +15,7 @@ static uint16_t mid_line = IMAGE_BUFFER_SIZE/2;	//middle
 //semaphore
 static BSEMAPHORE_DECL(image_ready_sem, TRUE);
 
+void SendUint8ToComputer(uint8_t* data, uint16_t size);
 
 void extract_middle_line(uint8_t *buffer){
 	uint16_t i = 0;
@@ -96,6 +97,14 @@ static THD_FUNCTION(ProcessImage, arg) {
 float get_middle(void){
 	return mid_line;
 }
+
+void SendUint8ToComputer(uint8_t* data, uint16_t size)
+{
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)"START", 5);
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)&size, sizeof(uint16_t));
+	chSequentialStreamWrite((BaseSequentialStream *)&SD3, (uint8_t*)data, size);
+}
+
 
 void process_image_start(void){
 	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
