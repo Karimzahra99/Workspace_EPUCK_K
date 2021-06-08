@@ -11,6 +11,9 @@
 #include <motors.h>
 #include <camera/po8030.h>
 #include <chprintf.h>
+#include <audio/play_melody.h>
+#include <audio/microphone.h>
+#include <audio/audio_thread.h>
 
 #include <process_image.h>
 #include <proximity.h>
@@ -21,18 +24,18 @@ messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
 
-
-static void serial_start(void)
-{
-	static SerialConfig ser_cfg = {
-	    115200,
-	    0,
-	    0,
-	    0,
-	};
-
-	sdStart(&SD3, &ser_cfg); // UART3.
-}
+//to uncomment if needed
+//static void serial_start(void)
+//{
+//	static SerialConfig ser_cfg = {
+//	    115200,
+//	    0,
+//	    0,
+//	    0,
+//	};
+//
+//	sdStart(&SD3, &ser_cfg); // UART3.
+//}
 
 int main(void)
 {
@@ -50,7 +53,7 @@ int main(void)
     //starts the serial communication
 	//serial_start();
     //start the USB communication
-    usb_start();
+    //usb_start();
 
 	//Initialize DAC : digital analog converter (needed to use microphones)
 	dac_start();
