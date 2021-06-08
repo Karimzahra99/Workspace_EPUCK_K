@@ -50,10 +50,10 @@ int main(void)
 
 
 	//to uncomment if needed
-    //starts the serial communication
-	//serial_start();
-    //start the USB communication
-    //usb_start();
+//    starts the serial communication
+//	  serial_start();
+//    start the USB communication
+//    usb_start();
 
 	//Initialize DAC : digital analog converter (needed to use microphones)
 	dac_start();
