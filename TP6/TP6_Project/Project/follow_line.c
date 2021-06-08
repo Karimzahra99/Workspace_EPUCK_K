@@ -34,7 +34,7 @@
 #define KP_H						3.6f
 #define KD_H						36.0f
 
-
+//sensors names
 typedef enum {
 	SENSOR_IR1 = 1,
 	SENSOR_IR2,
@@ -42,16 +42,17 @@ typedef enum {
 	SENSOR_IR4,
 	SENSOR_IR5,
 	SENSOR_IR6
-} ir_sensors_index_t;
+} ir_sensors;
 
+//speed states
 typedef enum {
 	LOW = 0,
 	MEDIUM,
 	STOP,
 	HIGH
-} STATE_t;
+} STATE;
 
-static STATE_t speed_context;
+static STATE speed_context;
 
 // detects proximity and change mode accordingly
 void change_speed(void);

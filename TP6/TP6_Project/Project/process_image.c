@@ -35,6 +35,7 @@ void extract_middle_line(uint8_t *buffer){
 		}
 }
 
+// based on tp4
 static THD_WORKING_AREA(waCaptureImage, 256);
 static THD_FUNCTION(CaptureImage, arg) {
 
